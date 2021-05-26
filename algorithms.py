@@ -1,12 +1,10 @@
-from typeRotation import *
-from typeDirection import *
-from typeAngle import *
-from typeCell import *
-from typeThick import *
-import classCell as c
+from enums.Rotation import *
+from enums.Direction import *
+from enums.Angle import *
+from enums.Cell import *
+from enums.Thick import *
+import classes.Cell as c
 import numpy as np
-import copy
-import csv
 import math as m
 
 def findDir(rotationType, angleType):

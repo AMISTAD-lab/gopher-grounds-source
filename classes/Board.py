@@ -1,18 +1,18 @@
 import abc
 from abc import ABC, abstractmethod, ABCMeta
 
-from typeCell import *
-from typeAngle import *
-from typeThick import *
-from typeRotation import *
+from enums.Cell import *
+from enums.Angle import *
+from enums.Thick import *
+from enums.Rotation import *
 
-from classCell import *
-from classDoor import *
-from classFloor import *
-from classFood import *
-from classDirt import *
-from classWire import *
-from classArrow import *
+from classes.Cell import *
+from classes.Door import *
+from classes.Floor import *
+from classes.Food import *
+from classes.Dirt import *
+from classes.Wire import *
+from classes.Arrow import *
 
 import numpy as np
 import math as m

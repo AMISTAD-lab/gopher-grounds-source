@@ -20,6 +20,8 @@ var trapNum = 0;	// the number of the trap to start the animation at
 var trapFrameNum = 0; // current step of the trap 
 var frameNum = 0; // frame count for the overall animation
 
+gridContainer.style.width = $('#gridContainer').height() * 0.6 + 'px';
+
 // Calls init only once document has loaded.
 $(document).ready(function () {
 	init();

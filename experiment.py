@@ -1,7 +1,6 @@
 import simulation as s
 import copy
-import csv
-import classTrap as t
+import classes.Trap as t
 import numpy as np
 import magicVariables as mv
 import data as d
