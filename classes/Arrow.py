@@ -1,8 +1,8 @@
-from typeCell import *
-from classCell import *
-from typeAngle import *
-from typeRotation import *
-from classProjectile import *
+from enums.Cell import *
+from classes.Cell import *
+from enums.Angle import *
+from enums.Rotation import *
+from classes.Projectile import *
 import algorithms as alg
 
 class Arrow(Cell):

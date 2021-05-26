@@ -1,8 +1,8 @@
-from typeCell import *
-from typeAngle import *
-from typeRotation import *
-from typeThick import *
-import classCell as c
+from enums.Cell import *
+from enums.Angle import *
+from enums.Rotation import *
+from enums.Thick import *
+import classes.Cell as c
 
 class Food(c.Cell):
     def __init__(self, x, y, ownerBoard, angleType=AngleType.na, rotationType=RotationType.na, thickType=ThickType.na, active=False):

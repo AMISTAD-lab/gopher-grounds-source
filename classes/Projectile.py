@@ -1,5 +1,5 @@
-from typeDirection import *
-from typeThick import *
+from enums.Direction import *
+from enums.Thick import *
 import simulation as s
 import magicVariables as mv
 

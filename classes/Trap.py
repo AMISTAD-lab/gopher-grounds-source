@@ -1,11 +1,11 @@
-from classCell import *
-from typeCell import *
-from classBoard import *
-from classFloor import *
-from classFood import *
-from classArrow import *
-from classWire import *
-from classDoor import *
+from classes.Cell import *
+from enums.Cell import *
+from classes.Board import *
+from classes.Floor import *
+from classes.Food import *
+from classes.Arrow import *
+from classes.Wire import *
+from classes.Door import *
 import algorithms as alg
 
 class Trap(Board):

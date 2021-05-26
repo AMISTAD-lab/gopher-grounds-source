@@ -1,8 +1,8 @@
-from classCell import *
-from typeCell import *
-from typeAngle import *
-from typeRotation import *
-from typeThick import *
+from classes.Cell import *
+from enums.Cell import *
+from enums.Angle import *
+from enums.Rotation import *
+from enums.Thick import *
 import simulation as s
 
 class Door(Cell):
