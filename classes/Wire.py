@@ -1,7 +1,7 @@
-from typeCell import *
-from typeRotation import *
-from typeDirection import *
-import classCell as c
+from enums.Cell import *
+from enums.Rotation import *
+from enums.Direction import *
+import classes.Cell as c
 import algorithms as alg
 
 class Wire(c.Cell):

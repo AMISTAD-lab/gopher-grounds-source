@@ -1,9 +1,9 @@
-from classDoor import *
-from classFloor import *
-from classFood import *
-from classDirt import *
-from classWire import *
-from classArrow import *
+from classes.Door import *
+from classes.Floor import *
+from classes.Food import *
+from classes.Dirt import *
+from classes.Wire import *
+from classes.Arrow import *
 
 #This file contains designed trapboards
 #The full list is stored in the traps variable at the bottom of this file

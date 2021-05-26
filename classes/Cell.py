@@ -1,9 +1,9 @@
 import abc
 from abc import ABC, abstractmethod, ABCMeta
-from typeAngle import *
-from typeRotation import *
-from typeThick import *
-from typeCell import *
+from enums.Angle import *
+from enums.Rotation import *
+from enums.Thick import *
+from enums.Cell import *
 
 class Cell(metaclass = ABCMeta):
     def __init__(self, x, y, cellType, ownerBoard, angleType=AngleType.na, rotationType=RotationType.na, thickType=ThickType.na, endpoints=[], active=False):

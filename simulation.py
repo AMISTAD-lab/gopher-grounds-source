@@ -1,4 +1,4 @@
-from classGopher import *
+from classes.Gopher import *
 
 import algorithms as alg
 import math as m
