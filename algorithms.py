@@ -153,6 +153,11 @@ def isTrap(trap, sigVal=13.29):
     else:
         return False
 
+def getCoherenceValue(trap):
+    """given a trap, determines the coherence value of the trap"""
+    connectionTuple = connectionsPerPiece(trap)
+    return connectionTuple[0] / connectionTuple[1]
+
 #the historical frequencies of intention gophers entering traps
 #to be used for the cautious gopher
 intentionEnter = {
