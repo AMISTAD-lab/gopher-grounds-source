@@ -5,8 +5,8 @@ def randomFitness(configuration):
 def functionalFitness(configuration):
     """
     Assigns a fitness based on the function of the given configuration.
-    To do so, we run simulations to get a confidence interval on whether the gopher dies or not.
-    """
+    To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
+    or compute the the given configuration's probability of killing a gopher"""
     pass
 
 def coherentFitness(configuration):
