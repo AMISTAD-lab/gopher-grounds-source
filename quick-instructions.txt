@@ -1,0 +1,7 @@
+To run the experiment, simply call the "runExperiment" method in experiment.py and indicate the parameter to change and the number of simulations per to run per parameter value.
+
+To simulate a run of the gopher, call the "simulate" method in experiment.py with a dictionary corresponding to the desired settings (an example dictionary is at the top of the file). The "trapinfo" returned by this method can be run by the "writeTojs" method in visualize.py, which then allows you to view the simulation by dragging the "animation.html" file in the animation folder into your browser's search bar.
+
+The simulation consists of a gopher deciding to enter a series of designed or random traps (4 rows x 3 columns) and either eating food or triggering the trap. We take a look a look at the gopher's survival when it enters traps randomly or uses statistical surprisal. If you desire to change the behavior of the gopher, head to classGopher.py and trace the code from there. If you want to change the real trap options, they are all stored in designedTraps.py.
+
+If you have significant trouble figuring out how to use this code, feel free to email me at amainakilaas@hmc.edu

@@ -1,0 +1,40 @@
+/** animation.css
+Stylesheet for third experiment's animation.
+Created on June 23, 2020 by Cynthia Hom
+*/
+
+*{ /** By default, all elements should take up entirety of container*/
+	padding: 0;
+	margin: 0;
+	height: 100%;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+#gridContainer{
+	display: grid;
+	background-color: rgb(180, 180, 180); /* Reduces flickering effect */
+}
+
+#gopher{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 1;
+}
+
+.gridDiv{
+	display: flex; /* makes z-index work */
+	justify-content: center;
+	align-items: center;
+	/*border: 2px solid black;*/ /* Uncomment for grid lines */
+	position: relative;
+	/*background-color: rgb(180, 180, 180);*/ /* Reduces flickering effect */
+}
+
+.gridImage{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 0;
+}
