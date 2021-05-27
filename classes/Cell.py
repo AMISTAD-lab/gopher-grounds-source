@@ -20,7 +20,15 @@ class Cell(metaclass = ABCMeta):
         self.inputEndpoint = None
 
     def __repr__(self):
-        return str(self.cellType.name) + " " +str(self.active)
+        cellStr = '( '
+        cellStr += str(self.x) + ' '
+        cellStr += str(self.y) + ' '
+        cellStr += str(self.cellType.name) + ' '
+        cellStr += str(self.angleType.name) + ' '
+        cellStr += str(self.thickType.name) + ' '
+        cellStr += str(self.rotationType.name) + ' '
+        cellStr += ')'
+        return cellStr
 
     def getBaseInfo(self):
         """returns the string representation of a cell"""
