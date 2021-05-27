@@ -15,7 +15,7 @@ def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
     return np.random.random()
 
-def functionalFitness(configuration, numSimulations = 100):
+def functionalFitness(configuration, numSimulations = 100, printStatistics = False):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
@@ -31,14 +31,17 @@ def functionalFitness(configuration, numSimulations = 100):
 
     # Calculate statistics
     proportion = 1 - numberAlive / numSimulations
-    stderr = np.sqrt(proportion * (1 - proportion) / numSimulations)
 
-    upperCI = proportion + 1.96 * stderr
-    lowerCI = proportion - 1.96 * stderr
+    if printStatistics:
+        stderr = np.sqrt(proportion * (1 - proportion) / numSimulations)
 
-    print("Proportion: ", proportion)
-    print("Std Error: ", round(stderr, 3))
-    print("CI: [", round(lowerCI, 3), ", ", round(upperCI, 3), "]")
+        upperCI = proportion + 1.96 * stderr
+        lowerCI = proportion - 1.96 * stderr
+
+        print("Proportion: ", proportion)
+        print("Std Error: ", round(stderr, 3))
+        print("CI: [", round(lowerCI, 3), ", ", round(upperCI, 3), "]")
+
     return proportion
 
 def coherentFitness(configuration):
@@ -151,18 +154,3 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold):
         
         fitnesses = fitnessFunc(population)
     return population
-
-
-population = initializePopulation(cellAlphabet, 1)
-print(population[0])
-# print(designedTraps.trap0)
-fitnesses = [functionalFitness(board.tolist()) for board in population]
-print(fitnesses)
-
-# print(functionalFitness(designedTraps.trap10))
-
-# encode = singleEncoding(designedTraps.trap0)
-# decode = singleDecoding(encode)
-# print(encode)
-# print(decode)
-# print(checkDifferences([designedTraps.trap0, decode]))
