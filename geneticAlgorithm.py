@@ -4,7 +4,7 @@ import algorithms as alg
 import numpy as np
 import random
 from encoding import *
-import designedTraps
+from designedTraps import *
 
 # Nick: I am not sure what the sample space is from the encoding, so I am using the ints from 0-56 for testing.
     # The code I wrote does not depend on any particular sample space so no changes should need to be made.
@@ -61,13 +61,14 @@ def initializePopulation(cellAlphabet, populationSize = 20):
             if i == 4:
                 cellCode = 1 # Food
             elif i == 7:
-                cellCode = 2
+                cellCode = 2 # Floor
             elif i == 10:
-                cellCode = 0
+                cellCode = 0 # Door
 
             member.append(cellCode)
 
         population.append(member)
+        population.append(singleEncoding(trap0))
 
     return listDecoding(population)
 
@@ -101,16 +102,27 @@ def selectionFunc(population, fitnesses):
 
     return random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=len(population))
 
-def crossoverFunc(encodedPop):
+def crossoverFunc(encodedPop, debug = False):
     """Crosses-over two members of the population to form a new population (one-point crossover)"""
     # Get two members to crossover (use index to replace in list at end)
     member1_i = random.randrange(0, len(encodedPop), 1)
     member2_i = random.randrange(0, len(encodedPop), 1)
-    while member2_i == member1_i:
+    
+    if debug:
+        print("original:")
+        print(encodedPop[member1_i])
+        print(encodedPop[member2_i])
+        print()
+    
+    while np.allclose(encodedPop[member1_i], encodedPop[member2_i]):
         member2_i = random.randrange(0, len(encodedPop), 1)
 
     # Cut occurs between (index - 1) and index
     index = random.randrange(1, len(encodedPop[member1_i]), 1)
+    if debug:
+        print("index:")
+        print(index)
+        print()
 
     # Calculate the left and right ends of the new members
     left1 = encodedPop[member1_i][:index]
@@ -118,10 +130,26 @@ def crossoverFunc(encodedPop):
     left2 = encodedPop[member2_i][:index]
     right2 = encodedPop[member2_i][index:]
 
+    if debug:
+        print("parts:")
+        print(left1, right1)
+        print(left2, right2)
+        print()
+
+    # Need to allocate arrays before-hand to prevent really weird error
+    # Error mutates encodedPop[member1_i] but not encodedPop[member2_i]
+    firstList = np.append(left1, right2)
+    secondList = np.append(left2, right1)
+
     # Replace these members in the encoded population
-    encodedPop[member1_i]=(np.append(left1, right2))
-    encodedPop[member2_i]=(np.append(left2, right1))
+    encodedPop[member1_i] = firstList
+    encodedPop[member2_i] = secondList
     
+    if debug:
+        print("is:")
+        print(encodedPop[member1_i])
+        print(encodedPop[member2_i])
+
     return encodedPop
 
 def mutationFunc(cellAlphabet, encodedPop):
@@ -141,7 +169,11 @@ def mutationFunc(cellAlphabet, encodedPop):
 def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 1000):
     """Finds a near-optimal solution in the search space using the given fitness function"""
     population = initializePopulation(cellAlphabet, 20)
+    # print(trap0)
+    # print(population[-1])
     fitnesses = np.array([fitnessFunc(member.tolist()) for member in population])
+    print(fitnessFunc(population[-1].tolist()))
+    # return
 
     counter  = 0
 
@@ -149,6 +181,8 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
         if (counter % 50 == 0):
             print("Generation ", counter, ":")
             print("Max fitness: ", max(fitnesses))
+            print("Mean fitness: ", np.mean(fitnesses))
+            print(fitnesses)
             print("------------------------")
             print()
 
@@ -166,4 +200,27 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
         counter += 1
     return population
 
-geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 0.8)
+# geneticAlgorithm(cellAlphabet, functionalFitness, 'mean', 0.5)
+
+population = initializePopulation(cellAlphabet, 20)
+fitnesses = [functionalFitness(member.tolist()) for member in population]
+print(fitnesses)
+# population = selectionFunc(population, fitnesses)
+# encodedPop = listEncoding(population)
+
+# origEncoded = copy.deepcopy(encodedPop)
+# # print(origEncoded)
+# encodedPop = crossoverFunc(encodedPop)
+# encodedPop = mutationFunc(cellAlphabet, encodedPop)
+# # print(encodedPop)
+
+# diffArr = []
+# for i in range(len(encodedPop)):
+#     currDiff = []
+#     for j in range(len(encodedPop[0])):
+#         currDiff.append(origEncoded[i][j] - encodedPop[i][j])
+#     diffArr.append(currDiff)
+
+# print(diffArr)
+
+# print(alg.getCoherenceValue(TrapClass.Trap(len(trap0[0]), len(trap0), False, chosenBoard = trap0)))

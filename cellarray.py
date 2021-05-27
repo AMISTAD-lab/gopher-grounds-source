@@ -20,12 +20,12 @@ cells.append(Cell(0,0, CellType.floor, None))
 
 #add straight wires
 for x in [0, 2]: 
-    for y in range(3): 
+    for y in range(3):
         cells.append(Cell(0, 0, CellType.wire, None, angleType=AngleType.straight, rotationType=RotationType(x), thickType=ThickType(y)))
 
 #add right angle wires
 for x in [0, 2, 4, 6]: 
-    for y in range(3): 
+    for y in range(3):
         cells.append(Cell(0, 0, CellType.wire, None, angleType=AngleType.rright, rotationType=RotationType(x), thickType=ThickType(y)))
 
 #add arrows
@@ -38,26 +38,51 @@ def findIndex(cell):
     """
     Takes a given cell and finds the index associated with that cell. Two-way casting is necessary for encoding/decoding
     """
-    ## If we have a floor, food, or door tile
-    if cell.angleType == AngleType.na or cell.rotationType == RotationType.na: #avoid angleType doesn't exist Exception
-        for i in range(3):
-            if cells[i].cellType == cell.cellType:
-                return i
-    for x in cells:
-        if x.angleType == AngleType.na or x.rotationType == RotationType.na: #avoid angleType doesn't exist Exception
-            continue
-        if x.cellType == cell.cellType and al.findDir(x.rotationType, x.angleType) == al.findDir(cell.rotationType, cell.angleType) and x.thickType == cell.thickType:
-            return cells.index(x)
+    for i in range(len(cells)):
+        if compareCells(cell, cells[i]):
+            return i
+
     return None
 
-def checkValidity(board):
+def compareCells(inputCell, listCell):
     """
-    Take in a board and check to see that it is valid (door, floor, and food in proper place)
+    Takes in two cells and returns true if and only if they are functionally the same cell
     """
-    # trap[4]  = 1  # Food
-    # trap[7]  = 2  # Floor
-    # trap[10] = 0  # Door
-    return board[4] == 1 and board[7] == 2 and board[10] == 0
+    # If not the same cell type or thickness, then they are definitely not the same cell
+    if inputCell.cellType != listCell.cellType:
+        return False
+
+    if inputCell.thickType != listCell.thickType:
+            return False
+
+    if inputCell.cellType in [CellType.floor, CellType.food, CellType.door]:
+        return True
+    
+    if inputCell.cellType == CellType.wire:
+        bothStraight = inputCell.angleType == AngleType.straight and listCell.angleType == AngleType.straight
+        bothAngled = inputCell.angleType != AngleType.straight and listCell.angleType != AngleType.straight
+
+        # If the wires have different shapes, then they aren't the same
+        if not (bothStraight or bothAngled):
+            return False
+
+        if bothStraight:
+            return (inputCell.rotationType.value % 4 == listCell.rotationType.value)
+
+        if bothAngled:
+             # Input cells can be left or right angled, but list cells are only right angled
+            isRight = (inputCell.angleType == AngleType.rright)
+            if isRight:
+                return isRight and inputCell.rotationType == listCell.rotationType
+            else:
+                return (inputCell.rotationType.value + 2) % 8 == listCell.rotationType.value
+        else:
+            return False
+
+    if inputCell.cellType == CellType.arrow:
+        return inputCell.angleType == listCell.angleType and inputCell.rotationType == listCell.rotationType
+
+    raise Exception("Undefined cell type in compareCells")
 
 #testing
 '''
@@ -71,3 +96,7 @@ print(findIndex(cell2))
 print(findIndex(cell3))
 print(findIndex(cell4))
 '''
+
+# cell1 = Cell(0, 0, CellType.wire, None, angleType=AngleType.rright, rotationType=RotationType(6), thickType=ThickType(0))
+# cell2 = Cell(0, 0, CellType.wire, None, angleType=AngleType.lright, rotationType=RotationType(4), thickType=ThickType(0))
+# print(compareCells(cell2, cell1))
