@@ -96,12 +96,13 @@ def selectionFunc(population, fitnesses):
     """Performs a roulette wheel-style selection process, 
         giving greater weight to members with greater fitnesses"""
     # Normalize all fitnesses
-    scaledFitnesses = fitnesses / np.sum(fitnesses)
+    fitnessSum = np.sum(fitnesses)
+    scaledFitnesses = fitnesses / fitnessSum if fitnessSum else 0
 
-    return random.choices(population, weights=scaledFitnesses, k=len(population))
+    return random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=len(population))
 
 def crossoverFunc(encodedPop):
-    """Crosses-over two members of the population to form a new population (two-point crossover)"""
+    """Crosses-over two members of the population to form a new population (one-point crossover)"""
     # Get two members to crossover (use index to replace in list at end)
     member1_i = random.randrange(0, len(encodedPop), 1)
     member2_i = random.randrange(0, len(encodedPop), 1)
@@ -137,20 +138,32 @@ def mutationFunc(cellAlphabet, encodedPop):
     encodedPop[member_i][index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
     return encodedPop
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 1000):
     """Finds a near-optimal solution in the search space using the given fitness function"""
     population = initializePopulation(cellAlphabet, 20)
-    fitnesses = np.array([fitnessFunc(member) for member in population])
+    fitnesses = np.array([fitnessFunc(member.tolist()) for member in population])
 
-    while not checkTermination(fitnesses, measure, threshold):
+    counter  = 0
+
+    while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
+        if (counter % 50 == 0):
+            print("Generation ", counter, ":")
+            print("Max fitness: ", max(fitnesses))
+            print("------------------------")
+            print()
+
         population = selectionFunc(population, fitnesses)
         
         encodedPop = listEncoding(population)
-        
-        encodedPop = crossoverFunc(population)
+
+        encodedPop = crossoverFunc(encodedPop)
         encodedPop = mutationFunc(cellAlphabet, encodedPop)
         
         population = listDecoding(encodedPop)
         
-        fitnesses = fitnessFunc(population)
+        fitnesses = np.array([fitnessFunc(member.tolist()) for member in population])
+
+        counter += 1
     return population
+
+geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 0.8)
