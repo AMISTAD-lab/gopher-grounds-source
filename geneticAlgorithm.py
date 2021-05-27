@@ -151,3 +151,18 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold):
         
         fitnesses = fitnessFunc(population)
     return population
+
+
+population = initializePopulation(cellAlphabet, 1)
+print(population[0])
+# print(designedTraps.trap0)
+fitnesses = [functionalFitness(board.tolist()) for board in population]
+print(fitnesses)
+
+# print(functionalFitness(designedTraps.trap10))
+
+# encode = singleEncoding(designedTraps.trap0)
+# decode = singleDecoding(encode)
+# print(encode)
+# print(decode)
+# print(checkDifferences([designedTraps.trap0, decode]))
