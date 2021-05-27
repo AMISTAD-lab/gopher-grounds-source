@@ -1,5 +1,4 @@
-import abc
-from abc import ABC, abstractmethod, ABCMeta
+from abc import ABCMeta
 from enums.Angle import *
 from enums.Rotation import *
 from enums.Thick import *
