@@ -10,29 +10,29 @@ import algorithms as al
 cells = []
 
 #add door
-cells.append(Cell(0,0, CellType.door, None))
+cells.append(Door(0,0, None))
 
 #add food
-cells.append(Cell(0,0, CellType.food, None))
+cells.append(Food(0,0, None))
 
 #add floor
-cells.append(Cell(0,0, CellType.floor, None))
+cells.append(Floor(0,0, None))
 
 #add straight wires
 for x in [0, 2]: 
     for y in range(3):
-        cells.append(Cell(0, 0, CellType.wire, None, angleType=AngleType.straight, rotationType=RotationType(x), thickType=ThickType(y)))
+        cells.append(Wire(0, 0, None, angleType=AngleType.straight, rotationType=RotationType(x), thickType=ThickType(y)))
 
 #add right angle wires
 for x in [0, 2, 4, 6]: 
     for y in range(3):
-        cells.append(Cell(0, 0, CellType.wire, None, angleType=AngleType.rright, rotationType=RotationType(x), thickType=ThickType(y)))
+        cells.append(Wire(0, 0, None, angleType=AngleType.rright, rotationType=RotationType(x), thickType=ThickType(y)))
 
 #add arrows
 for angle in range(6):
     for x in [0, 2, 4, 6]:
         for y in range(3):
-            cells.append(Cell(0, 0, CellType.arrow, None, angleType=AngleType(angle), rotationType=RotationType(x), thickType=ThickType(y)))
+            cells.append(Arrow(0, 0, None, angleType=AngleType(angle), rotationType=RotationType(x), thickType=ThickType(y)))
 
 def findIndex(cell):
     """
@@ -96,7 +96,3 @@ print(findIndex(cell2))
 print(findIndex(cell3))
 print(findIndex(cell4))
 '''
-
-# cell1 = Cell(0, 0, CellType.wire, None, angleType=AngleType.rright, rotationType=RotationType(6), thickType=ThickType(0))
-# cell2 = Cell(0, 0, CellType.wire, None, angleType=AngleType.lright, rotationType=RotationType(4), thickType=ThickType(0))
-# print(compareCells(cell2, cell1))

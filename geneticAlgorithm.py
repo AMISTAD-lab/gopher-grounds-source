@@ -68,7 +68,6 @@ def initializePopulation(cellAlphabet, populationSize = 20):
             member.append(cellCode)
 
         population.append(member)
-        population.append(singleEncoding(trap0))
 
     return listDecoding(population)
 
@@ -114,7 +113,7 @@ def crossoverFunc(encodedPop, debug = False):
         print(encodedPop[member2_i])
         print()
     
-    while np.allclose(encodedPop[member1_i], encodedPop[member2_i]):
+    while member1_i == member2_i:
         member2_i = random.randrange(0, len(encodedPop), 1)
 
     # Cut occurs between (index - 1) and index
@@ -166,61 +165,33 @@ def mutationFunc(cellAlphabet, encodedPop):
     encodedPop[member_i][index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
     return encodedPop
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 1000):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000):
     """Finds a near-optimal solution in the search space using the given fitness function"""
     population = initializePopulation(cellAlphabet, 20)
-    # print(trap0)
-    # print(population[-1])
-    fitnesses = np.array([fitnessFunc(member.tolist()) for member in population])
-    print(fitnessFunc(population[-1].tolist()))
-    # return
+    fitnesses = np.array([fitnessFunc(member) for member in population])
 
     counter  = 0
 
     while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
         if (counter % 50 == 0):
             print("Generation ", counter, ":")
-            print("Max fitness: ", max(fitnesses))
-            print("Mean fitness: ", np.mean(fitnesses))
-            print(fitnesses)
+            print("Max fitness: ", round(max(fitnesses), 3))
+            print("Mean fitness: ", round(np.mean(fitnesses), 3))
+            print("Median fitness:", round(np.median(fitnesses), 3))
             print("------------------------")
             print()
 
         population = selectionFunc(population, fitnesses)
         
         encodedPop = listEncoding(population)
-
         encodedPop = crossoverFunc(encodedPop)
         encodedPop = mutationFunc(cellAlphabet, encodedPop)
         
         population = listDecoding(encodedPop)
         
-        fitnesses = np.array([fitnessFunc(member.tolist()) for member in population])
+        fitnesses = np.array([fitnessFunc(member) for member in population])
 
         counter += 1
     return population
 
-# geneticAlgorithm(cellAlphabet, functionalFitness, 'mean', 0.5)
-
-population = initializePopulation(cellAlphabet, 20)
-fitnesses = [functionalFitness(member.tolist()) for member in population]
-print(fitnesses)
-# population = selectionFunc(population, fitnesses)
-# encodedPop = listEncoding(population)
-
-# origEncoded = copy.deepcopy(encodedPop)
-# # print(origEncoded)
-# encodedPop = crossoverFunc(encodedPop)
-# encodedPop = mutationFunc(cellAlphabet, encodedPop)
-# # print(encodedPop)
-
-# diffArr = []
-# for i in range(len(encodedPop)):
-#     currDiff = []
-#     for j in range(len(encodedPop[0])):
-#         currDiff.append(origEncoded[i][j] - encodedPop[i][j])
-#     diffArr.append(currDiff)
-
-# print(diffArr)
-
-# print(alg.getCoherenceValue(TrapClass.Trap(len(trap0[0]), len(trap0), False, chosenBoard = trap0)))
+print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 0.8))
