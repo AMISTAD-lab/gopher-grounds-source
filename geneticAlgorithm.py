@@ -114,17 +114,7 @@ def selectionFunc(population, fitnesses):
     # Normalize all fitnesses
     fitnessSum = np.sum(fitnesses)
     scaledFitnesses = fitnesses / fitnessSum if fitnessSum else 0 * fitnesses
-    newPopulation = random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=(len(population) - 2))
-    
-    # Keep the individuals with the two highest fitnesses for the next generation
-    index1 = np.argmax(scaledFitnesses)
-    index2 = 0
-    for i in range(len(scaledFitnesses)):
-        if i != index1 and scaledFitnesses[index2] < scaledFitnesses[i]:
-            index2 = i
-    
-    newPopulation.append(population[index1])
-    newPopulation.append(population[index2])
+    newPopulation = random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=len(population))
 
     return newPopulation
 
