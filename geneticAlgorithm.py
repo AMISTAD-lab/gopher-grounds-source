@@ -2,6 +2,7 @@ import simulation as sim
 import classes.Trap as TrapClass
 import algorithms as alg
 import numpy as np
+import copy
 import random
 from encoding import *
 from designedTraps import *
@@ -176,7 +177,8 @@ def mutationFunc(cellAlphabet, encodedPop):
     encodedPop[member_i][index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
     return encodedPop
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000, showLogs = True):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000,
+ showLogs = True, improvedCallback = True, callbackFactor = 1):
     """Finds a near-optimal solution in the search space using the given fitness function"""
     population = initializePopulation(cellAlphabet, 20)
     fitnesses = np.array([fitnessFunc(member) for member in population])
@@ -186,12 +188,15 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
     while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
         if showLogs and (counter % 50 == 0):
             print("Generation ", counter, ":")
+            print("Min fitness: ", round(min(fitnesses), 3))
             print("Max fitness: ", round(max(fitnesses), 3))
             print("Mean fitness: ", round(np.mean(fitnesses), 3))
             print("Median fitness:", round(np.median(fitnesses), 3))
             print("------------------------")
             print()
 
+        originalPop = copy.deepcopy(population)
+        originalFit = copy.deepcopy(fitnesses)
         population = selectionFunc(population, fitnesses)
         
         encodedPop = listEncoding(population)
@@ -202,10 +207,23 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
         
         fitnesses = np.array([fitnessFunc(member) for member in population])
 
+        
+        # Dismisses the new pop if its fitness is less than (old pop's fitness * callbackFactor).
+        # callbackFactor should be in the interval [0, 1], where 0 is equivalent to having improvedCallback=False.
+        if improvedCallback:
+            if measure == 'mean' and np.mean(fitnesses) < callbackFactor*np.mean(originalFit):
+                population = originalPop
+                fitnesses = originalFit
+            else:
+                if np.median(fitnesses) < callbackFactor*np.median(originalFit):
+                    population = originalPop
+                    fitnesses = originalFit
+
         counter += 1
 
     if showLogs:
         print("Generation ", counter, ":")
+        print("Min fitness: ", round(min(fitnesses), 3))
         print("Max fitness: ", round(max(fitnesses), 3))
         print("Mean fitness: ", round(np.mean(fitnesses), 3))
         print("Median fitness:", round(np.median(fitnesses), 3))
@@ -214,4 +232,5 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
 
     return population
 
-print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 0.8))
+# print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 0.8))
+print(geneticAlgorithm(cellAlphabet, functionalFitness, 'mean', 0.55))
