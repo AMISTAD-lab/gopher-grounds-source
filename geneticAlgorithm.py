@@ -5,6 +5,9 @@ import classes.Arrow as ArrowClass
 import classes.Floor as FloorClass
 import classes.Door as DoorClass
 import classes.Food as FoodClass
+from enums.Angle import *
+from enums.Rotation import *
+from enums.Thick import *
 import algorithms as alg
 import numpy as np
 import copy
@@ -261,10 +264,9 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, measure, threshol
 
 def simulateTrapInBrowser(listEncoding):
     """Takes in a list encoding and simulates the trap in the browser"""
-    # decodedList = singleDecoding(listEncoding)
-    simulationInfo = sim.simulateTrap(createTrap(listEncoding), False)[:3]
+    decodedList = singleDecoding(listEncoding)
+    simulationInfo = sim.simulateTrap(createTrap(decodedList), False)[:3]
     vis.writeTojs(simulationInfo)
 
     # opens the animation in the web browser
     webbrowser.open_new_tab('file://' + os.path.realpath('./animation/animation.html'))
-
