@@ -111,75 +111,9 @@ def selectionFunc(population, fitnesses):
 
     return newPopulation
 
-def selectionFunc1(population, fitnesses):
-    """Performs a roulette wheel-style selection process, 
-        giving greater weight to members with greater fitnesses"""
-    # Normalize all fitnesses
-    fitnessSum = np.sum(fitnesses)
-    scaledFitnesses = fitnesses / fitnessSum if fitnessSum else 0 * fitnesses
-    newPopulation = random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=(len(population) - 1))
-    
-    # Keep the individuals with the highest fitnesses for the next generation
-    index1 = 0
-    for i in range(len(scaledFitnesses)):
-        if scaledFitnesses[index1] < scaledFitnesses[i]:
-            index1 = i
-    
-    newPopulation.append(population[index1])
 
-    return np.array(newPopulation)
 
-def crossoverFunc(encodedPop, debug = False):
-    """Crosses-over two members of the population to form a new population (one-point crossover)"""
-    # Get two members to crossover (use index to replace in list at end)
-    member1_i = random.randrange(0, len(encodedPop), 1)
-    member2_i = random.randrange(0, len(encodedPop), 1)
-    
-    if debug:
-        print("original:")
-        print(encodedPop[member1_i])
-        print(encodedPop[member2_i])
-        print()
-    
-    while member1_i == member2_i:
-        member2_i = random.randrange(0, len(encodedPop), 1)
-
-    # Cut occurs between (index - 1) and index
-    index = random.randrange(1, len(encodedPop[member1_i]), 1)
-    if debug:
-        print("index:")
-        print(index)
-        print()
-
-    # Calculate the left and right ends of the new members
-    left1 = encodedPop[member1_i][:index]
-    right1 = encodedPop[member1_i][index:]
-    left2 = encodedPop[member2_i][:index]
-    right2 = encodedPop[member2_i][index:]
-
-    if debug:
-        print("parts:")
-        print(left1, right1)
-        print(left2, right2)
-        print()
-
-    # Need to allocate arrays before-hand to prevent really weird error
-    # Error mutates encodedPop[member1_i] but not encodedPop[member2_i]
-    firstList = np.append(left1, right2)
-    secondList = np.append(left2, right1)
-
-    # Replace these members in the encoded population
-    encodedPop[member1_i] = firstList
-    encodedPop[member2_i] = secondList
-    
-    if debug:
-        print("is:")
-        print(encodedPop[member1_i])
-        print(encodedPop[member2_i])
-
-    return encodedPop
-
-def crossoverFunc1(encodedPop, debug = False):
+def crossoverFunc(encodedPop, fitnessFunc, debug = False):
     """Crosses-over two members of the population to form a new population (one-point crossover)"""
     # Get two members to crossover (use index to replace in list at end)
     member1_i = random.randrange(0, len(encodedPop), 1)
@@ -218,13 +152,14 @@ def crossoverFunc1(encodedPop, debug = False):
     firstList = np.append(left1, right2)
     secondList = np.append(left2, right1)
 
+    # Compute and update fitness of first List
     decodedFirstList = singleDecoding1(firstList)[:4]
-    firstFitness = functionalFitness(decodedFirstList)
+    firstFitness = fitnessFunc(decodedFirstList) 
     firstList[12]= firstFitness
-
+    # Compute and update fitness of second List
     secondList = np.append(left2, right1)
     decodedSecondList = singleDecoding1(secondList)[:4]
-    secondFitness = functionalFitness(decodedSecondList)
+    secondFitness = fitnessFunc(decodedSecondList)
     secondList[12]= secondFitness
 
     # Replace these members in the encoded population
@@ -238,21 +173,8 @@ def crossoverFunc1(encodedPop, debug = False):
 
     return encodedPop
 
-def mutationFunc(cellAlphabet, encodedPop):
-    """Performs one a single point mutation on a random member of the population"""
-    # Get the index of the member in the encoded population and the index of the cell to mutate
-    member_i = random.randrange(0, len(encodedPop), 1)
-    index = random.randrange(0, len(encodedPop[member_i]), 1)
 
-    # Ensure the flipped tile is not one of the required fixed tiles
-    while (index == 4) or (index == 7) or (index == 10):
-        index = random.randrange(0, len(encodedPop[member_i]), 1)
-
-    # Change the member of the encoded population and the generated index (not door or food)
-    encodedPop[member_i][index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
-    return encodedPop
-
-def mutationFunc1(cellAlphabet, encodedPop):
+def mutationFunc(cellAlphabet, encodedPop, fitnessFunc):
     """Performs one a single point mutation on a random member of the population"""
     # Get the index of the member in the encoded population and the index of the cell to mutate
     member_i = random.randrange(0, len(encodedPop), 1)
@@ -265,135 +187,84 @@ def mutationFunc1(cellAlphabet, encodedPop):
     # Change the member of the encoded population and the generated index (not door or food)
     encodedPop[member_i][index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
     newDecoded = singleDecoding1(encodedPop[member_i])[:4]
-    newFitness = functionalFitness(newDecoded)
+    newFitness = fitnessFunc(newDecoded)
     encodedPop[member_i][12] = newFitness
     return encodedPop
 
 def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000,
  showLogs = True, improvedCallback = True, callbackFactor = 1):
     """Finds a near-optimal solution in the search space using the given fitness function"""
-    #Speed up functionalFitness case:
-    if fitnessFunc == functionalFitness:
+    fitnesses = np.array([0 for i in range(15)])
+
+    while(np.count_nonzero(fitnesses)==0):
         initialPop = initializePopulation(cellAlphabet, 20)
         population = []
+        # Add the fitness info row
         for member in initialPop:
-            member = np.append(member, [[functionalFitness(member),0,0]], axis=0)
+            member = np.append(member, [[fitnessFunc(member),0,0]], axis=0)
             population.append(member)
+
         population = np.array(population)
+        fitnesses = [member[4][0] for member in population]
+
+    counter  = 0
+
+    while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
+        if showLogs and (counter % 50 == 0):
+            print("Generation ", counter, ":")
+            print("Min fitness: ", round(min(fitnesses), 3))
+            print("Max fitness: ", round(max(fitnesses), 3))
+            print("Mean fitness: ", round(np.mean(fitnesses), 3))
+            print("Median fitness:", round(np.median(fitnesses), 3))
+            print("------------------------")
+            print()
+
+        originalPop = copy.deepcopy(population)
+        originalFit = copy.deepcopy(fitnesses)
+
+        population = selectionFunc(population, fitnesses)
+        encodedPop = listEncoding1(population)
+        encodedPop = crossoverFunc(encodedPop, fitnessFunc)
+        encodedPop = mutationFunc(cellAlphabet, encodedPop, fitnessFunc)
+        
+        population = listDecoding1(encodedPop)
+        
         fitnesses = np.array([member[4][0] for member in population])
 
-        while(np.all((fitnesses == 0))):
-            initialPop = initializePopulation(cellAlphabet, 20)
-            population = []
-            for member in initialPop:
-                member = np.append(member, [[functionalFitness(member),0,0]], axis=0)
-                population.append(member)
-
-            population = np.array(population)
-            fitnesses = [member[4][0] for member in population]
-
-        counter  = 0
-
-        while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
-            if showLogs and (counter % 20 == 0):
-                print("Generation ", counter, ":")
-                print("Min fitness: ", round(min(fitnesses), 3))
-                print("Max fitness: ", round(max(fitnesses), 3))
-                print("Mean fitness: ", round(np.mean(fitnesses), 3))
-                print("Median fitness:", round(np.median(fitnesses), 3))
-                print("------------------------")
-                print()
-
-            originalPop = copy.deepcopy(population)
-            originalFit = copy.deepcopy(fitnesses)
-            population = selectionFunc1(population, fitnesses)
-            
-            encodedPop = listEncoding1(population)
-            encodedPop = crossoverFunc1(encodedPop)
-            encodedPop = mutationFunc1(cellAlphabet, encodedPop)
-            
-            population = listDecoding1(encodedPop)
-            
-            fitnesses = np.array([member[4][0] for member in population])
-
-            
-            # Dismisses the new pop if its fitness is less than (old pop's fitness * callbackFactor).
-            # callbackFactor should be in the interval [0, 1], where 0 is equivalent to having improvedCallback=False.
-            if improvedCallback:
-                if measure == 'mean' and np.mean(fitnesses) < callbackFactor*np.mean(originalFit):
+        
+        # Dismisses the new pop if its fitness is less than (old pop's fitness * callbackFactor).
+        # callbackFactor should be in the interval [0, 1], where 0 is equivalent to having improvedCallback=False.
+        if improvedCallback:
+            if measure == 'mean' and np.mean(fitnesses) < callbackFactor*np.mean(originalFit):
+                population = originalPop
+                fitnesses = originalFit
+            else:
+                if np.median(fitnesses) < callbackFactor*np.median(originalFit):
                     population = originalPop
                     fitnesses = originalFit
-                else:
-                    if np.median(fitnesses) < callbackFactor*np.median(originalFit):
-                        population = originalPop
-                        fitnesses = originalFit
 
-            counter += 1
+        counter += 1
 
-        if showLogs:
-            print("Generation ", counter, ":")
-            print("Min fitness: ", round(min(fitnesses), 3))
-            print("Max fitness: ", round(max(fitnesses), 3))
-            print("Mean fitness: ", round(np.mean(fitnesses), 3))
-            print("Median fitness:", round(np.median(fitnesses), 3))
-            print("------------------------")
-            print()
-        return population
-    else: 
-        population = initializePopulation(cellAlphabet, 20)
-        fitnesses = np.array([fitnessFunc(member) for member in population])
+    if showLogs:
+        print("Generation ", counter, ":")
+        print("Min fitness: ", round(min(fitnesses), 3))
+        print("Max fitness: ", round(max(fitnesses), 3))
+        print("Mean fitness: ", round(np.mean(fitnesses), 3))
+        print("Median fitness:", round(np.median(fitnesses), 3))
+        print("------------------------")
+        print()
 
-        counter  = 0
+    # Delete the fitness info row
+    finalPopulation = []
+    for member in population:
+        finalPopulation.append(np.delete(member, 4, 0))
 
-        while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
-            if showLogs and (counter % 20 == 0):
-                print("Generation ", counter, ":")
-                print("Min fitness: ", round(min(fitnesses), 3))
-                print("Max fitness: ", round(max(fitnesses), 3))
-                print("Mean fitness: ", round(np.mean(fitnesses), 3))
-                print("Median fitness:", round(np.median(fitnesses), 3))
-                print("------------------------")
-                print()
+    return np.array(finalPopulation)
 
-            originalPop = copy.deepcopy(population)
-            originalFit = copy.deepcopy(fitnesses)
-            population = selectionFunc(population, fitnesses)
-            
-            encodedPop = listEncoding(population)
-            encodedPop = crossoverFunc(encodedPop)
-            encodedPop = mutationFunc(cellAlphabet, encodedPop)
-            
-            population = listDecoding(encodedPop)
-            
-            fitnesses = np.array([fitnessFunc(member) for member in population])
-
-            
-            # Dismisses the new pop if its fitness is less than (old pop's fitness * callbackFactor).
-            # callbackFactor should be in the interval [0, 1], where 0 is equivalent to having improvedCallback=False.
-            if improvedCallback:
-                if measure == 'mean' and np.mean(fitnesses) < callbackFactor*np.mean(originalFit):
-                    population = originalPop
-                    fitnesses = originalFit
-                else:
-                    if np.median(fitnesses) < callbackFactor*np.median(originalFit):
-                        population = originalPop
-                        fitnesses = originalFit
-
-            counter += 1
-
-        if showLogs:
-            print("Generation ", counter, ":")
-            print("Min fitness: ", round(min(fitnesses), 3))
-            print("Max fitness: ", round(max(fitnesses), 3))
-            print("Mean fitness: ", round(np.mean(fitnesses), 3))
-            print("Median fitness:", round(np.median(fitnesses), 3))
-            print("------------------------")
-            print()
-
-        return population
 
 #print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 1))
-print(geneticAlgorithm(cellAlphabet, functionalFitness, 'mean', 0.55))
+#print(geneticAlgorithm(cellAlphabet, functionalFitness, 'mean', 0.5))
+print(geneticAlgorithm(cellAlphabet, randomFitness, 'mean', 0.7))
 
 
 
