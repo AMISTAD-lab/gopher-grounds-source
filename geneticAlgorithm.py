@@ -266,7 +266,10 @@ def simulateTrapInBrowser(listEncoding):
     """Takes in a list encoding and simulates the trap in the browser"""
     decodedList = singleDecoding(listEncoding)
     simulationInfo = sim.simulateTrap(createTrap(decodedList), False)[:3]
-    vis.writeTojs(simulationInfo)
+    vis.writeTojs([simulationInfo], False)
 
     # opens the animation in the web browser
     webbrowser.open_new_tab('file://' + os.path.realpath('./animation/animation.html'))
+
+# exportGeneticOutput('geneticAlgorithm.txt', cellAlphabet, coherentFitness, 'mean', 0.8)
+simulateTrapInBrowser([9, 36, 76, 78, 1, 13, 84, 2, 4, 90, 0, 16])
