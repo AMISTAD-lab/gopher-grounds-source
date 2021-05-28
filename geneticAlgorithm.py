@@ -97,9 +97,20 @@ def selectionFunc(population, fitnesses):
         giving greater weight to members with greater fitnesses"""
     # Normalize all fitnesses
     fitnessSum = np.sum(fitnesses)
-    scaledFitnesses = fitnesses / fitnessSum if fitnessSum else 0
+    scaledFitnesses = fitnesses / fitnessSum if fitnessSum else 0 * fitnesses
+    newPopulation = random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=(len(population) - 2))
+    
+    # Keep the individuals with the two highest fitnesses for the next generation
+    index1 = np.argmax(scaledFitnesses)
+    index2 = 0
+    for i in range(len(scaledFitnesses)):
+        if i != index1 and scaledFitnesses[index2] < scaledFitnesses[i]:
+            index2 = i
+    
+    newPopulation.append(population[index1])
+    newPopulation.append(population[index2])
 
-    return random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=len(population))
+    return newPopulation
 
 def crossoverFunc(encodedPop, debug = False):
     """Crosses-over two members of the population to form a new population (one-point crossover)"""
@@ -165,7 +176,7 @@ def mutationFunc(cellAlphabet, encodedPop):
     encodedPop[member_i][index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
     return encodedPop
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000, showLogs = True):
     """Finds a near-optimal solution in the search space using the given fitness function"""
     population = initializePopulation(cellAlphabet, 20)
     fitnesses = np.array([fitnessFunc(member) for member in population])
@@ -173,7 +184,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
     counter  = 0
 
     while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
-        if (counter % 50 == 0):
+        if showLogs and (counter % 50 == 0):
             print("Generation ", counter, ":")
             print("Max fitness: ", round(max(fitnesses), 3))
             print("Mean fitness: ", round(np.mean(fitnesses), 3))
@@ -192,6 +203,15 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
         fitnesses = np.array([fitnessFunc(member) for member in population])
 
         counter += 1
+
+    if showLogs:
+        print("Generation ", counter, ":")
+        print("Max fitness: ", round(max(fitnesses), 3))
+        print("Mean fitness: ", round(np.mean(fitnesses), 3))
+        print("Median fitness:", round(np.median(fitnesses), 3))
+        print("------------------------")
+        print()
+
     return population
 
 print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 0.8))
