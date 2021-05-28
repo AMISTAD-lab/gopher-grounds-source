@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import reshape
 import cellarray as ca
 import numpy as np
 from classes.Door import *
@@ -21,8 +22,20 @@ def singleEncoding(board):
     Each sequence of three items in the array represents a row of the trap grid
     """
     flatten_trap = np.ndarray.flatten(np.array(board))
-
     return np.array([ca.findIndex(cell) for cell in flatten_trap])
+
+def singleEncoding1(board):
+    """
+    With fitness version: Takes a board with fitness value (5 x 3 array of cells) and returns a 1 x 15 numpy int array encoding it
+    Each sequence of three items in the array represents a row of the trap grid
+    """
+    flatten_trap = np.ndarray.flatten(np.array(board))
+    result = []
+    for i in range(12):
+        result.append(ca.findIndex(flatten_trap[i]))  
+    for i in range(12,15):
+        result.append(flatten_trap[i])  
+    return np.array(result)
 
 def listEncoding(traps):
     """Given a list of n non-encoded traps, return a nx12 numpy array with the encoded versions of the traps"""
@@ -30,6 +43,14 @@ def listEncoding(traps):
     encodedTraps = []
     for trap in traps:
         encodedTraps.append(singleEncoding(trap))
+    return np.array(encodedTraps)
+
+def listEncoding1(traps):
+    """With fitness version: Given a list of n non-encoded traps, return a nx15 numpy array with the encoded versions of the traps"""
+    # encode traps
+    encodedTraps = []
+    for trap in traps:
+        encodedTraps.append(singleEncoding1(trap))
     return np.array(encodedTraps)
 
 ## TODO: Come back and make this more readable
@@ -61,7 +82,7 @@ def singleDecoding(encodedTrap):
     for y in range(len(encodedTrap)):
         row = []
         for x in range(len(encodedTrap[0])):
-            cell = copy.deepcopy(ca.cells[encodedTrap[y][x]])
+            cell = copy.deepcopy(ca.cells[int(encodedTrap[y][x])])
             cell.x = x
             cell.y = y
 
@@ -70,6 +91,28 @@ def singleDecoding(encodedTrap):
         decodedTrap.append(row)
     return np.array(decodedTrap)
 
+def singleDecoding1(encodedTrap):
+    """With fitness version: Takes an encoded trap (1 x 15 array) and decodes it back into normal form"""
+    encodedTrap = np.array(encodedTrap).reshape((5, 3))
+    decodedTrap = []
+    for y in range(len(encodedTrap)-1):
+        row = []
+        for x in range(len(encodedTrap[0])):
+            cell = copy.deepcopy(ca.cells[int(encodedTrap[y][x])])
+            cell.x = x
+            cell.y = y
+
+            row.append(cell)
+
+        decodedTrap.append(row)
+    decodedTrap.append(encodedTrap[4])
+    return np.array(decodedTrap)
+
 def listDecoding(encodedTrapList):
     """Takes an list of encoded traps and decodes its elements back into normal form - returns an n x 4 x 3 list"""
     return np.array([singleDecoding(encodedTrap) for encodedTrap in encodedTrapList])
+
+def listDecoding1(encodedTrapList):
+    """Takes an list of encoded traps and decodes its elements back into normal form - returns an n x 5 x 3 list"""
+    return np.array([singleDecoding1(encodedTrap) for encodedTrap in encodedTrapList])
+

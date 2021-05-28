@@ -1,16 +1,31 @@
 import simulation as sim
 import classes.Trap as TrapClass
+import classes.Wire as WireClass
+import classes.Arrow as ArrowClass
+import classes.Floor as FloorClass
+import classes.Door as DoorClass
+import classes.Food as FoodClass
+from enums.Angle import *
+from enums.Rotation import *
+from enums.Thick import *
 import algorithms as alg
 import numpy as np
 import copy
 import random
 from encoding import *
 from designedTraps import *
+import visualize as vis
+import os
+import webbrowser
 
 # Nick: I am not sure what the sample space is from the encoding, so I am using the ints from 0-56 for testing.
     # The code I wrote does not depend on any particular sample space so no changes should need to be made.
 cellAlphabet = [x for x in range(93)]
 population = traps
+
+def createTrap(configuration):
+    """Takes in a board configuration and wraps that configuration in a trap class"""
+    return TrapClass.Trap(len(configuration[0]), len(configuration), False, chosenBoard = configuration)
 
 def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
@@ -28,7 +43,7 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
     hungerLevels = 5
     for hunger in range(hungerLevels):
         for _ in range(int(numSimulations / hungerLevels)):
-            numberAlive += int(sim.simulateTrap(TrapClass.Trap(len(configuration[0]), len(configuration), False, chosenBoard = configuration), False, hunger = hunger / 5)[3])
+            numberAlive += int(sim.simulateTrap(createTrap(configuration), False, hunger = hunger / 5)[3])
 
     # Calculate statistics
     proportion = 1 - numberAlive / numSimulations
@@ -47,7 +62,7 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
 
 def coherentFitness(configuration):
     """Assigns a fitness based on the coherence of a given configuration"""
-    return alg.getCoherenceValue(TrapClass.Trap(len(configuration[0]), len(configuration), False, chosenBoard = configuration))
+    return alg.getCoherenceValue(createTrap(configuration))
 
 def initializePopulation(cellAlphabet, populationSize = 20):
     """Initializes the population by sampling from the search space"""
@@ -232,5 +247,26 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
 
     return population
 
-# print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 0.8))
-print(geneticAlgorithm(cellAlphabet, functionalFitness, 'mean', 0.55))
+def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000, showLogs = True):
+    """
+    Runs the genetic algorithm with the given parameters and writes a new file with the list encodings in it (to preserve the output)
+    """
+    finalPopulation = geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations, showLogs)
+    with open(outputFile, 'w') as out:
+        for i, population in enumerate(listEncoding(finalPopulation)):
+            out.write(str(i) + ": ")
+            
+            # Standardize spacing
+            if i < 10:
+                out.write(" ")
+            
+            out.write(np.array2string(population) + '\n')
+
+def simulateTrapInBrowser(listEncoding):
+    """Takes in a list encoding and simulates the trap in the browser"""
+    decodedList = singleDecoding(listEncoding)
+    simulationInfo = sim.simulateTrap(createTrap(decodedList), False)[:3]
+    vis.writeTojs(simulationInfo)
+
+    # opens the animation in the web browser
+    webbrowser.open_new_tab('file://' + os.path.realpath('./animation/animation.html'))
