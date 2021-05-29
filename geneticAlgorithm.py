@@ -62,7 +62,7 @@ def coherentFitness(configuration):
     """Assigns a fitness based on the coherence of a given configuration"""
     return alg.getCoherenceValue(createTrap(configuration))
 
-def initializePopulation(cellAlphabet, populationSize = 20):
+def initializePopulation(cellAlphabet, populationSize = 50):
     """Initializes the population by sampling from the search space"""
     population = []
     for _ in range(populationSize):
@@ -106,23 +106,23 @@ def checkTermination(fitnesses, measure, threshold):
     # If we get to this part, then all thresholds are met, and we can terminate
     return True
 
-def selectionFunc(population, fitnesses):
+def selectionFunc(population, fitnesses, elitism=False):
     """Performs a roulette wheel-style selection process, 
         giving greater weight to members with greater fitnesses"""
-    # Normalize all fitnesses
+    # "Normalize" all fitnesses such that they sum to 1
     fitnessSum = np.sum(fitnesses)
     scaledFitnesses = fitnesses / fitnessSum if fitnessSum else 0 * fitnesses
-    newPopulation = random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=(len(population) - 2))
+    newPopulation = random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=(len(population) - 2) if elitism else len(population))
     
-    # Keep the individuals with the two highest fitnesses for the next generation
-    index1 = np.argmax(scaledFitnesses)
-    index2 = 0
-    for i in range(len(scaledFitnesses)):
-        if i != index1 and scaledFitnesses[index2] < scaledFitnesses[i]:
-            index2 = i
-    
-    newPopulation.append(population[index1])
-    newPopulation.append(population[index2])
+    if elitism:
+        # Keep the individuals with the two highest fitnesses for the next generation
+        index1 = np.argmax(scaledFitnesses)
+        index2 = 0
+        for i in range(len(scaledFitnesses)):
+            if i != index1 and scaledFitnesses[index2] < scaledFitnesses[i]:
+                index2 = i
+        newPopulation.append(population[index1])
+        newPopulation.append(population[index2])
 
     return newPopulation
 
@@ -207,12 +207,12 @@ def mutationFunc(cellAlphabet, encodedPop, fitnessFunc):
     return encodedPop
 
 def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000,
- showLogs = True, improvedCallback = True, callbackFactor = 1):
+ showLogs = True, improvedCallback = True, callbackFactor = 0.99):
     """Finds a near-optimal solution in the search space using the given fitness function"""
     fitnesses = np.array([0 for i in range(15)])
 
     while(np.count_nonzero(fitnesses)==0):
-        initialPop = initializePopulation(cellAlphabet, 20)
+        initialPop = initializePopulation(cellAlphabet)
         population = []
         # Add the fitness info row
         for member in initialPop:
@@ -222,7 +222,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
         population = np.array(population)
         fitnesses = [member[4][0] for member in population]
 
-    counter  = 0
+    counter = 0
 
     while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
         if showLogs and (counter % 50 == 0):
@@ -305,5 +305,5 @@ def simulateTrapInBrowser(listEncoding):
 
 
 #print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 1))
-#print(geneticAlgorithm(cellAlphabet, functionalFitness, 'mean', 0.5))
+print(geneticAlgorithm(cellAlphabet, functionalFitness, 'median', 0.65))
 #print(geneticAlgorithm(cellAlphabet, randomFitness, 'mean', 0.7))
