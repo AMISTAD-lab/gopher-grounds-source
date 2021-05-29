@@ -1,22 +1,15 @@
 import simulation as sim
 import classes.Trap as TrapClass
-import classes.Wire as WireClass
-import classes.Arrow as ArrowClass
-import classes.Floor as FloorClass
-import classes.Door as DoorClass
-import classes.Food as FoodClass
-from enums.Angle import *
-from enums.Rotation import *
-from enums.Thick import *
 import algorithms as alg
 import numpy as np
-import copy
 import random
 from encoding import *
-from designedTraps import *
 import visualize as vis
 import os
 import webbrowser
+import time
+
+functionDic = {}
 
 cellAlphabet = [x for x in range(93)]
 population = traps
@@ -35,6 +28,12 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
     or compute the the given configuration's probability of killing a gopher
     """
+    # Convert list to string to reference in dictionary
+    strEncoding = np.array2string(configuration)
+
+    if strEncoding in functionDic:
+        return functionDic[strEncoding]
+
     # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
     # Simulate the trap running numSimulations times
     numberAlive = 0
@@ -55,6 +54,8 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
         print("Proportion: ", proportion)
         print("Std Error: ", round(stderr, 3))
         print("CI: [", round(lowerCI, 3), ", ", round(upperCI, 3), "]")
+    
+    functionDic[strEncoding] = proportion
 
     return proportion
 
@@ -62,7 +63,7 @@ def coherentFitness(configuration):
     """Assigns a fitness based on the coherence of a given configuration"""
     return alg.getCoherenceValue(createTrap(configuration))
 
-def initializePopulation(cellAlphabet, populationSize = 50):
+def initializePopulation(cellAlphabet, populationSize = 20):
     """Initializes the population by sampling from the search space"""
     population = []
     for _ in range(populationSize):
@@ -106,13 +107,17 @@ def checkTermination(fitnesses, measure, threshold):
     # If we get to this part, then all thresholds are met, and we can terminate
     return True
 
-def selectionFunc(population, fitnesses, elitism=False):
+def selectionFunc(population, fitnesses, elitism = False):
     """Performs a roulette wheel-style selection process, 
         giving greater weight to members with greater fitnesses"""
     # "Normalize" all fitnesses such that they sum to 1
     fitnessSum = np.sum(fitnesses)
     scaledFitnesses = fitnesses / fitnessSum if fitnessSum else 0 * fitnesses
-    newPopulation = random.choices(population, weights = scaledFitnesses if fitnessSum else None, k=(len(population) - 2) if elitism else len(population))
+    newPopulation = random.choices(
+        population,
+        weights = scaledFitnesses if fitnessSum else None,
+        k=(len(population) - 2) if elitism else len(population)
+    )
     
     if elitism:
         # Keep the individuals with the two highest fitnesses for the next generation
@@ -126,9 +131,7 @@ def selectionFunc(population, fitnesses, elitism=False):
 
     return newPopulation
 
-
-
-def crossoverFunc(encodedPop, fitnessFunc, debug = False):
+def crossoverFunc(encodedPop, debug = False):
     """Crosses-over two members of the population to form a new population (one-point crossover)"""
     # Get two members to crossover (use index to replace in list at end)
     member1_i = random.randrange(0, len(encodedPop), 1)
@@ -144,7 +147,7 @@ def crossoverFunc(encodedPop, fitnessFunc, debug = False):
         member2_i = random.randrange(0, len(encodedPop), 1)
 
     # Cut occurs between (index - 1) and index
-    index = random.randrange(1, len(encodedPop[member1_i]-3), 1)
+    index = random.randrange(1, len(encodedPop[member1_i]), 1)
     if debug:
         print("index:")
         print(index)
@@ -167,16 +170,6 @@ def crossoverFunc(encodedPop, fitnessFunc, debug = False):
     firstList = np.append(left1, right2)
     secondList = np.append(left2, right1)
 
-    # Compute and update fitness of first List
-    decodedFirstList = singleDecoding1(firstList)[:4]
-    firstFitness = fitnessFunc(decodedFirstList) 
-    firstList[12]= firstFitness
-    # Compute and update fitness of second List
-    secondList = np.append(left2, right1)
-    decodedSecondList = singleDecoding1(secondList)[:4]
-    secondFitness = fitnessFunc(decodedSecondList)
-    secondList[12]= secondFitness
-
     # Replace these members in the encoded population
     encodedPop[member1_i] = firstList
     encodedPop[member2_i] = secondList
@@ -188,12 +181,11 @@ def crossoverFunc(encodedPop, fitnessFunc, debug = False):
 
     return encodedPop
 
-
-def mutationFunc(cellAlphabet, encodedPop, fitnessFunc):
+def mutationFunc(cellAlphabet, encodedPop):
     """Performs one a single point mutation on a random member of the population"""
     # Get the index of the member in the encoded population and the index of the cell to mutate
     member_i = random.randrange(0, len(encodedPop), 1)
-    index = random.randrange(0, len(encodedPop[member_i])-3, 1)
+    index = random.randrange(0, len(encodedPop[member_i]), 1)
 
     # Ensure the flipped tile is not one of the required fixed tiles
     while (index == 4) or (index == 7) or (index == 10):
@@ -201,53 +193,49 @@ def mutationFunc(cellAlphabet, encodedPop, fitnessFunc):
 
     # Change the member of the encoded population and the generated index (not door or food)
     encodedPop[member_i][index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
-    newDecoded = singleDecoding1(encodedPop[member_i])[:4]
-    newFitness = fitnessFunc(newDecoded)
-    encodedPop[member_i][12] = newFitness
     return encodedPop
 
 def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000,
  showLogs = True, improvedCallback = True, callbackFactor = 0.99):
     """Finds a near-optimal solution in the search space using the given fitness function"""
-    fitnesses = np.array([0 for i in range(15)])
+    fitnesses = np.array([0 for _ in range(15)])
 
-    while(np.count_nonzero(fitnesses)==0):
-        initialPop = initializePopulation(cellAlphabet)
-        population = []
-        # Add the fitness info row
-        for member in initialPop:
-            member = np.append(member, [[fitnessFunc(member),0,0]], axis=0)
-            population.append(member)
+    population = []
 
-        population = np.array(population)
-        fitnesses = [member[4][0] for member in population]
+    # Sampling the population until we get one non-zero member
+    while(np.count_nonzero(fitnesses) == 0):
+        population = initializePopulation(cellAlphabet)
+        fitnesses = [fitnessFunc(member) for member in population]
 
-    counter = 0
+    counter  = 0
+    startTime = time.time()
 
     while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
         if showLogs and (counter % 50 == 0):
             print("Generation ", counter, ":")
-            print("Min fitness: ", round(min(fitnesses), 3))
             print("Max fitness: ", round(max(fitnesses), 3))
+            print("Min fitness: ", round(min(fitnesses), 3))
             print("Mean fitness: ", round(np.mean(fitnesses), 3))
-            print("Median fitness:", round(np.median(fitnesses), 3))
+            print("Median fitness: ", round(np.median(fitnesses), 3))
+            print("Time: ", round(time.time() - startTime, 4))
             print("------------------------")
             print()
 
+        # Make a deep copy of the population and fitness to compare with the new generation
         originalPop = copy.deepcopy(population)
         originalFit = copy.deepcopy(fitnesses)
 
         population = selectionFunc(population, fitnesses)
-        encodedPop = listEncoding1(population)
-        encodedPop = crossoverFunc(encodedPop, fitnessFunc)
-        encodedPop = mutationFunc(cellAlphabet, encodedPop, fitnessFunc)
         
-        population = listDecoding1(encodedPop)
+        encodedPop = listEncoding(population)
+        encodedPop = crossoverFunc(encodedPop)
+        encodedPop = mutationFunc(cellAlphabet, encodedPop)
         
-        fitnesses = np.array([member[4][0] for member in population])
+        population = listDecoding(encodedPop)
+        
+        fitnesses = np.array([fitnessFunc(member) for member in population])
 
-        
-        # Dismisses the new pop if its fitness is less than (old pop's fitness * callbackFactor).
+        # Dismisses the new population if its fitness is less than (old pop's fitness * callbackFactor).
         # callbackFactor should be in the interval [0, 1], where 0 is equivalent to having improvedCallback=False.
         if improvedCallback:
             if measure == 'mean' and np.mean(fitnesses) < callbackFactor*np.mean(originalFit):
@@ -262,19 +250,15 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
 
     if showLogs:
         print("Generation ", counter, ":")
-        print("Min fitness: ", round(min(fitnesses), 3))
         print("Max fitness: ", round(max(fitnesses), 3))
+        print("Min fitness: ", round(min(fitnesses), 3))
         print("Mean fitness: ", round(np.mean(fitnesses), 3))
-        print("Median fitness:", round(np.median(fitnesses), 3))
+        print("Median fitness: ", round(np.median(fitnesses), 3))
+        print("Time: ", round(time.time() - startTime, 4))
         print("------------------------")
         print()
 
-    # Delete the fitness info row
-    finalPopulation = []
-    for member in population:
-        finalPopulation.append(np.delete(member, 4, 0))
-
-    return np.array(finalPopulation)
+    return np.array(population)
 
 def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000, showLogs = True):
     """
@@ -282,14 +266,24 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, measure, threshol
     """
     finalPopulation = geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations, showLogs)
     with open(outputFile, 'w') as out:
-        for i, population in enumerate(listEncoding(finalPopulation)):
+        for i, member in enumerate(listEncoding(finalPopulation)):
             out.write(str(i) + ": ")
             
             # Standardize spacing
             if i < 10:
                 out.write(" ")
+
+            out.write("[")
             
-            out.write(np.array2string(population) + '\n')
+            # Write in array form
+            for j, digit in enumerate(member):
+                out.write(str(digit))
+                
+                if j < len(member) - 1:
+                    out.write(', ')
+            
+            out.write(']')
+            out.write('\n')
 
 def simulateTrapInBrowser(listEncoding):
     """Takes in a list encoding and simulates the trap in the browser"""
@@ -300,10 +294,5 @@ def simulateTrapInBrowser(listEncoding):
     # opens the animation in the web browser
     webbrowser.open_new_tab('file://' + os.path.realpath('./animation/animation.html'))
 
-#exportGeneticOutput('geneticAlgorithm.txt', cellAlphabet, coherentFitness, 'mean', 0.8)
-#simulateTrapInBrowser([9, 36, 76, 78, 1, 13, 84, 2, 4, 90, 0, 16])
-
-
-#print(geneticAlgorithm(cellAlphabet, coherentFitness, 'mean', 1))
-print(geneticAlgorithm(cellAlphabet, functionalFitness, 'median', 0.65))
-#print(geneticAlgorithm(cellAlphabet, randomFitness, 'mean', 0.7))
+# exportGeneticOutput('geneticAlgorithm.txt', cellAlphabet, functionalFitness, 'median', 0.6)
+simulateTrapInBrowser([42, 13, 50, 81, 1, 17, 85, 2, 25, 44, 0, 26])
