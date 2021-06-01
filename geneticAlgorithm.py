@@ -262,12 +262,27 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIteration
 
 def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, measure, threshold, maxIterations = 10000, showLogs = True):
     """
-    Runs the genetic algorithm with the given parameters and writes a new file with the list encodings in it (to preserve the output)
+    Runs the genetic algorithm with the given parameters and writes a new file with the unique list encodings and counts
     """
+    # Run the simluation and keep the genetic algorithm 
     finalPopulation = geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations, showLogs)
+    finalPopulation = listEncoding(finalPopulation)
+
+    uniquePopulation = []
+
+    freqs = {}
+    # Find counts of each element in final population
+    for member in finalPopulation:
+        memberStr = np.array2string(member)
+        if memberStr not in freqs:
+            uniquePopulation.append(member)
+            freqs[memberStr] = 0
+
+        freqs[memberStr] += 1
+
     with open(outputFile, 'w') as out:
-        for i, member in enumerate(listEncoding(finalPopulation)):
-            out.write(str(i) + ": ")
+        for i, member in enumerate(uniquePopulation):
+            out.write(str(freqs[np.array2string(member)]) + ": ")
             
             # Standardize spacing
             if i < 10:
@@ -294,5 +309,5 @@ def simulateTrapInBrowser(listEncoding):
     # opens the animation in the web browser
     webbrowser.open_new_tab('file://' + os.path.realpath('./animation/animation.html'))
 
-# exportGeneticOutput('geneticAlgorithm.txt', cellAlphabet, functionalFitness, 'median', 0.6)
-simulateTrapInBrowser([42, 13, 50, 81, 1, 17, 85, 2, 25, 44, 0, 26])
+exportGeneticOutput('geneticAlgorithm.txt', cellAlphabet, functionalFitness, 'median', 0.4)
+# simulateTrapInBrowser([42, 13, 50, 81, 1, 17, 85, 2, 25, 44, 0, 26])
