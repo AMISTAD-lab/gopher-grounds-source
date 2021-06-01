@@ -1,5 +1,5 @@
 from numpy.core.fromnumeric import reshape
-import cellarray as ca
+import geneticAlgorithm.cellarray as ca
 import numpy as np
 from classes.Door import *
 from classes.Floor import *
