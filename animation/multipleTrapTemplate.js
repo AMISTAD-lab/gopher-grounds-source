@@ -44,7 +44,6 @@ function animate(){
 	if (trapNum >= trapList.length) 
 	{
 		// show the proper ending screen 
-		showEndingImage();
 		console.log("ANIMATION FINISHED");
 		clearTimeout(timer);
 		return;

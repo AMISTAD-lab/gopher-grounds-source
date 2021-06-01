@@ -7,11 +7,16 @@ from classes.Arrow import *
 from classes.Wire import *
 from classes.Door import *
 import algorithms as alg
+import numpy as np
 
 class Trap(Board):
     def __init__(self, rowLength, colLength, functional, chosenBoard=None):
         """initializes a trap with a real or random trap (based on functional) or with a given board
         dimensions are always row=3 col=4 for our experiment, and the random generation methods are all for 3x4"""
+        # If the chosen board is a numpy array then make it a normal array
+        if isinstance(chosenBoard, np.ndarray):
+            chosenBoard = chosenBoard.tolist()
+        
         self.func = functional
         super().__init__(rowLength, colLength)
         if chosenBoard:
