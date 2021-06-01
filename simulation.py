@@ -6,7 +6,7 @@ import numpy as np
 
 gopher = None    
     
-def simulateTrap(trap, intention, hunger=0, maxSteps=20):
+def simulateTrap(trap, intention, hunger=0, maxSteps=20, forceEnter = False):
     """runs a simulation of a single trap and returns the relevant data"""
     center_x = m.ceil(trap.rowLength / 2) - 1
     global gopher
@@ -19,7 +19,7 @@ def simulateTrap(trap, intention, hunger=0, maxSteps=20):
     gopherStuff = []
     thoughtReal = False
     while gopher.alive and not gopher.left and step < maxSteps:
-        gopherInfo, state = updateSimulation(trap, step)
+        gopherInfo, state = updateSimulation(trap, step, forceEnter)
         if gopher.thoughtReal:
             thoughtReal = True
         activeCells.append(state)
@@ -27,10 +27,10 @@ def simulateTrap(trap, intention, hunger=0, maxSteps=20):
         step += 1
     return [initialboard, activeCells, gopherStuff, gopher.alive, gopher.hasEaten, thoughtReal]
 
-def updateSimulation(trap, step):
+def updateSimulation(trap, step, forceEnter = False):
     """steps through the simulation"""
     global gopher
-    gopher.updateCell()
+    gopher.updateCell(forceEnter)
     for cell in alg.flatten(trap.board):
         cell.updateCell(step)
     state = trap.saveState()

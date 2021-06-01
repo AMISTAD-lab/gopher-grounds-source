@@ -33,7 +33,7 @@ class Gopher:
             state = 1
         return state
 
-    def updateCell(self):
+    def updateCell(self, forceEnter=False):
         """decides what the gopher should do and does it (named updateCell for ease in calling)"""
         if self.hit:
             self.hit = False
@@ -57,6 +57,10 @@ class Gopher:
                 enterGivenTrap = mv.DEFAULT_PROB_ENTER
                 hungerWeight = self.hunger**10
                 probEnter = enterGivenTrap * (1 - hungerWeight) + hungerWeight
+
+                if forceEnter:
+                    probEnter = 1
+
             if np.random.binomial(n=1, p=probEnter):
                 self.initialTimer = alg.gopherEatTimer(enterGivenTrap)
                 self.entering = True
