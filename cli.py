@@ -16,8 +16,8 @@ runExperimentParser.add_argument('numSimulations', help='number of simluations t
 
 # simulate flags
 simulateParser = subparsers.add_parser('simulate', help='simulates experiment')
-simulateParser.add_argument('--intention', '-i', help='if gopher has intention', type=bool, default=True)
-simulateParser.add_argument('--cautious', '-c', help='if gopher is cautious', type=bool, default=False)
+simulateParser.add_argument('--intention', '-i', help='turns on intention gopher', action='store_true')
+simulateParser.add_argument('--cautious', '-c', help='if gopher is cautious', action='store_true')
 simulateParser.add_argument('--defaultProbEnter', '-d', help='probability of gopher entering trap (not for intention)', type=float, default=0.8)
 simulateParser.add_argument('--probReal', '-p', help='percentage of traps that are designed as opposed to random', type=float, default=0.2)
 simulateParser.add_argument('--nTrapsWithoutFood', '-n', help='the amount of traps a gopher can survive without entering (due to starvation)', type=int, default=4)
@@ -29,13 +29,14 @@ geneticParser.add_argument('function', help='a choice of {random, coherence, fun
 geneticParser.add_argument('--measure', '-m', help='the measure for the threshold (max, mean, median, all)', default='max')
 geneticParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticParser.add_argument('--maxIterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
-geneticParser.add_argument('--log', '-l', help='whether or not to print the logs as generations increase', type=bool, default=True)
-geneticParser.add_argument('--improvedCallback', '-c', help='whether or not to use improved callback', type=bool, default=True)
-geneticParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)', type=bool, default=False)
+geneticParser.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
+geneticParser.add_argument('--no-improvedCallback', '-nc', help='turn off improved callback', action='store_false')
+geneticParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 geneticParser.add_argument('--outputFile', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
-geneticParser.add_argument('--show', '-s', help='show output in browser', type=bool, default=False)
+geneticParser.add_argument('--show', '-s', help='show output in browser', action='store_true')
 
 args = parser.parse_args()
+print(args)
 
 if args.command == 'runExperiment':
     experiment.runExperiment(args.output, args.inputToVary, args.numSimulations)
@@ -66,9 +67,9 @@ elif args.command == 'genetic-algorithm':
     bestTrap = []
     bestFitness = 0
     if args.export:
-        bestTrap, bestFitness = exportGeneticOutput(args.outputFile, cellAlphabet, fitnessFunc, args.threshold,  args.measure, args.maxIterations, args.log)
+        bestTrap, bestFitness = exportGeneticOutput(args.outputFile, cellAlphabet, fitnessFunc, args.threshold,  args.measure, args.maxIterations, args.no_logs)
     else:
-        finalPopulation = geneticAlgorithm(cellAlphabet, fitnessFunc, args.threshold, args.measure, args.maxIterations, args.log, args.improvedCallback)
+        finalPopulation = geneticAlgorithm(cellAlphabet, fitnessFunc, args.threshold, args.measure, args.maxIterations, args.no_logs, args.no_improvedCallback)
 
         for member in finalPopulation:
             currFitness = fitnessFunc(member)
