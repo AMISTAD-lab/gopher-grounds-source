@@ -1,9 +1,10 @@
+from geneticAlgorithm.encoding import singleEncoding
 import numpy as np
 import simulation as sim
 from geneticAlgorithm.utils import createTrap
 import algorithms as alg
 
-functionDic = {}
+fitnessDic = {}
 
 def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
@@ -18,8 +19,8 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
     # Convert list to string to reference in dictionary
     strEncoding = np.array2string(configuration)
 
-    if strEncoding in functionDic:
-        return functionDic[strEncoding]
+    if strEncoding in fitnessDic:
+        return fitnessDic[strEncoding]
 
     # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
     # Simulate the trap running numSimulations times
@@ -42,7 +43,7 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
         print("Std Error: ", round(stderr, 3))
         print("CI: [", round(lowerCI, 3), ", ", round(upperCI, 3), "]")
     
-    functionDic[strEncoding] = proportion
+    fitnessDic[strEncoding] = proportion
 
     return proportion
 
@@ -52,9 +53,20 @@ def coherentFitness(configuration):
 
 def combinedFitness(configuration):
     """Assigns a fitness based on the coherence AND function of a configuration"""
+    memberStr = np.array2string(singleEncoding(configuration))
+
+    if memberStr in fitnessDic:
+        return fitnessDic[memberStr]
+
     coherence = coherentFitness(configuration)
     functionality = functionalFitness(configuration)
 
     sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
+    evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(np.abs(x - y)))
+    
+    # Scale the result to have evaluator(0, 0) = 0 and evaluator(1, 1) = 1
+    result = (2 * evaluator(coherence, functionality) - 1) / evaluator(1, 1)
 
-    return sigmoid(np.sum([coherence, functionality]) / np.exp(np.abs(coherence - functionality)))
+    fitnessDic[memberStr] = result
+    
+    return result

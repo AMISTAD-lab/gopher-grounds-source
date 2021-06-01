@@ -40,7 +40,7 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measur
     bestFitness = 0
 
     with open(outputFile, 'w') as out:
-        for member in enumerate(uniquePopulation):
+        for member in uniquePopulation:
             memberStr = np.array2string(member)
 
             # Check if this member is optimal

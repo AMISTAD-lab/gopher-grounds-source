@@ -84,7 +84,7 @@ usage: cli.py genetic-algorithm [-h] [--measure MEASURE] \
                                      function
 
 positional arguments:
-  function              a choice of {random, coherence, functional}
+  function              a choice of {random, coherence, functional, combined}
 
 optional arguments:
   -h, --help            show this help message and exit

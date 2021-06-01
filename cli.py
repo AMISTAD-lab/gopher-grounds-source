@@ -25,7 +25,7 @@ simulateParser.add_argument('--maxProjectileStrength', '-m', help='the maximum p
 
 # genetic algorithm flags
 geneticParser = subparsers.add_parser('genetic-algorithm', help='generates a trap using the genetic algorithm')
-geneticParser.add_argument('function', help='a choice of {random, coherence, functional}')
+geneticParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
 geneticParser.add_argument('--measure', '-m', help='the measure for the threshold (max, mean, median, all)', default='max')
 geneticParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticParser.add_argument('--maxIterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
@@ -36,7 +36,6 @@ geneticParser.add_argument('--outputFile', '-o', help='the output file to which 
 geneticParser.add_argument('--show', '-s', help='show output in browser', action='store_true')
 
 args = parser.parse_args()
-print(args)
 
 if args.command == 'runExperiment':
     experiment.runExperiment(args.output, args.inputToVary, args.numSimulations)
@@ -60,6 +59,8 @@ elif args.command == 'genetic-algorithm':
         fitnessFunc = coherentFitness
     elif args.function == 'functional':
         fitnessFunc = functionalFitness
+    elif args.function == 'combined':
+        fitnessFunc = combinedFitness
     else:
         raise Exception(args.function, ' is not a real fitness function value. Please try again')
 

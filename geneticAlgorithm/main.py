@@ -6,7 +6,7 @@ from geneticAlgorithm.library import *
 cellAlphabet = [x for x in range(93)]
 
 def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxIterations = 10000,
- showLogs = True, improvedCallback = True, callbackFactor = 0.99):
+ showLogs = True, improvedCallback = True, callbackFactor = 0.95):
     """Finds a near-optimal solution in the search space using the given fitness function"""
     fitnesses = np.array([0 for _ in range(15)])
 
@@ -18,18 +18,22 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
         fitnesses = [fitnessFunc(member) for member in population]
 
     counter  = 0
-    startTime = time.time()
+    startTime = lastTime = time.time()
 
     while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
         if showLogs and (counter % 50 == 0):
-            print("Generation ", counter, ":")
-            print("Max fitness: ", round(max(fitnesses), 3))
-            print("Min fitness: ", round(min(fitnesses), 3))
-            print("Mean fitness: ", round(np.mean(fitnesses), 3))
-            print("Median fitness: ", round(np.median(fitnesses), 3))
-            print("Time: ", round(time.time() - startTime, 4))
+            print("Generation {} \t:".format(counter))
+            print("Max fitness\t:", round(max(fitnesses), 3))
+            print("Min fitness\t:", round(min(fitnesses), 3))
+            print("Mean fitness\t:", round(np.mean(fitnesses), 3))
+            print("Median fitness\t:", round(np.median(fitnesses), 3))
+            print("Lap Time\t:", round(time.time() - lastTime, 4))
+            print("Total Time\t:", round(time.time() - startTime, 4))
             print("------------------------")
             print()
+            
+            # Set last time
+            lastTime = time.time()
 
         # Make a deep copy of the population and fitness to compare with the new generation
         originalPop = copy.deepcopy(population)
@@ -62,12 +66,13 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
         counter += 1
 
     if showLogs:
-        print("Generation ", counter, ":")
-        print("Max fitness: ", round(max(fitnesses), 3))
-        print("Min fitness: ", round(min(fitnesses), 3))
-        print("Mean fitness: ", round(np.mean(fitnesses), 3))
-        print("Median fitness: ", round(np.median(fitnesses), 3))
-        print("Time: ", round(time.time() - startTime, 4))
+        print("Generation {} \t:".format(counter))
+        print("Max fitness\t:", round(max(fitnesses), 3))
+        print("Min fitness\t:", round(min(fitnesses), 3))
+        print("Mean fitness\t:", round(np.mean(fitnesses), 3))
+        print("Median fitness\t:", round(np.median(fitnesses), 3))
+        print("Lap Time\t:", round(time.time() - lastTime, 4))
+        print("Total Time\t:", round(time.time() - startTime, 4))
         print("------------------------")
         print()
 
