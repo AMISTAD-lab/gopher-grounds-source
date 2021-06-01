@@ -266,27 +266,28 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, measure, threshol
     """
     # Run the simluation and keep the genetic algorithm 
     finalPopulation = geneticAlgorithm(cellAlphabet, fitnessFunc, measure, threshold, maxIterations, showLogs)
-    finalPopulation = listEncoding(finalPopulation)
 
+    # Find counts and fitnesses of each element in final population
     uniquePopulation = []
-
     freqs = {}
-    # Find counts of each element in final population
+    fitnesses = {}
+
     for member in finalPopulation:
-        memberStr = np.array2string(member)
+        memberEnc = singleEncoding(member)
+        memberStr = np.array2string(memberEnc)
         if memberStr not in freqs:
-            uniquePopulation.append(member)
+            uniquePopulation.append(memberEnc)
             freqs[memberStr] = 0
+        
+        if memberStr not in fitnesses:
+            fitnesses[memberStr] = round(fitnessFunc(member), 3)
 
         freqs[memberStr] += 1
 
     with open(outputFile, 'w') as out:
         for i, member in enumerate(uniquePopulation):
-            out.write(str(freqs[np.array2string(member)]) + ": ")
-            
-            # Standardize spacing
-            if i < 10:
-                out.write(" ")
+            memberStr = np.array2string(member)
+            out.write(str(freqs[memberStr]) + ":\t")
 
             out.write("[")
             
@@ -297,7 +298,9 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, measure, threshol
                 if j < len(member) - 1:
                     out.write(', ')
             
-            out.write(']')
+            out.write('],\tfitness: ')
+            out.write(str(fitnesses[memberStr]))
+
             out.write('\n')
 
 def simulateTrapInBrowser(listEncoding):
@@ -309,5 +312,5 @@ def simulateTrapInBrowser(listEncoding):
     # opens the animation in the web browser
     webbrowser.open_new_tab('file://' + os.path.realpath('./animation/animation.html'))
 
-exportGeneticOutput('geneticAlgorithm.txt', cellAlphabet, functionalFitness, 'median', 0.4)
-# simulateTrapInBrowser([42, 13, 50, 81, 1, 17, 85, 2, 25, 44, 0, 26])
+exportGeneticOutput('geneticAlgorithm.txt', cellAlphabet, functionalFitness, 'mean', 0.2, maxIterations=10000)
+# simulateTrapInBrowser([84, 6, 25, 62, 1, 69, 62, 2, 46, 89, 0, 29])
