@@ -59,6 +59,19 @@ geneticExperimentParser.add_argument('--no-print-stats', '-np', help='turn off s
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 
+# run batch experiments flags
+geneticExperimentParser = geneticSubparsers.add_parser('runBatchExperiments', help='runs an experiment')
+geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
+geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of experiments to run', type=int, default=10)
+geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
+geneticExperimentParser.add_argument('--maxIterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
+geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
+geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
+geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
+geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
+geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
+geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
+
 args = parser.parse_args()
 
 if args.command == 'legacy' and args.legacy == 'runExperiment':
@@ -135,4 +148,16 @@ elif args.command == 'genetic-algorithm':
             args.no_print_stats, 
             args.export, 
             args.output_file
+        )
+    elif args.genetic == 'runBatchExperiments':
+        geneticExperiment.runBatchExperiments(
+            args.num_experiments,
+            fitnessFunc,
+            args.threshold,
+            args.num_simulations,
+            args.conf_level,
+            args.show_logs,
+            args.output_file,
+            args.intention,
+            args.no_improved_callback
         )

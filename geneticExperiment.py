@@ -6,7 +6,7 @@ import numpy as np
 from scipy.stats import norm
 import os
 
-def runSimulations(encodedTrap, numSimulations=10000, conf_level=0.95, intention=False, printStatistics = True):
+def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=False, printStatistics = True):
     '''
     Takes in an encoded trap and runs `numSimulations` simulations at 5 different hunger levels.
     Tallies the number of alive gophers and returns the proportion of alive gophers as well as the
@@ -23,7 +23,7 @@ def runSimulations(encodedTrap, numSimulations=10000, conf_level=0.95, intention
     # Calculate statistics
     proportion = numberAlive / (numSimulations * hungerLevels)
     stderr = np.sqrt(proportion * (1 - proportion) / (numSimulations * hungerLevels))
-    z_score = norm.ppf(conf_level + (1 - conf_level) / 2)
+    z_score = norm.ppf(confLevel + (1 - confLevel) / 2)
     conf_interval = (
         round(proportion + z_score * stderr, 3), \
         round(proportion - z_score * stderr, 3)
@@ -36,8 +36,8 @@ def runSimulations(encodedTrap, numSimulations=10000, conf_level=0.95, intention
 
     return proportion, stderr, conf_interval
 
-def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=1000, showLogs=True, 
-    improvedCallback=True, numSimulations=10000, conf_level=0.95, intention=False, printStatistics=True, export=False, outputFile='experiment.txt'):
+def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, showLogs=True, 
+    improvedCallback=True, numSimulations=10000, confLevel=0.95, intention=False, printStatistics=True, export=False, outputFile='experiment.txt'):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
@@ -50,13 +50,10 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=1000, sho
     fitness = 0
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    if export:
-        trap, fitness = utils.exportGeneticOutput(geneticAlgFile, utils.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
-    else:
-        _, trap, fitness = utils.geneticAlgorithm(utils.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
+    _, trap, fitness = utils.geneticAlgorithm(utils.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
 
     # Run the experiment on the generated (optimized) trap
-    proportion, stderr, conf_interval = runSimulations(trap, numSimulations, conf_level, intention, printStatistics)
+    proportion, stderr, conf_interval = runSimulations(trap, numSimulations, confLevel, intention, printStatistics)
 
     # Write to the file if we are exporting
     if export:
@@ -114,6 +111,8 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=1000, sho
                     out.write(', ')
             
             out.write(' ]\n')
+
+            # Write statistics
             out.write('Fitness\t\t\t\t:\t{}\n'.format(str(round(fitness, 3))))
             out.write('Function\t\t\t:\t{}\n'.format(functionName))
             out.write('Proportion\t\t\t:\t{}\n'.format(round(proportion, 4)))
@@ -123,3 +122,37 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=1000, sho
             out.close()
     
     return trap, fitness, proportion, stderr, conf_interval
+
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, confLevel=0.95, showLogs=False, outputFile='experiment.txt', intention=False, improvedCallback=True):
+    """Runs an experiment `numExperiments` times with the given parameters"""
+    firstLine = 'Total Experiments: '
+
+    # Check if the file exists first
+    if not os.path.isfile('./' + outputFile):
+        with open(outputFile, 'w+') as out:
+            out.write(firstLine + '0\n')
+            out.close()
+
+    with open(outputFile, 'r') as out:
+        fileLines = out.readlines()
+        
+        # Handling malformed files
+        if fileLines == []:
+            fileLines = [firstLine + '0\n']
+            out.close()
+    
+    with open(outputFile, 'w+') as out:
+        out.writelines(fileLines)
+        out.write('---------------------------\n')
+        out.write('BATCH EXPERIMENT STARTED.\n')
+        out.close()
+    
+    for _ in range(numExperiments):
+        runExperiment(fitnessFunction, threshold, 'max', 10000, showLogs, improvedCallback, numSimulations, confLevel, intention, False, True, outputFile)
+
+    with open(outputFile, 'a') as out:
+        out.write('BATCH EXPERIMENT FINISHED.\n')
+        out.write('---------------------------\n\n')
+        out.close()
+    
+    print("SIMULATION FINISHED.")
