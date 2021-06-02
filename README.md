@@ -73,6 +73,10 @@ These flags are just for the `genetic-algorithm runExperiment` parser:
 
 <sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.txt' for the `runExperiment` subparser
 
+Finally, we have added support for running batch experiments to the CLI. The command is
+`./gopher-cli.py genetic-algorithm runBatchExperiments -h`.
+Many of the flags can be found above, but one notable difference is the `--num-experiments` flag; this flag allows the user to determine how many experiments they want to run, and it defaults at 10 experiments. All outputs are generated in the `experiment.txt` file.
+
 ## Running legacy simulations
 ---
 To run legacy simulations (from the Gopher's Gambit), we can simply use the legacy parser and follow the help command:
