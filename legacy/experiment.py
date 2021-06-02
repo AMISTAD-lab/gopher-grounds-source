@@ -4,7 +4,6 @@ import classes.Trap as t
 import numpy as np
 import magicVariables as mv
 import legacy.data as d
-import argparse
 
 pref = {
     "intention" : True, #if gopher has intention

@@ -8,7 +8,6 @@ from classes.Dirt import *
 from classes.Wire import *
 from classes.Arrow import *
 from classes.Cell import *
-from designedTraps import *
 import copy
 
 ## IMPORTANT: For every encoded trap, the following must be true to be a valid config:

@@ -98,7 +98,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
             out.write('\n')
             out.write('Experiment {}\n'.format(experimentNum))
             out.write('-------------\n')
-            out.write('Best Trap\t\t\t:\t')
+            out.write('Trap\t\t\t\t:\t')
             
             # Print array
             out.write('[ ')
@@ -118,6 +118,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
             out.write('Proportion\t\t\t:\t{}\n'.format(round(proportion, 4)))
             out.write('Standard Error\t\t:\t{}\n'.format(round(stderr, 3)))
             out.write('Confidence Interval\t:\t({}, {})\n'.format(round(conf_interval[0], 3), round(conf_interval[1], 3)))
+            out.write('Intention?\t\t\t:\t{}\n'.format('Yes' if intention else 'No'))
             out.write('\n')
             out.close()
     

@@ -5,7 +5,6 @@ from classes.Dirt import *
 from classes.Wire import *
 from classes.Arrow import *
 from classes.Cell import *
-import algorithms as al
 
 cells = []
 
