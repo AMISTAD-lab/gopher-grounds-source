@@ -66,9 +66,9 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
         elif fitnessFunc == coherentFitness:
             functionName = 'coherence'
         elif fitnessFunc == functionalFitness:
-            functionName == 'functional'
+            functionName = 'functional'
         elif fitnessFunc == combinedFitness:
-            functionName == 'combined'
+            functionName = 'combined'
 
         # Check if the file exists first
         if not os.path.isfile('./' + outputFile):
