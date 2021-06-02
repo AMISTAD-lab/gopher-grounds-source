@@ -1,10 +1,8 @@
 ## Original Source Code:
----
 The source code for this project is based off of the Gopher's Gambit source code, commit 0d53c9a. That code can be found here:
 [Gopher's Gambit Source](https://github.com/amanirmk/AMISTAD-intention-exp3/tree/0d53c9acc48591a7ace67b6032ca5edc54665a7a)
 
 ## Getting Started
----
 In order to get started, you will first need to install the dependencies for this project.
 This can be done by `pip install`ing the libraries in `requirements.txt`, as shown below:
 ```
@@ -13,7 +11,6 @@ pip3 install -r requirements.txt
 Note: I would recommend creating a virtual environment for these installs
 
 ## Interacting with the CLI
----
 We have provided a CLI interface to allow users to more easily interact with the code without having to dig through files. To access the CLI, simple execute the command
 ```
 ./gopher-cli.py -h
@@ -25,7 +22,6 @@ python3 gopher-cli.py -h
 ```
 
 ## Using the CLI to interact with the Genetic Algorithm
----
 The genetic algorithm source code is found in the `geneticAlgorithm/` folder.
 To learn about these commands, simply run
 ```
@@ -78,7 +74,6 @@ Finally, we have added support for running batch experiments to the CLI. The com
 Many of the flags can be found above, but one notable difference is the `--num-experiments` flag; this flag allows the user to determine how many experiments they want to run, and it defaults at 10 experiments. All outputs are generated in the `experiment.txt` file.
 
 ## Running legacy simulations
----
 To run legacy simulations (from the Gopher's Gambit), we can simply use the legacy parser and follow the help command:
 ```
 ./gopher-cli.py legacy -h
@@ -135,5 +130,4 @@ python3 run.py
 ```
 
 ## Help
----
 If there are any questions or help is needed, you may email anshulkam@gmail.com.
