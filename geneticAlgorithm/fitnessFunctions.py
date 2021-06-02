@@ -28,7 +28,7 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
     hungerLevels = 5
     for hunger in range(hungerLevels):
         for _ in range(int(numSimulations / hungerLevels)):
-            numberAlive += int(sim.simulateTrap(createTrap(configuration), False, hunger = hunger / 5)[3])
+            numberAlive += int(sim.simulateTrap(createTrap(configuration), False, hunger = hunger / 5, forceEnter=True)[3])
 
     # Calculate statistics
     proportion = 1 - numberAlive / numSimulations
