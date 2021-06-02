@@ -20,7 +20,6 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measur
     """
     # Run the simluation and keep track of the unique values in the genetic algorithm
     finalPopulation, bestTrap, bestFitness = geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
-    bestTrap = encoding.singleEncoding(bestTrap)
 
     # Find counts and fitnesses of each element in final population
     uniquePopulation = []

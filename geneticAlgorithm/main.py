@@ -9,7 +9,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
  showLogs = True, improvedCallback = True, callbackFactor = 0.95):
     """
     Finds a near-optimal solution in the search space using the given fitness function
-    Returns a 3-tuple of (finalPopulation, bestTrap, bestFitness)
+    Returns a 3-tuple of (finalPopulation, bestTrap (encoded), bestFitness)
     """
     fitnesses = np.array([0 for _ in range(15)])
 
@@ -81,4 +81,4 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
     
     optimalIndex = np.where(fitnesses == np.max(fitnesses))[0][0]
 
-    return np.array(population), population[optimalIndex], fitnesses[optimalIndex]
+    return np.array(population), singleEncoding(population[optimalIndex]), fitnesses[optimalIndex]
