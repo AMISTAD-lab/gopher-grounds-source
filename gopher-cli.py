@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import experiment
+import legacy.experiment as experiment
 from geneticAlgorithm.utils import *
 from geneticAlgorithm.fitnessFunctions import *
 from geneticAlgorithm.main import *
 from geneticAlgorithm.encoding import singleEncoding
-import geneticExperiment
+import geneticAlgorithm.experiment as geneticExperiment
 import argparse
 
 parser = argparse.ArgumentParser(description="Commands to run the experiment")

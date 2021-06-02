@@ -3,7 +3,7 @@ import copy
 import classes.Trap as t
 import numpy as np
 import magicVariables as mv
-import data as d
+import legacy.data as d
 import argparse
 
 pref = {
