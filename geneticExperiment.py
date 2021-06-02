@@ -1,4 +1,4 @@
-from geneticAlgorithm.fitnessFunctions import coherentFitness
+from geneticAlgorithm.fitnessFunctions import *
 import simulation as sim
 from geneticAlgorithm.encoding import singleDecoding
 import geneticAlgorithm.utils as utils
@@ -23,7 +23,7 @@ def runSimulations(encodedTrap, numSimulations=10000, conf_level=0.95, intention
     # Calculate statistics
     proportion = numberAlive / (numSimulations * hungerLevels)
     stderr = np.sqrt(proportion * (1 - proportion) / (numSimulations * hungerLevels))
-    z_score = norm.ppf(conf_level)
+    z_score = norm.ppf(conf_level + (1 - conf_level) / 2)
     conf_interval = (
         round(proportion + z_score * stderr, 3), \
         round(proportion - z_score * stderr, 3)
@@ -42,21 +42,37 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=1000, sho
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
     survives the trap, along with a confidence interval. Can optionally export the findings to another file.
-    Returns a 5-tuple of (trap, fitness, proportion, stderr, conf_interval)
+    Returns a 5-tuple of (trap (encoded), fitness, proportion, stderr, conf_interval)
     '''
     # File to export the genetic output data
     geneticAlgFile = 'geneticAlgorithm.txt'
     trap = []
     fitness = 0
+
+    # Generate the trap (either by exporting to a file or calling the genetic algorithm)
     if export:
         trap, fitness = utils.exportGeneticOutput(geneticAlgFile, utils.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
     else:
-        trap, fitness = utils.geneticAlgorithm(utils.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
+        _, trap, fitness = utils.geneticAlgorithm(utils.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
 
+    # Run the experiment on the generated (optimized) trap
     proportion, stderr, conf_interval = runSimulations(trap, numSimulations, conf_level, intention, printStatistics)
 
+    # Write to the file if we are exporting
     if export:
         firstLine = 'Total Experiments: '
+        
+        # Defining the function name for logging purposes
+        functionName = ''
+        if fitnessFunc == randomFitness:
+            functionName = 'random'
+        elif fitnessFunc == coherentFitness:
+            functionName = 'coherence'
+        elif fitnessFunc == functionalFitness:
+            functionName == 'functional'
+        elif fitnessFunc == combinedFitness:
+            functionName == 'combined'
+
         # Check if the file exists first
         if not os.path.isfile('./' + outputFile):
             with open(outputFile, 'w+') as out:
@@ -98,7 +114,8 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=1000, sho
                     out.write(', ')
             
             out.write(' ]\n')
-            out.write('Fitness\t\t\t\t:\t{}\n'.format(str(fitness)))
+            out.write('Fitness\t\t\t\t:\t{}\n'.format(str(round(fitness, 3))))
+            out.write('Function\t\t\t:\t{}\n'.format(functionName))
             out.write('Proportion\t\t\t:\t{}\n'.format(round(proportion, 4)))
             out.write('Standard Error\t\t:\t{}\n'.format(round(stderr, 3)))
             out.write('Confidence Interval\t:\t({}, {})\n'.format(round(conf_interval[0], 3), round(conf_interval[1], 3)))

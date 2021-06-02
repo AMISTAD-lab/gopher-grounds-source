@@ -50,7 +50,7 @@ geneticExperimentParser.add_argument('function', help='a choice of {random, cohe
 geneticExperimentParser.add_argument('--measure', '-m', help='the measure for the threshold (max, mean, median, all)', default='max')
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--maxIterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
-geneticExperimentParser.add_argument('--log', '-l', help='turns on logs for generations', action='store_true')
+geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
 geneticExperimentParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
@@ -93,9 +93,26 @@ elif args.command == 'genetic-algorithm':
         bestTrap = []
         bestFitness = 0
         if args.export:
-            bestTrap, bestFitness = exportGeneticOutput(args.output_file, cellAlphabet, fitnessFunc, args.threshold,  args.measure, args.maxIterations, args.logs, args.no_improved_callback)
+            bestTrap, bestFitness = exportGeneticOutput(
+                args.output_file,
+                cellAlphabet,
+                fitnessFunc,
+                args.threshold,
+                args.measure,
+                args.maxIterations,
+                args.logs,
+                args.no_improved_callback
+            )
         else:
-            finalPopulation, bestTrap, bestFitness = geneticAlgorithm(cellAlphabet, fitnessFunc, args.threshold, args.measure, args.maxIterations, args.log, args.no_improved_callback)
+            finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
+                cellAlphabet,
+                fitnessFunc,
+                args.threshold,
+                args.measure,
+                args.maxIterations,
+                args.log,
+                args.no_improved_callback
+            )
             bestTrap = singleEncoding(bestTrap)
 
         print('Trap (encoded):\t', bestTrap)
@@ -111,7 +128,7 @@ elif args.command == 'genetic-algorithm':
             args.measure, 
             args.maxIterations, 
             args.no_logs, 
-            args.no_improvedCallback, 
+            args.no_improved_callback, 
             args.num_simulations, 
             args.conf_level, 
             args.intention, 
