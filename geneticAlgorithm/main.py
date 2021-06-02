@@ -7,7 +7,10 @@ cellAlphabet = [x for x in range(93)]
 
 def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxIterations = 10000,
  showLogs = True, improvedCallback = True, callbackFactor = 0.95):
-    """Finds a near-optimal solution in the search space using the given fitness function"""
+    """
+    Finds a near-optimal solution in the search space using the given fitness function
+    Returns a 3-tuple of (finalPopulation, bestTrap, bestFitness)
+    """
     fitnesses = np.array([0 for _ in range(15)])
 
     population = []
@@ -75,5 +78,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
         print("Total Time\t:", round(time.time() - startTime, 4))
         print("------------------------")
         print()
+    
+    optimalIndex = np.where(fitnesses == np.max(fitnesses))[0][0]
 
-    return np.array(population)
+    return np.array(population), population[optimalIndex], fitnesses[optimalIndex]
