@@ -1,7 +1,8 @@
+from geneticAlgorithm.cellarray import compareCells
 from geneticAlgorithm.encoding import singleEncoding
 import numpy as np
 import simulation as sim
-from geneticAlgorithm.utils import createTrap
+from geneticAlgorithm.utils import createTrap, zapsGopher
 import algorithms as alg
 
 fitnessDic = {}
@@ -10,12 +11,16 @@ def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
     return np.random.random()
 
-def functionalFitness(configuration, numSimulations = 1000, printStatistics = False):
+def functionalFitness(configuration, numSimulations = 5000, printStatistics = False):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
     or compute the the given configuration's probability of killing a gopher
     """
+    # If the trap does not zap the gopher, then it cannot kill any gophers
+    if not zapsGopher(configuration):
+        return 0
+
     # Convert list to string to reference in dictionary
     strEncoding = np.array2string(configuration)
 

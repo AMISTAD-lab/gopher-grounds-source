@@ -66,13 +66,13 @@ def compareCells(inputCell, listCell):
             return False
 
         if bothStraight:
-            return (inputCell.rotationType.value % 4 == listCell.rotationType.value)
+            return (inputCell.rotationType.value % 4 == listCell.rotationType.value % 4)
 
         if bothAngled:
              # Input cells can be left or right angled, but list cells are only right angled
             isRight = (inputCell.angleType == AngleType.rright)
             if isRight:
-                return isRight and inputCell.rotationType == listCell.rotationType
+                return inputCell.rotationType == listCell.rotationType
             else:
                 return (inputCell.rotationType.value + 2) % 8 == listCell.rotationType.value
         else:
