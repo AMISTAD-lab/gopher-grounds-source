@@ -21,12 +21,12 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
             numberAlive += int(sim.simulateTrap(utils.createTrap(decodedTrap), intention, hunger = hunger / 5)[3])
 
     # Calculate statistics
-    proportion = numberAlive / (numSimulations * hungerLevels)
+    proportion = 1 - numberAlive / (numSimulations * hungerLevels)
     stderr = np.sqrt(proportion * (1 - proportion) / (numSimulations * hungerLevels))
     z_score = norm.ppf(confLevel + (1 - confLevel) / 2)
     conf_interval = (
-        round(proportion + z_score * stderr, 3), \
-        round(proportion - z_score * stderr, 3)
+        round(proportion - z_score * stderr, 3), \
+        round(proportion + z_score * stderr, 3)
     )
 
     if printStatistics:
@@ -45,7 +45,6 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     Returns a 5-tuple of (trap (encoded), fitness, proportion, stderr, conf_interval)
     '''
     # File to export the genetic output data
-    geneticAlgFile = 'geneticAlgorithm.txt'
     trap = []
     fitness = 0
 
@@ -115,9 +114,9 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
             # Write statistics
             out.write('Fitness\t\t\t\t:\t{}\n'.format(str(round(fitness, 3))))
             out.write('Function\t\t\t:\t{}\n'.format(functionName))
-            out.write('Proportion\t\t\t:\t{}\n'.format(round(proportion, 4)))
+            out.write('Proportion Dead\t\t:\t{}\n'.format(round(proportion, 4)))
             out.write('Standard Error\t\t:\t{}\n'.format(round(stderr, 3)))
-            out.write('Confidence Interval\t:\t({}, {})\n'.format(round(conf_interval[0], 3), round(conf_interval[1], 3)))
+            out.write('Confidence Interval\t:\t[{}, {}]\n'.format(round(conf_interval[0], 3), round(conf_interval[1], 3)))
             out.write('Intention?\t\t\t:\t{}\n'.format('Yes' if intention else 'No'))
             out.write('\n')
             out.close()

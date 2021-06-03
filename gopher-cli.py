@@ -37,11 +37,11 @@ generateTrap = geneticSubparsers.add_parser('generate', help='generates a trap')
 generateTrap.add_argument('function', help='a choice of {random, coherence, functional, combined}')
 generateTrap.add_argument('--measure', '-m', help='the measure for the threshold (max, mean, median, all)', default='max')
 generateTrap.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
-generateTrap.add_argument('--maxIterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
+generateTrap.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
 generateTrap.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
 generateTrap.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
-generateTrap.add_argument('--outputFile', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
+generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
 generateTrap.add_argument('--show', '-s', help='show output in browser', action='store_true')
 
 # run experiment flags
@@ -49,7 +49,7 @@ geneticExperimentParser = geneticSubparsers.add_parser('runExperiment', help='ru
 geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
 geneticExperimentParser.add_argument('--measure', '-m', help='the measure for the threshold (max, mean, median, all)', default='max')
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
-geneticExperimentParser.add_argument('--maxIterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
+geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
 geneticExperimentParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
@@ -64,7 +64,7 @@ geneticExperimentParser = geneticSubparsers.add_parser('runBatchExperiments', he
 geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
 geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of experiments to run', type=int, default=10)
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
-geneticExperimentParser.add_argument('--maxIterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
+geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
@@ -112,8 +112,8 @@ elif args.command == 'genetic-algorithm':
                 fitnessFunc,
                 args.threshold,
                 args.measure,
-                args.maxIterations,
-                args.logs,
+                args.max_iterations,
+                args.no_logs,
                 args.no_improved_callback
             )
         else:
@@ -122,8 +122,8 @@ elif args.command == 'genetic-algorithm':
                 fitnessFunc,
                 args.threshold,
                 args.measure,
-                args.maxIterations,
-                args.log,
+                args.max_iterations,
+                args.no_logs,
                 args.no_improved_callback
             )
             bestTrap = singleEncoding(bestTrap)
@@ -139,7 +139,7 @@ elif args.command == 'genetic-algorithm':
             fitnessFunc, 
             args.threshold, 
             args.measure, 
-            args.maxIterations, 
+            args.max_iterations, 
             args.no_logs, 
             args.no_improved_callback, 
             args.num_simulations, 

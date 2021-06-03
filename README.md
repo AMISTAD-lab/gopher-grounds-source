@@ -52,7 +52,7 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | --help | -h | N/A | help for any given parser|
 | --measure| -m | 'max' | termination measure for the threshold |
 | --threshold | -t | 0.8 | value of `measure` over which we terminate|
-| --maxIterations | -i | 10,000 | maximum number of iterations the algorithm runs |
+| --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
 | --no-improved-callback | -nc | False | turns off the improved callback optimization |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
@@ -67,7 +67,19 @@ These flags are just for the `genetic-algorithm runExperiment` parser:
 | --conf_level | -c | 0.95 | confidence level for our confidence interval |
 | --intention | -in | False | whether the simulated gopher has intention or not |
 
-<sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.txt' for the `runExperiment` subparser
+These flags are for the `genetic-algorithm runBatchExperiments` parser:
+| Flag | Abbrev. | Default | Description |
+| :--: | :----------: | :-----: | :---------: |
+| --num-experiments | -e | 10 | number of experiements to run |
+| --threshold | -t | 0.8 | value of `measure` over which we terminate|
+| --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
+| --show-logs | -l | False | turns on printing of generation data |
+| --no-improved-callback | -nc | False | turns off the improved callback optimization |
+| --ouput-file | -o | x<sup>1</sup> | output file name |
+| --conf_level | -c | 0.95 | confidence level for our confidence interval |
+| --intention | -in | False | whether the simulated gopher has intention or not |
+
+<sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.txt' for the `runExperiment` and `runBatchExperiments` subparser.
 
 Finally, we have added support for running batch experiments to the CLI. The command is
 `./gopher-cli.py genetic-algorithm runBatchExperiments -h`.

@@ -25,7 +25,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
 
     while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
         if showLogs and (counter % 50 == 0):
-            print("Generation {} \t:".format(counter))
+            print("Generation {}:".format(counter))
             print("Max fitness\t:", round(max(fitnesses), 3))
             print("Min fitness\t:", round(min(fitnesses), 3))
             print("Mean fitness\t:", round(np.mean(fitnesses), 3))
@@ -69,7 +69,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
         counter += 1
 
     if showLogs:
-        print("Generation {} \t:".format(counter))
+        print("Generation {}:".format(counter))
         print("Max fitness\t:", round(max(fitnesses), 3))
         print("Min fitness\t:", round(min(fitnesses), 3))
         print("Mean fitness\t:", round(np.mean(fitnesses), 3))

@@ -10,7 +10,7 @@ def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
     return np.random.random()
 
-def functionalFitness(configuration, numSimulations = 100, printStatistics = False):
+def functionalFitness(configuration, numSimulations = 1000, printStatistics = False):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
@@ -28,7 +28,7 @@ def functionalFitness(configuration, numSimulations = 100, printStatistics = Fal
     hungerLevels = 5
     for hunger in range(hungerLevels):
         for _ in range(int(numSimulations / hungerLevels)):
-            numberAlive += int(sim.simulateTrap(createTrap(configuration), False, hunger = hunger / 5, forceEnter=True)[3])
+            numberAlive += int(sim.simulateTrap(createTrap(configuration), False, hunger = hunger / 5)[3])
 
     # Calculate statistics
     proportion = 1 - numberAlive / numSimulations
