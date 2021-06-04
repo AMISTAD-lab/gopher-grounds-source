@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-import legacy.experiment as experiment
-import geneticAlgorithm.utils as util
-from geneticAlgorithm.fitnessFunctions import *
-from geneticAlgorithm.main import *
-from geneticAlgorithm.encoding import singleEncoding
-import geneticAlgorithm.experiment as geneticExperiment
 import argparse
-from legacy.designedTraps import *
+import geneticAlgorithm.constants as constants
+import geneticAlgorithm.fitnessFunctions as functions 
+import geneticAlgorithm.experiment as geneticExperiment
+from geneticAlgorithm.main import geneticAlgorithm
+import geneticAlgorithm.utils as util
+import legacy.experiment as experiment
 
 parser = argparse.ArgumentParser(description="Commands to run the experiment")
 subparsers = parser.add_subparsers(help='sub-command help', dest='command')
@@ -101,13 +100,13 @@ elif args.command == 'genetic-algorithm':
     # Defining the fitness function
     fitnessFunc = lambda x : 0
     if args.function == 'random':
-        fitnessFunc = randomFitness
+        fitnessFunc = functions.randomFitness
     elif args.function == 'coherence':
-        fitnessFunc = coherentFitness
+        fitnessFunc = functions.coherentFitness
     elif args.function == 'functional':
-        fitnessFunc = functionalFitness
+        fitnessFunc = functions.functionalFitness
     elif args.function == 'combined':
-        fitnessFunc = combinedFitness
+        fitnessFunc = functions.combinedFitness
     else:
         raise Exception(args.function, ' is not a real fitness function value. Please try again')
 
@@ -118,7 +117,7 @@ elif args.command == 'genetic-algorithm':
         if args.export:
             bestTrap, bestFitness = util.exportGeneticOutput(
                 args.output_file,
-                cellAlphabet,
+                constants.cellAlphabet,
                 fitnessFunc,
                 args.threshold,
                 args.measure,
@@ -128,7 +127,7 @@ elif args.command == 'genetic-algorithm':
             )
         else:
             finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
-                cellAlphabet,
+                constants.cellAlphabet,
                 fitnessFunc,
                 args.threshold,
                 args.measure,

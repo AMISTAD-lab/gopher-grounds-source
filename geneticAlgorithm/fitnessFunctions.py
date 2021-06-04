@@ -27,7 +27,7 @@ def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_E
         return functionalFitnesses[strEncoding]
 
     # This is the max probability of killing a gopher 
-    theoreticalMax = (1 - 0.45 ** 2) * defaultProbEnter
+    theoreticalMax = (1 - 0.55 ** 2) * defaultProbEnter
 
     # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
     fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
