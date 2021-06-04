@@ -20,6 +20,12 @@ Finally, if that fails, we can also interact with the CLI using
 ```
 python3 gopher-cli.py -h
 ```
+## Simulating a trap from the Command Line
+We have provided a CLI command to simulate an arbitrary encoded trap. To use this command, simply call
+```
+./gopher-cli.py genetic-algorithm simulate '<trap_string>'
+```
+where <trap_string> is a string of the encoded trap (or the encoded trap surrounded by ''s). This should open your browser and play a simulation of the encoded trap.
 
 ## Using the CLI to interact with the Genetic Algorithm
 The genetic algorithm source code is found in the `geneticAlgorithm/` folder.

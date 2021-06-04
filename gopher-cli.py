@@ -72,11 +72,16 @@ geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 
+# simulate trap flags
+simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
+simulateTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
+
 args = parser.parse_args()
 
 if args.command == 'legacy' and args.legacy == 'runExperiment':
     experiment.runExperiment(args.output, args.inputToVary, args.numSimulations)
-elif args.command == 'simulate' and args.legacy == 'simulate':
+
+elif args.command == 'legacy' and args.legacy == 'simulate':
     trapInfo = experiment.simulate({
         "intention" : args.intention, #if gopher has intention
         "cautious" : args.cautious, # only used if intention, fakes a FSC test to confirm intention > cautiousness
@@ -87,6 +92,13 @@ elif args.command == 'simulate' and args.legacy == 'simulate':
     })
 
     print(trapInfo[1])
+
+elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
+    strList = args.trap
+    strList = strList.strip()[1:-1] # getting the numbers
+    digitList = strList.split(',') # splitting number strings by digits
+    simulateTrapInBrowser([int(digit.strip()) for digit in digitList])
+
 elif args.command == 'genetic-algorithm':
     # Defining the fitness function
     fitnessFunc = lambda x : 0
@@ -126,7 +138,6 @@ elif args.command == 'genetic-algorithm':
                 args.no_logs,
                 args.no_improved_callback
             )
-            bestTrap = singleEncoding(bestTrap)
 
         print('Trap (encoded):\t', bestTrap)
         print('Fitness:\t', round(bestFitness, 3))
