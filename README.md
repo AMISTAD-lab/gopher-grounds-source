@@ -25,7 +25,10 @@ We have provided a CLI command to simulate an arbitrary encoded trap. To use thi
 ```
 ./gopher-cli.py genetic-algorithm simulate '<trap_string>'
 ```
-where <trap_string> is a string of the encoded trap (or the encoded trap surrounded by ''s). This should open your browser and play a simulation of the encoded trap.
+where <trap_string> is a string of the encoded trap (or the encoded trap surrounded by ''s). This should open your browser and play a simulation of the encoded trap. An example to trap is:
+```
+./gopher-cli.py genetic-algorithm simulate '[ 43, 7, 8, 72, 1, 23, 38, 2, 26, 8, 0, 25 ]'
+```
 
 ## Using the CLI to interact with the Genetic Algorithm
 The genetic algorithm source code is found in the `geneticAlgorithm/` folder.
@@ -62,7 +65,7 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
 | --no-improved-callback | -nc | False | turns off the improved callback optimization |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
-| --ouput-file | -o | x<sup>1</sup> | output file name |
+| --ouput-file | -o | x<sup>1</sup> | output file name (must include `.txt` extension) |
 | --show | -s | False | simulates the trap in a browser (only for `generate` parser) |
 
 These flags are just for the `genetic-algorithm runExperiment` parser:
@@ -81,11 +84,11 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
 | --show-logs | -l | False | turns on printing of generation data |
 | --no-improved-callback | -nc | False | turns off the improved callback optimization |
-| --ouput-file | -o | x<sup>1</sup> | output file name |
+| --ouput-file | -o | x<sup>1</sup> | output file name (`.csv` or `.txt` allowed) |
 | --conf_level | -c | 0.95 | confidence level for our confidence interval |
 | --intention | -in | False | whether the simulated gopher has intention or not |
 
-<sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.txt' for the `runExperiment` and `runBatchExperiments` subparser.
+<sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.
 
 Finally, we have added support for running batch experiments to the CLI. The command is
 `./gopher-cli.py genetic-algorithm runBatchExperiments -h`.

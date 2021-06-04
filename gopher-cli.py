@@ -67,7 +67,7 @@ geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
-geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
+geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.csv')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
