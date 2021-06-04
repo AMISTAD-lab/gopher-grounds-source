@@ -1,3 +1,5 @@
+from time import time
+from enums.Thick import ThickType
 from typing import Any
 import numpy as np
 import os
@@ -58,12 +60,32 @@ def gopherDeathProb(arrowData, leaveTime):
     Returns the probability that a gopher dies given the information of a arrow
     """
     time, cell, thickness = arrowData
+    thickKillProb = [0.15, 0.3, 0.45]
 
     # If time < 0, then arrow does not hit, and gopher does not die
     if time < 0:
         return 0
-    
-    pass
+    # position as a function of time
+    pos = lambda t : min(t, 3) if t <= leaveTime else min(leaveTime, 3) - (t - leaveTime)
+    hit = int(pos(time) == cell or (pos(time) > 0 and cell == 4))
+    return hit * thickKillProb[thickness.value]
+
+def functionalFitness(configuration, defaultProbEnter = 0.8):
+    """
+    Takes in a board configuration and hunger level, and returns the probability the trap will kill the gopher
+    """
+    sumProb = 0
+    leftData = getArrowData(configuration)[0]
+    rightData = getArrowData(configuration)[1]
+    for hungerLevel in range(5):
+        timeDist = getTimeEat(hungerLevel / 5)
+        for i, dist in enumerate(timeDist):
+            leaveTime = getLeaveTime(leftData[0], rightData[0], i + 1)
+            deathProb = 1 - gopherDeathProb(leftData, leaveTime) * gopherDeathProb(rightData, leaveTime)
+            sumProb += deathProb * dist
+
+    return sumProb / 5
+
 
 def getArrowData(configuration):
     """

@@ -6,6 +6,8 @@ from geneticAlgorithm.main import *
 from geneticAlgorithm.encoding import singleEncoding
 import geneticAlgorithm.experiment as geneticExperiment
 import argparse
+from legacy.designedTraps import *
+import geneticAlgorithm.utils as util
 
 parser = argparse.ArgumentParser(description="Commands to run the experiment")
 subparsers = parser.add_subparsers(help='sub-command help', dest='command')
@@ -172,3 +174,5 @@ elif args.command == 'genetic-algorithm':
             args.intention,
             args.no_improved_callback
         )
+
+
