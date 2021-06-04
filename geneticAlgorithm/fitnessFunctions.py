@@ -1,6 +1,7 @@
 import numpy as np
 import algorithms as alg
 import geneticAlgorithm.analytical as analytical
+import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleEncoding
 from geneticAlgorithm.utils import createTrap
 
@@ -12,7 +13,7 @@ def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
     return np.random.random()
 
-def functionalFitness(configuration, defaultProbEnter = 0.8):
+def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
@@ -29,7 +30,7 @@ def functionalFitness(configuration, defaultProbEnter = 0.8):
     theoreticalMax = (1 - 0.45 ** 2) * defaultProbEnter
 
     # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
-    fitness = analytical.functionalFitness(configuration, defaultProbEnter) / theoreticalMax
+    fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
 
     functionalFitnesses[strEncoding] = fitness
     return fitness

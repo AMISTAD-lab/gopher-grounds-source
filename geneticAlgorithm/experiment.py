@@ -1,11 +1,12 @@
-from geneticAlgorithm.fitnessFunctions import *
-import simulation as sim
-from geneticAlgorithm.encoding import singleDecoding
-import geneticAlgorithm.utils as utils
-import numpy as np
-from scipy.stats import norm
-import os
 import csv
+import numpy as np
+import os
+from scipy.stats import norm
+import geneticAlgorithm.constants as constants
+from geneticAlgorithm.encoding import singleDecoding
+import geneticAlgorithm.fitnessFunctions as functions
+import geneticAlgorithm.utils as utils
+import simulation as sim
 
 def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=False, printStatistics = True):
     '''
@@ -50,7 +51,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     fitness = 0
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = utils.geneticAlgorithm(utils.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
+    _, trap, fitness = utils.geneticAlgorithm(constants.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
 
     # Run the experiment on the generated (optimized) trap
     proportion, stderr, conf_interval = runSimulations(trap, numSimulations, confLevel, intention, printStatistics)
@@ -61,13 +62,13 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
         
         # Defining the function name for logging purposes
         functionName = ''
-        if fitnessFunc == randomFitness:
+        if fitnessFunc == functions.randomFitness:
             functionName = 'random'
-        elif fitnessFunc == coherentFitness:
+        elif fitnessFunc == functions.coherentFitness:
             functionName = 'coherence'
-        elif fitnessFunc == functionalFitness:
+        elif fitnessFunc == functions.functionalFitness:
             functionName = 'functional'
-        elif fitnessFunc == combinedFitness:
+        elif fitnessFunc == functions.combinedFitness:
             functionName = 'combined'
 
         # Check if the file exists first
@@ -132,13 +133,13 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
     if outputFile[-4:] == '.csv':
         # Defining the function name for logging purposes
         functionName = ''
-        if fitnessFunction == randomFitness:
+        if fitnessFunction == functions.randomFitness:
             functionName = 'random'
-        elif fitnessFunction == coherentFitness:
+        elif fitnessFunction == functions.coherentFitness:
             functionName = 'coherence'
-        elif fitnessFunction == functionalFitness:
+        elif fitnessFunction == functions.functionalFitness:
             functionName = 'functional'
-        elif fitnessFunction == combinedFitness:
+        elif fitnessFunction == functions.combinedFitness:
             functionName = 'combined'
 
         # Run the experiment many times

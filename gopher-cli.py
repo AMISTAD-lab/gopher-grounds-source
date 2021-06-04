@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 import legacy.experiment as experiment
-from geneticAlgorithm.utils import *
+import geneticAlgorithm.utils as util
 from geneticAlgorithm.fitnessFunctions import *
 from geneticAlgorithm.main import *
 from geneticAlgorithm.encoding import singleEncoding
 import geneticAlgorithm.experiment as geneticExperiment
 import argparse
 from legacy.designedTraps import *
-import geneticAlgorithm.utils as util
 
 parser = argparse.ArgumentParser(description="Commands to run the experiment")
 subparsers = parser.add_subparsers(help='sub-command help', dest='command')
@@ -96,10 +95,7 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
     print(trapInfo[1])
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
-    strList = args.trap
-    strList = strList.strip()[1:-1] # getting the numbers
-    digitList = strList.split(',') # splitting number strings by digits
-    simulateTrapInBrowser([int(digit.strip()) for digit in digitList])
+    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap))
 
 elif args.command == 'genetic-algorithm':
     # Defining the fitness function
@@ -120,7 +116,7 @@ elif args.command == 'genetic-algorithm':
         bestTrap = []
         bestFitness = 0
         if args.export:
-            bestTrap, bestFitness = exportGeneticOutput(
+            bestTrap, bestFitness = util.exportGeneticOutput(
                 args.output_file,
                 cellAlphabet,
                 fitnessFunc,
@@ -145,7 +141,7 @@ elif args.command == 'genetic-algorithm':
         print('Fitness:\t', round(bestFitness, 3))
 
         if args.show:
-            simulateTrapInBrowser(bestTrap)
+            util.simulateTrapInBrowser(bestTrap)
     
     elif args.genetic == 'runExperiment':
         trap, fitness, prop, stderr, ci = geneticExperiment.runExperiment(
@@ -174,5 +170,3 @@ elif args.command == 'genetic-algorithm':
             args.intention,
             args.no_improved_callback
         )
-
-

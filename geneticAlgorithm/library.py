@@ -1,5 +1,6 @@
+import numpy as np
 import random
-from geneticAlgorithm.encoding import *
+import geneticAlgorithm.encoding as encoding
 
 """
 A library of all essential functions for the genetic algorithm
@@ -26,7 +27,7 @@ def initializePopulation(cellAlphabet, populationSize = 20):
 
         population.append(member)
 
-    return listDecoding(population)
+    return encoding.listDecoding(population)
 
 def checkTermination(fitnesses, measure, threshold):
     """Checks termination as a function of the given fitnesses.

@@ -1,8 +1,9 @@
-from classes.Wire import Wire
 from classes.Arrow import Arrow
+from classes.Wire import Wire
 from enums.Angle import AngleType
 from enums.Rotation import RotationType
 from geneticAlgorithm.cellarray import compareCells
+import geneticAlgorithm.constants as constants
 
 """
 This file contains all of the functions necessary to calculate the function of a trap analytically
@@ -35,39 +36,6 @@ def getLeaveTime(timeLeft, timeRight, timeEat):
         timeRight = 3 + timeEat
     
     return min(timeLeft, timeRight, 3 + timeEat)
-
-def gopherSurviveProb(arrowData, leaveTime):
-    """
-    Returns the probability that a gopher survives given the information of a arrow
-    """
-    time, cell, thickness = arrowData
-    thickSurviveProb = [0.15, 0.3, 0.45]
-
-    # If time < 0, then arrow does not hit, and gopher survives
-    if time < 0:
-        return 1
-
-    # position as a function of time
-    pos = lambda t : min(t, 3) if t <= leaveTime else min(leaveTime, 3) - (t - leaveTime)
-    hit = int(pos(time) == cell or (pos(time) > 0 and cell == 4))
-    return 1 - (hit * thickSurviveProb[thickness.value])
-
-def functionalFitness(configuration, defaultProbEnter = 0.8):
-    """
-    Takes in a board configuration and hunger level, and returns the probability the trap will kill the gopher
-    """
-    sumProb = 0
-    leftData, rightData = getArrowData(configuration)
-
-    # using default prob of entering as 0.8, gets the probabilities that a gopher will eat for a certain amount of time
-    # we fix default prob enter as 0.8 for baseline gophers
-    timeDist = getProbabilityDistribution()
-    for i, dist in enumerate(timeDist):
-        leaveTime = getLeaveTime(leftData[0], rightData[0], i + 1)
-        deathProb = 1 - gopherSurviveProb(leftData, leaveTime) * gopherSurviveProb(rightData, leaveTime)
-        sumProb += deathProb * dist
-
-    return sumProb * defaultProbEnter
 
 def getArrowData(configuration):
     """
@@ -185,3 +153,36 @@ def getArrowData(configuration):
                     break
 
     return retData[0], retData[1]
+
+def gopherSurviveProb(arrowData, leaveTime):
+    """
+    Returns the probability that a gopher survives given the information of a arrow
+    """
+    time, cell, thickness = arrowData
+    thickSurviveProb = [0.15, 0.3, 0.45]
+
+    # If time < 0, then arrow does not hit, and gopher survives
+    if time < 0:
+        return 1
+
+    # position as a function of time
+    pos = lambda t : min(t, 3) if t <= leaveTime else min(leaveTime, 3) - (t - leaveTime)
+    hit = int(pos(time) == cell or (pos(time) > 0 and cell == 4))
+    return 1 - (hit * thickSurviveProb[thickness.value])
+
+def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+    """
+    Takes in a board configuration and hunger level, and returns the probability the trap will kill the gopher
+    """
+    sumProb = 0
+    leftData, rightData = getArrowData(configuration)
+
+    # using default prob of entering as 0.8, gets the probabilities that a gopher will eat for a certain amount of time
+    # we fix default prob enter as 0.8 for baseline gophers
+    timeDist = getProbabilityDistribution(defaultProbEnter)
+    for i, dist in enumerate(timeDist):
+        leaveTime = getLeaveTime(leftData[0], rightData[0], i + 1)
+        deathProb = 1 - gopherSurviveProb(leftData, leaveTime) * gopherSurviveProb(rightData, leaveTime)
+        sumProb += deathProb * dist
+
+    return sumProb * defaultProbEnter

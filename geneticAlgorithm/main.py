@@ -1,7 +1,8 @@
+import copy
 import numpy as np
-from geneticAlgorithm.encoding import *
 import time
-from geneticAlgorithm.library import *
+import geneticAlgorithm.encoding as encoding
+import geneticAlgorithm.library as lib
 
 cellAlphabet = [x for x in range(93)]
 
@@ -17,13 +18,13 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
 
     # Sampling the population until we get one non-zero member
     while(np.count_nonzero(fitnesses) == 0):
-        population = initializePopulation(cellAlphabet)
+        population = lib.initializePopulation(cellAlphabet)
         fitnesses = [fitnessFunc(member) for member in population]
 
     counter  = 0
     startTime = lastTime = time.time()
 
-    while not checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
+    while not lib.checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
         if showLogs and (counter % 50 == 0):
             print("Generation {}:".format(counter))
             print("Max fitness\t:", round(max(fitnesses), 3))
@@ -42,13 +43,13 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
         originalPop = copy.deepcopy(population)
         originalFit = copy.deepcopy(fitnesses)
 
-        population = selectionFunc(population, fitnesses)
+        population = lib.selectionFunc(population, fitnesses)
         
-        encodedPop = listEncoding(population)
-        encodedPop = crossoverFunc(encodedPop)
-        encodedPop = mutationFunc(cellAlphabet, encodedPop)
+        encodedPop = encoding.listEncoding(population)
+        encodedPop = lib.crossoverFunc(encodedPop)
+        encodedPop = lib.mutationFunc(cellAlphabet, encodedPop)
         
-        population = listDecoding(encodedPop)
+        population = encoding.listDecoding(encodedPop)
         
         fitnesses = np.array([fitnessFunc(member) for member in population])
 
@@ -81,4 +82,4 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
     
     optimalIndex = np.where(fitnesses == np.max(fitnesses))[0][0]
 
-    return np.array(population), singleEncoding(population[optimalIndex]), fitnesses[optimalIndex]
+    return np.array(population), encoding.singleEncoding(population[optimalIndex]), fitnesses[optimalIndex]
