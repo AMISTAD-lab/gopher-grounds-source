@@ -117,7 +117,7 @@ elif args.command == 'genetic-algorithm':
         if args.export:
             bestTrap, bestFitness = util.exportGeneticOutput(
                 args.output_file,
-                constants.cellAlphabet,
+                constants.CELL_ALPHABET,
                 fitnessFunc,
                 args.threshold,
                 args.measure,
@@ -127,7 +127,7 @@ elif args.command == 'genetic-algorithm':
             )
         else:
             finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
-                constants.cellAlphabet,
+                constants.CELL_ALPHABET,
                 fitnessFunc,
                 args.threshold,
                 args.measure,

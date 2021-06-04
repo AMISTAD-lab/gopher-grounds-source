@@ -51,7 +51,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     fitness = 0
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = utils.geneticAlgorithm(constants.cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
+    _, trap, fitness = utils.geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
 
     # Run the experiment on the generated (optimized) trap
     proportion, stderr, conf_interval = runSimulations(trap, numSimulations, confLevel, intention, printStatistics)
