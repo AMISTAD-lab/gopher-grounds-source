@@ -64,8 +64,8 @@ def combinedFitness(configuration):
     sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
     evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(np.abs(x - y)))
     
-    # Scale the result to have evaluator(0, 0) = 0 and evaluator(1, 1) = 1
-    result = (2 * evaluator(coherence, functionality) - 1) / evaluator(1, 1)
+    # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
+    result = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
 
     combinedFitnesses[strEncoding] = result
     
