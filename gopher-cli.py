@@ -2,6 +2,7 @@
 import argparse
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions 
+from geneticAlgorithm.encoding import singleDecoding
 import geneticAlgorithm.experiment as geneticExperiment
 from geneticAlgorithm.main import geneticAlgorithm
 import geneticAlgorithm.utils as util
@@ -137,7 +138,9 @@ elif args.command == 'genetic-algorithm':
             )
 
         print('Trap (encoded):\t', bestTrap)
-        print('Fitness:\t', round(bestFitness, 3))
+        print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(bestTrap)), 3))
+        print('Functional fitness:\t', round(functions.functionalFitness(singleDecoding(bestTrap)), 3))
+        print('Combined fitness:\t', round(functions.combinedFitness(singleDecoding(bestTrap)), 3))
 
         if args.show:
             util.simulateTrapInBrowser(bestTrap)
@@ -157,6 +160,7 @@ elif args.command == 'genetic-algorithm':
             args.export, 
             args.output_file
         )
+
     elif args.genetic == 'runBatchExperiments':
         geneticExperiment.runBatchExperiments(
             args.num_experiments,
