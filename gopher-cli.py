@@ -76,7 +76,7 @@ geneticExperimentParser.add_argument('--intention', '-in', help='give the simula
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
 simulateTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
-simulateTrap.add_argument('--hunger', '-h', help='set the hunger for the simulated gopher (0, 1)', type=float, default=0)
+simulateTrap.add_argument('--hunger', help='set the hunger for the simulated gopher (0, 1)', type=float, default=0)
 simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 
 # get fitness trap flags

@@ -69,7 +69,7 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measur
 def simulateTrapInBrowser(listEncoding, hunger=0, intention=False):
     """Takes in a list encoding and simulates the trap in the browser"""
     decodedList = encoding.singleDecoding(listEncoding)
-    simulationInfo = sim.simulateTrap(createTrap(decodedList), False, hunger=hunger, forceEnter=True)[:3]
+    simulationInfo = sim.simulateTrap(createTrap(decodedList), intention, hunger=hunger, forceEnter=True)[:3]
     vis.writeTojs([simulationInfo], False)
 
     # opens the animation in the web browser
