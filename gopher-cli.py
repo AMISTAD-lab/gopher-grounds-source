@@ -76,6 +76,13 @@ geneticExperimentParser.add_argument('--intention', '-in', help='give the simula
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
 simulateTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
+simulateTrap.add_argument('--hunger', '-h', help='set the hunger for the simulated gopher (0, 1)', type=float, default=0)
+simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
+
+# get fitness trap flags
+fitnessParser = geneticSubparsers.add_parser('check-fitness', help='returns the fitness of the trap')
+fitnessParser.add_argument('function', help='the fitness function to use for calculating fitness') 
+fitnessParser.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 
 args = parser.parse_args()
 
@@ -95,7 +102,7 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
     print(trapInfo[1])
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
-    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap))
+    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention)
 
 elif args.command == 'genetic-algorithm':
     # Defining the fitness function
@@ -173,3 +180,6 @@ elif args.command == 'genetic-algorithm':
             args.intention,
             args.no_improved_callback
         )
+
+    elif args.genetic == 'check-fitness':
+        print(fitnessFunc(singleDecoding(util.convertStringToEncoding(args.trap))))

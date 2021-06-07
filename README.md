@@ -23,12 +23,24 @@ python3 gopher-cli.py -h
 ## Simulating a trap from the Command Line
 We have provided a CLI command to simulate an arbitrary encoded trap. To use this command, simply call
 ```
-./gopher-cli.py genetic-algorithm simulate '<trap_string>'
+./gopher-cli.py genetic-algorithm simulate '<trap_encoding>'
 ```
 where <trap_string> is a string of the encoded trap (or the encoded trap surrounded by ''s). This should open your browser and play a simulation of the encoded trap. An example to trap is:
 ```
 ./gopher-cli.py genetic-algorithm simulate '[ 43, 7, 8, 72, 1, 23, 38, 2, 26, 8, 0, 25 ]'
 ```
+Additionally, we can user the `--hunger` (`-h`) and `--intention` (`-in`) flags to set the gopher's hunger (in the interval (0, 1)) or simulate the gopher with intention, respectively.
+
+## Getting the Fitness of a Gopher
+To find the fitness of an arbitrary list encoding, we can use the CLI command:
+```
+./gopher-cli.py genetic-algorithm check-fitness <fitness_func> '<trap_encoding>'
+```
+The `<fitness_func>` argument can be any one of:
+- random
+- coherence
+- functional
+- combined
 
 ## Using the CLI to interact with the Genetic Algorithm
 The genetic algorithm source code is found in the `geneticAlgorithm/` folder.

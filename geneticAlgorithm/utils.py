@@ -66,7 +66,7 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measur
     
     return bestTrap, bestFitness
 
-def simulateTrapInBrowser(listEncoding, hunger=0):
+def simulateTrapInBrowser(listEncoding, hunger=0, intention=False):
     """Takes in a list encoding and simulates the trap in the browser"""
     decodedList = encoding.singleDecoding(listEncoding)
     simulationInfo = sim.simulateTrap(createTrap(decodedList), False, hunger=hunger, forceEnter=True)[:3]
