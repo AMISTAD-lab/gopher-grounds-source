@@ -218,7 +218,6 @@ def updateFrequencyCSV(fitnessFunc, freqDict):
     """
     Updates the frequencies in CSVs when a new batch run experiments is issued
     """
-    freqDict['[49 37 33 17  1 90 60  2 32 33  0 31]'] = 1
     filePath = 'frequencies/{}Freqs.csv'.format(fitnessFunc)
     headers = ['Trap', 'Freq']
 
