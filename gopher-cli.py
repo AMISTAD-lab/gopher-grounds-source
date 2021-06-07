@@ -72,6 +72,7 @@ geneticExperimentParser.add_argument('--output-file', '-o', help='the output fil
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
+geneticExperimentParser.add_argument('--keep-freqs', '-k', help='exports the count dictionary to a CSV file', action='store_true')
 
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
@@ -107,14 +108,18 @@ elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
 elif args.command == 'genetic-algorithm':
     # Defining the fitness function
     fitnessFunc = lambda x : 0
+    freqs = {}
     if args.function == 'random':
         fitnessFunc = functions.randomFitness
     elif args.function == 'coherence':
         fitnessFunc = functions.coherentFitness
+        freqs = functions.coherentFreqs
     elif args.function == 'functional':
         fitnessFunc = functions.functionalFitness
+        freqs = functions.functionalFreqs
     elif args.function == 'combined':
         fitnessFunc = functions.combinedFitness
+        freqs = functions.combinedFreqs
     else:
         raise Exception(args.function, ' is not a real fitness function value. Please try again')
 
@@ -180,6 +185,9 @@ elif args.command == 'genetic-algorithm':
             args.intention,
             args.no_improved_callback
         )
+
+        if args.keep_freqs and args.function != 'random':
+            geneticExperiment.updateFrequencyCSV(args.function, freqs)
 
     elif args.genetic == 'check-fitness':
         print(fitnessFunc(singleDecoding(util.convertStringToEncoding(args.trap))))

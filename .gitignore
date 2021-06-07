@@ -134,6 +134,7 @@ dmypy.json
 **/animation.js
 **.txt
 **.csv
+# !frequencies/**.csv
 
 # Whitelist these .txt files
 !quick-instructions.txt

@@ -9,6 +9,10 @@ functionalFitnesses = {}
 coherentFitnesses = {}
 combinedFitnesses = {}
 
+functionalFreqs = {}
+coherentFreqs = {}
+combinedFreqs = {}
+
 def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
     return np.random.random()
@@ -22,6 +26,12 @@ def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_E
     # Convert list to string to reference in dictionary
     encoding = singleEncoding(configuration)
     strEncoding = np.array2string(encoding)
+
+    # Maintain frequency dictionary
+    if strEncoding not in functionalFreqs:
+        functionalFreqs[strEncoding] = 0
+    
+    functionalFreqs[strEncoding] += 1
 
     if strEncoding in functionalFitnesses:
         return functionalFitnesses[strEncoding]
@@ -41,6 +51,12 @@ def coherentFitness(configuration):
     encoding = singleEncoding(configuration)
     strEncoding = np.array2string(encoding)
 
+    # Maintain frequency dictionary
+    if strEncoding not in coherentFreqs:
+        coherentFreqs[strEncoding] = 0
+    
+    coherentFreqs[strEncoding] += 1
+
     if strEncoding in coherentFitnesses:
         return coherentFitnesses[strEncoding]
 
@@ -55,6 +71,12 @@ def combinedFitness(configuration):
     encoding = singleEncoding(configuration)
     strEncoding = np.array2string(encoding)
 
+    # Maintain frequency dictionary
+    if strEncoding not in combinedFreqs:
+        combinedFreqs[strEncoding] = 0
+    
+    combinedFreqs[strEncoding] += 1
+
     if strEncoding in combinedFitnesses:
         return combinedFitnesses[strEncoding]
 
@@ -62,7 +84,7 @@ def combinedFitness(configuration):
     functionality = functionalFitness(configuration)
 
     sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
-    evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(np.abs(x - y)))
+    evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(2 * np.abs(x - y)))
     
     # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
     result = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)

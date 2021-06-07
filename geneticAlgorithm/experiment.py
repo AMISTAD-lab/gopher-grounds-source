@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import os
+import pandas as pd
 from scipy.stats import norm
 import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleDecoding
@@ -212,3 +213,42 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
         raise Exception('Please enter a valid file extension for the output file (.csv and .txt supported). {} was given'.format(outputFile))
     
     print("SIMULATION FINISHED.")
+
+def updateFrequencyCSV(fitnessFunc, freqDict):
+    """
+    Updates the frequencies in CSVs when a new batch run experiments is issued
+    """
+    freqDict['[49 37 33 17  1 90 60  2 32 33  0 31]'] = 1
+    filePath = 'frequencies/{}Freqs.csv'.format(fitnessFunc)
+    headers = ['Trap', 'Freq']
+
+    # If the path does not exist, then create it
+    if not os.path.isfile('./' + filePath):
+        if not os.path.exists('./frequencies'):
+            os.mkdir('./frequencies')
+
+        with open(filePath, 'w') as out:
+            writer = csv.writer(out)
+            writer.writerow(headers)
+            out.close()
+
+    # Read in the CSV as a dataframe to allow for easy manipulation
+    df = pd.read_csv('./' + filePath, index_col=0)
+
+    # Update all of the known keys with the given frequencies
+    for i in range(len(df.index)):
+        key = df.index[i]
+        if key in freqDict:
+            df.iloc[i] += freqDict[key]
+            del freqDict[key]
+
+    # Insert all new keys with given frequencies
+    indexes = []
+    vals = []
+    for key in freqDict:
+        indexes.append(key)
+        vals.append(freqDict[key])
+    
+    # Create a new, updated DataFrame
+    df = df.append(pd.DataFrame({ headers[1]: vals }, index=indexes)).astype('int32')
+    pd.DataFrame.to_csv(df, filePath, index_label=headers[0])
