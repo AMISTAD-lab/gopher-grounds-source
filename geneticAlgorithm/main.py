@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import time
+import geneticAlgorithm.constants as constants
 import geneticAlgorithm.encoding as encoding
 import geneticAlgorithm.library as lib
 
@@ -43,15 +44,17 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
         originalPop = copy.deepcopy(population)
         originalFit = copy.deepcopy(fitnesses)
 
-        population = lib.selectionFunc(population, fitnesses)
-        
-        encodedPop = encoding.listEncoding(population)
-        encodedPop = lib.crossoverFunc(encodedPop)
-        encodedPop = lib.mutationFunc(cellAlphabet, encodedPop)
-        
-        population = encoding.listDecoding(encodedPop)
-        
-        fitnesses = np.array([fitnessFunc(member) for member in population])
+        # Creating new population using genetic algorithm
+        newPopulation = []
+        for _ in range(len(population)):
+            parents = lib.selectionFunc(population, fitnesses)
+            parent1, parent2 = encoding.listEncoding(parents)
+            child = lib.crossoverFunc(parent1, parent2)
+            childMutated = lib.mutationFunc(constants.CELL_ALPHABET, child)
+            newPopulation.append(encoding.singleDecoding(childMutated))
+
+        fitnesses = np.array([fitnessFunc(member) for member in newPopulation])
+        population = newPopulation
 
         # Dismisses the new population if its fitness is less than (old pop's fitness * callbackFactor).
         # callbackFactor should be in the interval [0, 1], where 0 is equivalent to having improvedCallback=False.
@@ -62,8 +65,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
             elif measure == 'mean' and np.mean(fitnesses) < callbackFactor*np.mean(originalFit):
                 population = originalPop
                 fitnesses = originalFit
-            else:
-                if np.median(fitnesses) < callbackFactor*np.median(originalFit):
+            elif np.median(fitnesses) < callbackFactor*np.median(originalFit):
                     population = originalPop
                     fitnesses = originalFit
 
