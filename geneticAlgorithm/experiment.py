@@ -171,11 +171,11 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
 
             writeData.append([i + 1, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), conf_interval, intention])
 
-        # Write data to csv
-        with open(outputFile, 'w+') as out:
-            writer = csv.writer(out)
-            writer.writerows(writeData)
-            out.close()
+            # Write data to csv
+            with open(outputFile, 'w+') as out:
+                writer = csv.writer(out)
+                writer.writerows(writeData)
+                out.close()
 
     # Also able to write to .txt
     elif outputFile[-4:] == '.txt':
