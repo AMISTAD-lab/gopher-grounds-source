@@ -1,11 +1,13 @@
-from classes.Door import *
-from classes.Floor import *
-from classes.Food import *
-from classes.Dirt import *
-from classes.Wire import *
-from classes.Arrow import *
-from classes.Cell import *
-import algorithms as al
+from classes.Arrow import Arrow
+from classes.Door import Door
+from classes.Floor import Floor
+from classes.Food import Food
+from classes.Wire import Wire
+
+from enums.Angle import AngleType
+from enums.Cell import CellType
+from enums.Rotation import RotationType
+from enums.Thick import ThickType
 
 cells = []
 
@@ -67,13 +69,13 @@ def compareCells(inputCell, listCell):
             return False
 
         if bothStraight:
-            return (inputCell.rotationType.value % 4 == listCell.rotationType.value)
+            return (inputCell.rotationType.value % 4 == listCell.rotationType.value % 4)
 
         if bothAngled:
              # Input cells can be left or right angled, but list cells are only right angled
             isRight = (inputCell.angleType == AngleType.rright)
             if isRight:
-                return isRight and inputCell.rotationType == listCell.rotationType
+                return inputCell.rotationType == listCell.rotationType
             else:
                 return (inputCell.rotationType.value + 2) % 8 == listCell.rotationType.value
         else:
@@ -83,16 +85,3 @@ def compareCells(inputCell, listCell):
         return inputCell.angleType == listCell.angleType and inputCell.rotationType == listCell.rotationType
 
     raise Exception("Undefined cell type in compareCells")
-
-#testing
-'''
-cell1 = Cell(0,0, CellType.wire, None, angleType=AngleType.straight, rotationType=RotationType.up, thickType=ThickType.skinny)   
-cell2 = Cell(0,0, CellType.arrow, None, angleType=AngleType.robtuse, rotationType=RotationType.up, thickType=ThickType.wide)
-cell3 = Cell(0,3, CellType.wire, None,  angleType=AngleType.lright, rotationType=RotationType.left, thickType=ThickType.wide)
-cell4 = Food(2,0, None)
-
-print(findIndex(cell1))
-print(findIndex(cell2))
-print(findIndex(cell3))
-print(findIndex(cell4))
-'''

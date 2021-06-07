@@ -3,8 +3,7 @@ import copy
 import classes.Trap as t
 import numpy as np
 import magicVariables as mv
-import data as d
-import argparse
+import legacy.data as d
 
 pref = {
     "intention" : True, #if gopher has intention

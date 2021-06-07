@@ -1,5 +1,4 @@
-import abc
-from abc import ABC, abstractmethod, ABCMeta
+from abc import ABCMeta
 
 from enums.Cell import *
 from enums.Angle import *
@@ -17,7 +16,7 @@ from classes.Arrow import *
 import numpy as np
 import math as m
 import algorithms as alg
-import designedTraps as dt
+import legacy.designedTraps as dt
 
 #loads in the functional traps from the designedTraps file
 functionalTraps = dt.traps

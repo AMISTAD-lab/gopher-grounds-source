@@ -1,0 +1,2 @@
+CELL_ALPHABET = [x for x in range(93)]
+DEFAULT_PROB_ENTER = 0.8

@@ -1,62 +1,62 @@
-from geneticAlgorithm.encoding import singleEncoding
 import numpy as np
-import simulation as sim
-from geneticAlgorithm.utils import createTrap
 import algorithms as alg
+import geneticAlgorithm.analytical as analytical
+import geneticAlgorithm.constants as constants
+from geneticAlgorithm.encoding import singleEncoding
+from geneticAlgorithm.utils import createTrap
 
-fitnessDic = {}
+functionalFitnesses = {}
+coherentFitnesses = {}
+combinedFitnesses = {}
 
 def randomFitness(_):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
     return np.random.random()
 
-def functionalFitness(configuration, numSimulations = 100, printStatistics = False):
+def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
     or compute the the given configuration's probability of killing a gopher
     """
     # Convert list to string to reference in dictionary
-    strEncoding = np.array2string(configuration)
+    encoding = singleEncoding(configuration)
+    strEncoding = np.array2string(encoding)
 
-    if strEncoding in fitnessDic:
-        return fitnessDic[strEncoding]
+    if strEncoding in functionalFitnesses:
+        return functionalFitnesses[strEncoding]
+
+    # This is the max probability of killing a gopher 
+    theoreticalMax = (1 - 0.55 ** 2) * defaultProbEnter
 
     # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
-    # Simulate the trap running numSimulations times
-    numberAlive = 0
-    hungerLevels = 5
-    for hunger in range(hungerLevels):
-        for _ in range(int(numSimulations / hungerLevels)):
-            numberAlive += int(sim.simulateTrap(createTrap(configuration), False, hunger = hunger / 5)[3])
+    fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
 
-    # Calculate statistics
-    proportion = 1 - numberAlive / numSimulations
-
-    if printStatistics:
-        stderr = np.sqrt(proportion * (1 - proportion) / numSimulations)
-
-        upperCI = proportion + 1.96 * stderr
-        lowerCI = proportion - 1.96 * stderr
-
-        print("Proportion: ", proportion)
-        print("Std Error: ", round(stderr, 3))
-        print("CI: [", round(lowerCI, 3), ", ", round(upperCI, 3), "]")
-    
-    fitnessDic[strEncoding] = proportion
-
-    return proportion
+    functionalFitnesses[strEncoding] = fitness
+    return fitness
 
 def coherentFitness(configuration):
     """Assigns a fitness based on the coherence of a given configuration"""
-    return alg.getCoherenceValue(createTrap(configuration))
+    # Convert list to string to reference in dictionary
+    encoding = singleEncoding(configuration)
+    strEncoding = np.array2string(encoding)
+
+    if strEncoding in coherentFitnesses:
+        return coherentFitnesses[strEncoding]
+
+    fitness = alg.getCoherenceValue(createTrap(configuration))
+    coherentFitnesses[strEncoding] = fitness
+
+    return fitness
 
 def combinedFitness(configuration):
     """Assigns a fitness based on the coherence AND function of a configuration"""
-    memberStr = np.array2string(singleEncoding(configuration))
+    # Convert list to string to reference in dictionary
+    encoding = singleEncoding(configuration)
+    strEncoding = np.array2string(encoding)
 
-    if memberStr in fitnessDic:
-        return fitnessDic[memberStr]
+    if strEncoding in combinedFitnesses:
+        return combinedFitnesses[strEncoding]
 
     coherence = coherentFitness(configuration)
     functionality = functionalFitness(configuration)
@@ -64,9 +64,9 @@ def combinedFitness(configuration):
     sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
     evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(np.abs(x - y)))
     
-    # Scale the result to have evaluator(0, 0) = 0 and evaluator(1, 1) = 1
-    result = (2 * evaluator(coherence, functionality) - 1) / evaluator(1, 1)
+    # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
+    result = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
 
-    fitnessDic[memberStr] = result
+    combinedFitnesses[strEncoding] = result
     
     return result

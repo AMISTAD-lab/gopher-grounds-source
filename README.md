@@ -1,5 +1,8 @@
+## Original Source Code:
+The source code for this project is based off of the Gopher's Gambit source code, commit 0d53c9a. That code can be found here:
+[Gopher's Gambit Source](https://github.com/amanirmk/AMISTAD-intention-exp3/tree/0d53c9acc48591a7ace67b6032ca5edc54665a7a)
+
 ## Getting Started
----
 In order to get started, you will first need to install the dependencies for this project.
 This can be done by `pip install`ing the libraries in `requirements.txt`, as shown below:
 ```
@@ -7,34 +10,117 @@ pip3 install -r requirements.txt
 ```
 Note: I would recommend creating a virtual environment for these installs
 
-## Running simulations
----
-Once the requirements have been run, there are several command-line parsers that have been added to help run the most important simulations.
-These command-line arguments can be displayed as follows:
+## Interacting with the CLI
+We have provided a CLI interface to allow users to more easily interact with the code without having to dig through files. To access the CLI, simple execute the command
 ```
-python3 experiment.py -h
+./gopher-cli.py -h
+```
+If this doesn't work, then try adding executable permissions to the file via `chmod u+x gopher-cli.py`.
+Finally, if that fails, we can also interact with the CLI using
+```
+python3 gopher-cli.py -h
+```
+## Simulating a trap from the Command Line
+We have provided a CLI command to simulate an arbitrary encoded trap. To use this command, simply call
+```
+./gopher-cli.py genetic-algorithm simulate '<trap_string>'
+```
+where <trap_string> is a string of the encoded trap (or the encoded trap surrounded by ''s). This should open your browser and play a simulation of the encoded trap. An example to trap is:
+```
+./gopher-cli.py genetic-algorithm simulate '[ 43, 7, 8, 72, 1, 23, 38, 2, 26, 8, 0, 25 ]'
+```
+
+## Using the CLI to interact with the Genetic Algorithm
+The genetic algorithm source code is found in the `geneticAlgorithm/` folder.
+To learn about these commands, simply run
+```
+python3 cli.py genetic-algorithm -h
+```
+which tells us:
+```
+usage: gopher-cli.py genetic-algorithm [-h] {generate,runExperiment} ...
+
+positional arguments:
+  {generate,runExperiment}
+                        genetic algorithm subparsers
+    generate            generates a trap
+    runExperiment       runs an experiment
+```
+We use the `generate` parser to generate trap using the genetic algorithm, and we use the `runExperiment` parser to generate a trap and then run an experiment.
+
+For both the parsers, the fitness function will have to be given as input. The choices of fitness functions are:
+- random: randomly generates a fitness for each member in a population
+- coherence: assigns the fitness for each member in a population based on the coherence of that trap
+- functional: assigns the fitness of each member in a population based on the function of that trap
+- combined: assigned the fitness of each member in a population based on both the coherence and function of that trap
+
+Now, we can provide a table of the common flags that are shown in the help menu:
+
+| Flag | Abbrev. | Default | Description |
+| :--: | :----------: | :-----: | :---------: |
+| --help | -h | N/A | help for any given parser|
+| --measure| -m | 'max' | termination measure for the threshold |
+| --threshold | -t | 0.8 | value of `measure` over which we terminate|
+| --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
+| --no-logs | -nl | False | turns off logging during the genetic algorithm |
+| --no-improved-callback | -nc | False | turns off the improved callback optimization |
+| --export | -e | False | exports outputs to a separate file (`-o` flag)| |
+| --ouput-file | -o | x<sup>1</sup> | output file name (must include `.txt` extension) |
+| --show | -s | False | simulates the trap in a browser (only for `generate` parser) |
+
+These flags are just for the `genetic-algorithm runExperiment` parser:
+| Flag | Abbrev. | Default | Description |
+| :--: | :----------: | :-----: | :---------: |
+| --num-simulations | -s | 10,000 | number of simulations to run on a trap |
+| --no-print-stats | -np | False | turns off printing of simulation statistics |
+| --conf_level | -c | 0.95 | confidence level for our confidence interval |
+| --intention | -in | False | whether the simulated gopher has intention or not |
+
+These flags are for the `genetic-algorithm runBatchExperiments` parser:
+| Flag | Abbrev. | Default | Description |
+| :--: | :----------: | :-----: | :---------: |
+| --num-experiments | -e | 10 | number of experiements to run |
+| --threshold | -t | 0.8 | value of `measure` over which we terminate|
+| --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
+| --show-logs | -l | False | turns on printing of generation data |
+| --no-improved-callback | -nc | False | turns off the improved callback optimization |
+| --ouput-file | -o | x<sup>1</sup> | output file name (`.csv` or `.txt` allowed) |
+| --conf_level | -c | 0.95 | confidence level for our confidence interval |
+| --intention | -in | False | whether the simulated gopher has intention or not |
+
+<sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.
+
+Finally, we have added support for running batch experiments to the CLI. The command is
+`./gopher-cli.py genetic-algorithm runBatchExperiments -h`.
+Many of the flags can be found above, but one notable difference is the `--num-experiments` flag; this flag allows the user to determine how many experiments they want to run, and it defaults at 10 experiments. All outputs are generated in the `experiment.txt` file.
+
+## Running legacy simulations
+To run legacy simulations (from the Gopher's Gambit), we can simply use the legacy parser and follow the help command:
+```
+./gopher-cli.py legacy -h
 ```
 Thereby giving us:
 ```
-usage: experiment.py [-h] {runExperiment,simulate} ...
-
-Commands to run the experiment
+usage: gopher-cli.py legacy [-h] {runExperiment,simulate} ...
 
 positional arguments:
   {runExperiment,simulate}
-                        sub-command help
+                        legacy parsers
     runExperiment       runs experiment
     simulate            simulates experiment
+
+optional arguments:
+  -h, --help            show this help message and exit
 ```
 
-To run an experiment, we can use 
+To run a legacy experiment, we can use 
 ```
-python3 experiment.py runExperiment <output file> <inputToVary> <numSimulations>
+./gopher-cli.py runExperiment <output file> <inputToVary> <numSimulations>
 ```
 
 To simulate an experiment, we can use 
 ```
-python3 experiment.py simulate
+./gopher-cli.py simulate
 ```
 with optional arguments
 ```
@@ -64,48 +150,5 @@ Finally, we can run the whole simulation and open it in the web browser using th
 python3 run.py
 ```
 
-## Generating traps using the Genetic Algorithm
-The genetic algorithm source code is found in the `geneticAlgorithm/` folder.
-We have provided a CLI interface to allow a user to run the genetic algorithm from the command line.
-To learn about these commands, simply run
-```
-python3 cli.py genetic-algorithm -h
-```
-which tells us:
-```
-usage: cli.py genetic-algorithm [-h] [--measure MEASURE] \ 
-                                     [--threshold THRESHOLD] \
-                                     [--maxIterations MAXITERATIONS] \
-                                     [--no-logs] \
-                                     [--no-improvedCallback] \
-                                     [--export] \
-                                     [--outputFile OUTPUTFILE] \
-                                     [--show] 
-                                     function
-
-positional arguments:
-  function              a choice of {random, coherence, functional, combined}
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --measure MEASURE, -m MEASURE
-                        the measure for the threshold (max, mean, median, all)
-  --threshold THRESHOLD, -t THRESHOLD
-                        the threshold to use for termination in [0, 1]
-  --maxIterations MAXITERATIONS, -i MAXITERATIONS
-                        the maximum number of iterations to run
-  --no-logs, -nl        turns off logs as generations increase
-  --no-improvedCallback, -nc
-                        turn off improved callback
-  --export, -e          whether or not to export data to file (changed with -o flag)
-  --outputFile OUTPUTFILE, -o OUTPUTFILE
-                        the output file to which we write
-  --show, -s            show output in browser
-```
-
-Thus, to run a default simulation, we can run
-```
-python3 cli.py genetic-algorithm coherence
-```
-
-Some other notable flags are `--export` and `--show.` In this case, `--export` will create a file with name `--outputFile.` Additionally, if we pass the `--show` flag, then a simulation of the optimal trap will be opened in your browser.
+## Help
+If there are any questions or help is needed, you may email anshulkam@gmail.com.

@@ -1,6 +1,6 @@
 #import simulation as sim
 import visualize as vis
-import experiment as exp
+import legacy.experiment as exp
 import os
 import webbrowser
 

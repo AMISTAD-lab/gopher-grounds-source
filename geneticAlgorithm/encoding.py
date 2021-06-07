@@ -1,20 +1,11 @@
-from numpy.core.fromnumeric import reshape
-import geneticAlgorithm.cellarray as ca
-import numpy as np
-from classes.Door import *
-from classes.Floor import *
-from classes.Food import *
-from classes.Dirt import *
-from classes.Wire import *
-from classes.Arrow import *
-from classes.Cell import *
-from designedTraps import *
 import copy
+import numpy as np
+import geneticAlgorithm.cellarray as ca
 
 ## IMPORTANT: For every encoded trap, the following must be true to be a valid config:
-    ## trap[4] = 2  # Food
-    ## trap[7] = 0  # Floor
-    ## trap[10] = 1 # Door
+## trap[4] = 2  # Food
+## trap[7] = 0  # Floor
+## trap[10] = 1 # Door
 
 def singleEncoding(board):
     """
@@ -31,28 +22,6 @@ def listEncoding(traps):
     for trap in traps:
         encodedTraps.append(singleEncoding(trap))
     return np.array(encodedTraps)
-
-## TODO: Come back and make this more readable
-def checkDifferences(traps):
-    """Given a list of non-encoded traps, determine if there are differences between the columns
-    across all encoded traps in the list. Returns numpy array with -1 in any column with at least one difference,
-    otherwise puts the shared value in that position.
-    Note: This function is for testing purposes
-    """
-    result = []
-    traps = listEncoding(traps)
-    for i in range(12):
-        different = False
-        firstVal = traps[0][i]
-        for j in range(1, len(traps)):
-            if firstVal != traps[j][i]:
-                different = True
-                break
-        if different:
-            result.append(-1)
-        else:
-            result.append(firstVal)
-    return result
 
 def singleDecoding(encodedTrap):
     """Takes an encoded trap (1 x 12 array) and decodes it back into normal form"""

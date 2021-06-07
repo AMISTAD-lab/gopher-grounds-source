@@ -2,7 +2,6 @@ from classes.Gopher import *
 
 import algorithms as alg
 import math as m
-import numpy as np
 
 gopher = None    
     

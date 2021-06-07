@@ -133,6 +133,7 @@ dmypy.json
 # Auto-generated files
 **/animation.js
 **.txt
+**.csv
 
 # Whitelist these .txt files
 !quick-instructions.txt
