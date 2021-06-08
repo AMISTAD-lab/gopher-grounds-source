@@ -34,13 +34,8 @@ Additionally, we can user the `--hunger` (`-h`) and `--intention` (`-in`) flags 
 ## Getting the Fitness of a Gopher
 To find the fitness of an arbitrary list encoding, we can use the CLI command:
 ```
-./gopher-cli.py genetic-algorithm check-fitness <fitness_func> '<trap_encoding>'
+./gopher-cli.py genetic-algorithm check-fitnesses '<trap_encoding>'
 ```
-The `<fitness_func>` argument can be any one of:
-- random
-- coherence
-- functional
-- combined
 
 ## Using the CLI to interact with the Genetic Algorithm
 The genetic algorithm source code is found in the `geneticAlgorithm/` folder.

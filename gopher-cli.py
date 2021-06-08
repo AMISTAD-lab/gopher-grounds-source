@@ -68,7 +68,7 @@ geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
-geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.csv')
+geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
@@ -81,8 +81,7 @@ simulateTrap.add_argument('--hunger', help='set the hunger for the simulated gop
 simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 
 # get fitness trap flags
-fitnessParser = geneticSubparsers.add_parser('check-fitness', help='returns the fitness of the trap')
-fitnessParser.add_argument('function', help='the fitness function to use for calculating fitness') 
+fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
 fitnessParser.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 
 args = parser.parse_args()
@@ -104,6 +103,11 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention)
+
+elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
+        print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
+        print('Functional fitness:\t', round(functions.functionalFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
+        print('Combined fitness:\t', round(functions.combinedFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
 
 elif args.command == 'genetic-algorithm':
     # Defining the fitness function
@@ -174,6 +178,10 @@ elif args.command == 'genetic-algorithm':
         )
 
     elif args.genetic == 'runBatchExperiments':
+        fileName = args.output_file
+        if not fileName:
+            fileName = '{}{}Intention.csv'.format(args.function, '' if args.intention else 'No')
+    
         geneticExperiment.runBatchExperiments(
             args.num_experiments,
             fitnessFunc,
@@ -181,13 +189,10 @@ elif args.command == 'genetic-algorithm':
             args.num_simulations,
             args.conf_level,
             args.show_logs,
-            args.output_file,
+            fileName,
             args.intention,
             args.no_improved_callback
         )
 
         if args.keep_freqs and args.function != 'random':
             geneticExperiment.updateFrequencyCSV(args.function, freqs)
-
-    elif args.genetic == 'check-fitness':
-        print(fitnessFunc(singleDecoding(util.convertStringToEncoding(args.trap))))

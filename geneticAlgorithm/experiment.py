@@ -160,6 +160,9 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                 export=False
             )
 
+            if showLogs:
+                os.system('cls' if os.name == 'nt' else 'clear')
+
             trapStr = '[ '
             # Convert trap to array form
             for j, digit in enumerate(trap):

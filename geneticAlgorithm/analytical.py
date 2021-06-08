@@ -148,6 +148,9 @@ def getArrowData(configuration):
                     indexOfAngle = arrow_angles[j].index(currCell.angleType)
                     retData.append((j + 2, both_hits[i][j][indexOfAngle], currCell.thickType))
                     break
+                elif (sameThickness and sameRotation):
+                    retData.append((j + 2, -1, -1))
+                    break
                 else:
                     retData.append((-1, -1, -1))
                     break
@@ -161,8 +164,8 @@ def gopherSurviveProb(arrowData, leaveTime):
     time, cell, thickness = arrowData
     thickSurviveProb = [0.15, 0.3, 0.45]
 
-    # If time < 0, then arrow does not hit, and gopher survives
-    if time < 0:
+    # If cell < 0, then arrow does not hit, and gopher survives
+    if cell < 0:
         return 1
 
     # position as a function of time
