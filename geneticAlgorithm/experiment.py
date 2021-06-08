@@ -126,7 +126,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     
     return trap, fitness, proportion, stderr, conf_interval, intention
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, improvedCallback=True, callbackFactor=0.95):
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, maxIterations=10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, improvedCallback=True, callbackFactor=0.95):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
     headers = ['Experiment', 'Trap', 'Fitness', 'Fitness_Funct', 'Prop_Dead', 'Stand_Err','Conf_Interval', 'Intention?', 'Threshold']
     firstLine = 'Total Experiments:'
@@ -150,7 +150,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                 fitnessFunction,
                 threshold,
                 'max',
-                10000,
+                maxIterations,
                 showLogs,
                 improvedCallback,
                 callbackFactor,

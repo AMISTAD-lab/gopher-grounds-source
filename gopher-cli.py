@@ -199,6 +199,7 @@ elif args.command == 'genetic-algorithm':
             fitnessFunc,
             args.threshold,
             args.num_simulations,
+            args.max_iterations,
             args.conf_level,
             args.show_logs,
             fileName,
