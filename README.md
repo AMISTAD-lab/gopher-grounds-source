@@ -71,6 +71,7 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
 | --no-improved-callback | -nc | False | turns off the improved callback optimization |
+| --callback-factor | -f | 0.95 | changes the callback factor |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
 | --ouput-file | -o | x<sup>1</sup> | output file name (must include `.txt` extension) |
 | --show | -s | False | simulates the trap in a browser (only for `generate` parser) |

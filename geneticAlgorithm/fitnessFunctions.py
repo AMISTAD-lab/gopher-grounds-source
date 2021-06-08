@@ -80,6 +80,8 @@ def combinedFitness(configuration):
     if strEncoding in combinedFitnesses:
         return combinedFitnesses[strEncoding]
 
+    MAX_DIFF = 0.2
+
     coherence = coherentFitness(configuration)
     functionality = functionalFitness(configuration)
 
@@ -88,6 +90,10 @@ def combinedFitness(configuration):
     
     # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
     result = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
+
+    # If the difference is too large, then penalize the fitness
+    if (np.abs(functionality - coherence) > MAX_DIFF):
+        result /= 2
 
     combinedFitnesses[strEncoding] = result
     

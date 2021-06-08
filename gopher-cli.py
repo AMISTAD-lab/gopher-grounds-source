@@ -41,6 +41,7 @@ generateTrap.add_argument('--threshold', '-t', help='the threshold to use for te
 generateTrap.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
 generateTrap.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
+generateTrap.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 generateTrap.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
 generateTrap.add_argument('--show', '-s', help='show output in browser', action='store_true')
@@ -53,6 +54,7 @@ geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
+geneticExperimentParser.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 geneticExperimentParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
@@ -68,6 +70,7 @@ geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
+geneticExperimentParser.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
@@ -150,7 +153,8 @@ elif args.command == 'genetic-algorithm':
                 args.measure,
                 args.max_iterations,
                 args.no_logs,
-                args.no_improved_callback
+                args.no_improved_callback,
+                args.callback_factor
             )
 
         print('Trap (encoded):\t', bestTrap)
@@ -162,25 +166,33 @@ elif args.command == 'genetic-algorithm':
             util.simulateTrapInBrowser(bestTrap)
     
     elif args.genetic == 'runExperiment':
-        trap, fitness, prop, stderr, ci = geneticExperiment.runExperiment(
+        trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
             fitnessFunc, 
             args.threshold, 
             args.measure, 
             args.max_iterations, 
             args.no_logs, 
-            args.no_improved_callback, 
+            args.no_improved_callback,
+            args.callback_factor,
             args.num_simulations, 
             args.conf_level, 
             args.intention, 
-            args.no_print_stats, 
+            False, 
             args.export, 
             args.output_file
         )
 
+        print('Trap (Encoded):\t ', trap)
+        print('Fitness\t:\t ', fitness)
+        print('Proportion Dead:', prop)
+        print('Standard Error:\t', stderr)
+        print('Conf. Interval:\t', ci)
+        print('Intention?:\t', 'Yes' if intention else 'No')
+
     elif args.genetic == 'runBatchExperiments':
         fileName = args.output_file
         if not fileName:
-            fileName = '{}{}Intention.csv'.format(args.function, '' if args.intention else 'No')
+            fileName = '{}{}IntentionThresh{}.csv'.format(args.function, '' if args.intention else 'No', args.threshold)
     
         geneticExperiment.runBatchExperiments(
             args.num_experiments,
@@ -191,7 +203,8 @@ elif args.command == 'genetic-algorithm':
             args.show_logs,
             fileName,
             args.intention,
-            args.no_improved_callback
+            args.no_improved_callback,
+            args.callback_factor
         )
 
         if args.keep_freqs and args.function != 'random':
