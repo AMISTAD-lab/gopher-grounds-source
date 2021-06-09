@@ -41,6 +41,7 @@ generateTrap.add_argument('--threshold', '-t', help='the threshold to use for te
 generateTrap.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
 generateTrap.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
+generateTrap.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 generateTrap.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
 generateTrap.add_argument('--show', '-s', help='show output in browser', action='store_true')
@@ -53,6 +54,7 @@ geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
+geneticExperimentParser.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 geneticExperimentParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
@@ -68,10 +70,12 @@ geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
-geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.csv')
+geneticExperimentParser.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
+geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
+geneticExperimentParser.add_argument('--keep-freqs', '-k', help='exports the count dictionary to a CSV file', action='store_true')
 
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
@@ -80,8 +84,7 @@ simulateTrap.add_argument('--hunger', help='set the hunger for the simulated gop
 simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 
 # get fitness trap flags
-fitnessParser = geneticSubparsers.add_parser('check-fitness', help='returns the fitness of the trap')
-fitnessParser.add_argument('function', help='the fitness function to use for calculating fitness') 
+fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
 fitnessParser.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 
 args = parser.parse_args()
@@ -104,17 +107,26 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention)
 
+elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
+        print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
+        print('Functional fitness:\t', round(functions.functionalFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
+        print('Combined fitness:\t', round(functions.combinedFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
+
 elif args.command == 'genetic-algorithm':
     # Defining the fitness function
     fitnessFunc = lambda x : 0
+    freqs = {}
     if args.function == 'random':
         fitnessFunc = functions.randomFitness
     elif args.function == 'coherence':
         fitnessFunc = functions.coherentFitness
+        freqs = functions.coherentFreqs
     elif args.function == 'functional':
         fitnessFunc = functions.functionalFitness
+        freqs = functions.functionalFreqs
     elif args.function == 'combined':
         fitnessFunc = functions.combinedFitness
+        freqs = functions.combinedFreqs
     else:
         raise Exception(args.function, ' is not a real fitness function value. Please try again')
 
@@ -141,7 +153,8 @@ elif args.command == 'genetic-algorithm':
                 args.measure,
                 args.max_iterations,
                 args.no_logs,
-                args.no_improved_callback
+                args.no_improved_callback,
+                args.callback_factor
             )
 
         print('Trap (encoded):\t', bestTrap)
@@ -153,33 +166,47 @@ elif args.command == 'genetic-algorithm':
             util.simulateTrapInBrowser(bestTrap)
     
     elif args.genetic == 'runExperiment':
-        trap, fitness, prop, stderr, ci = geneticExperiment.runExperiment(
+        trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
             fitnessFunc, 
             args.threshold, 
             args.measure, 
             args.max_iterations, 
             args.no_logs, 
-            args.no_improved_callback, 
+            args.no_improved_callback,
+            args.callback_factor,
             args.num_simulations, 
             args.conf_level, 
             args.intention, 
-            args.no_print_stats, 
+            False, 
             args.export, 
             args.output_file
         )
 
+        print('Trap (Encoded):\t ', trap)
+        print('Fitness\t:\t ', fitness)
+        print('Proportion Dead:', prop)
+        print('Standard Error:\t', stderr)
+        print('Conf. Interval:\t', ci)
+        print('Intention?:\t', 'Yes' if intention else 'No')
+
     elif args.genetic == 'runBatchExperiments':
+        fileName = args.output_file
+        if not fileName:
+            fileName = '{}{}IntentionThresh{}.csv'.format(args.function, '' if args.intention else 'No', args.threshold)
+    
         geneticExperiment.runBatchExperiments(
             args.num_experiments,
             fitnessFunc,
             args.threshold,
             args.num_simulations,
+            args.max_iterations,
             args.conf_level,
             args.show_logs,
-            args.output_file,
+            fileName,
             args.intention,
-            args.no_improved_callback
+            args.no_improved_callback,
+            args.callback_factor
         )
 
-    elif args.genetic == 'check-fitness':
-        print(fitnessFunc(singleDecoding(util.convertStringToEncoding(args.trap))))
+        if args.keep_freqs and args.function != 'random':
+            geneticExperiment.updateFrequencyCSV(args.function, freqs)

@@ -34,13 +34,8 @@ Additionally, we can user the `--hunger` (`-h`) and `--intention` (`-in`) flags 
 ## Getting the Fitness of a Gopher
 To find the fitness of an arbitrary list encoding, we can use the CLI command:
 ```
-./gopher-cli.py genetic-algorithm check-fitness <fitness_func> '<trap_encoding>'
+./gopher-cli.py genetic-algorithm check-fitnesses '<trap_encoding>'
 ```
-The `<fitness_func>` argument can be any one of:
-- random
-- coherence
-- functional
-- combined
 
 ## Using the CLI to interact with the Genetic Algorithm
 The genetic algorithm source code is found in the `geneticAlgorithm/` folder.
@@ -76,6 +71,7 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
 | --no-improved-callback | -nc | False | turns off the improved callback optimization |
+| --callback-factor | -f | 0.95 | changes the callback factor |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
 | --ouput-file | -o | x<sup>1</sup> | output file name (must include `.txt` extension) |
 | --show | -s | False | simulates the trap in a browser (only for `generate` parser) |
@@ -99,6 +95,7 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | --ouput-file | -o | x<sup>1</sup> | output file name (`.csv` or `.txt` allowed) |
 | --conf_level | -c | 0.95 | confidence level for our confidence interval |
 | --intention | -in | False | whether the simulated gopher has intention or not |
+| --keep-freqs | -k | False | whether or not to log the frequencies to a CSV |
 
 <sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.
 

@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import os
+import pandas as pd
 from scipy.stats import norm
 import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleDecoding
@@ -39,7 +40,7 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
     return proportion, stderr, conf_interval
 
 def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, showLogs=True, 
-    improvedCallback=True, numSimulations=10000, confLevel=0.95, intention=False, printStatistics=True, export=False, outputFile='experiment.txt'):
+    improvedCallback=True, callbackFactor=0.95, numSimulations=10000, confLevel=0.95, intention=False, printStatistics=True, export=False, outputFile='experiment.txt'):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
@@ -51,7 +52,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     fitness = 0
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = utils.geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
+    _, trap, fitness = utils.geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback, callbackFactor)
 
     # Run the experiment on the generated (optimized) trap
     proportion, stderr, conf_interval = runSimulations(trap, numSimulations, confLevel, intention, printStatistics)
@@ -125,9 +126,9 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     
     return trap, fitness, proportion, stderr, conf_interval, intention
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, improvedCallback=True):
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, maxIterations=10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, improvedCallback=True, callbackFactor=0.95):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
-    headers = ['Experiment', 'Trap', 'Fitness', 'Fitness_Funct', 'Prop_Dead', 'Stand_Err','Conf_Interval', 'Intention?']
+    headers = ['Experiment', 'Trap', 'Fitness', 'Fitness_Funct', 'Prop_Dead', 'Stand_Err','Conf_Interval', 'Intention?', 'Threshold']
     firstLine = 'Total Experiments:'
 
     if outputFile[-4:] == '.csv':
@@ -149,15 +150,19 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                 fitnessFunction,
                 threshold,
                 'max',
-                10000,
+                maxIterations,
                 showLogs,
                 improvedCallback,
+                callbackFactor,
                 numSimulations,
                 confLevel,
                 intention,
                 False,
                 export=False
             )
+
+            if showLogs:
+                os.system('cls' if os.name == 'nt' else 'clear')
 
             trapStr = '[ '
             # Convert trap to array form
@@ -169,7 +174,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
             
             trapStr += ' ]'
 
-            writeData.append([i + 1, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), conf_interval, intention])
+            writeData.append([i + 1, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), conf_interval, intention, threshold])
             print('FINISHED EXPERIMENT {}.'.format(i + 1))
 
             # Write data to csv
@@ -212,3 +217,41 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
         raise Exception('Please enter a valid file extension for the output file (.csv and .txt supported). {} was given'.format(outputFile))
     
     print("SIMULATION FINISHED.")
+
+def updateFrequencyCSV(fitnessFunc, freqDict):
+    """
+    Updates the frequencies in CSVs when a new batch run experiments is issued
+    """
+    filePath = 'frequencies/{}Freqs.csv'.format(fitnessFunc)
+    headers = ['Trap', 'Freq']
+
+    # If the path does not exist, then create it
+    if not os.path.isfile('./' + filePath):
+        if not os.path.exists('./frequencies'):
+            os.mkdir('./frequencies')
+
+        with open(filePath, 'w') as out:
+            writer = csv.writer(out)
+            writer.writerow(headers)
+            out.close()
+
+    # Read in the CSV as a dataframe to allow for easy manipulation
+    df = pd.read_csv('./' + filePath, index_col=0)
+
+    # Update all of the known keys with the given frequencies
+    for i in range(len(df.index)):
+        key = df.index[i]
+        if key in freqDict:
+            df.iloc[i] += freqDict[key]
+            del freqDict[key]
+
+    # Insert all new keys with given frequencies
+    indexes = []
+    vals = []
+    for key in freqDict:
+        indexes.append(key)
+        vals.append(freqDict[key])
+    
+    # Create a new, updated DataFrame
+    df = df.append(pd.DataFrame({ headers[1]: vals }, index=indexes)).astype('int32')
+    pd.DataFrame.to_csv(df, filePath, index_label=headers[0])
