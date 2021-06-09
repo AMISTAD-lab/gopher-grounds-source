@@ -212,7 +212,7 @@ def updateFrequencyCSV(fileName, fitnessFunc, freqDict):
     """
     Updates the frequencies in CSVs when a new batch run experiments is issued
     """
-    if fileName[-4:] == 'csv':
+    if fileName[-4:] == '.csv':
         fileName = fileName[:-4]
 
     directory = './frequencies/{}'.format(fitnessFunc)
