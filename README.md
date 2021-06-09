@@ -23,13 +23,22 @@ python3 gopher-cli.py -h
 ## Simulating a trap from the Command Line
 We have provided a CLI command to simulate an arbitrary encoded trap. To use this command, simply call
 ```
-./gopher-cli.py genetic-algorithm simulate '<trap_encoding>'
+./gopher-cli.py genetic-algorithm simulate '<trap_encoding> -h HUNGER -in?'
 ```
 where <trap_string> is a string of the encoded trap (or the encoded trap surrounded by ''s). This should open your browser and play a simulation of the encoded trap. An example to trap is:
 ```
 ./gopher-cli.py genetic-algorithm simulate '[ 43, 7, 8, 72, 1, 23, 38, 2, 26, 8, 0, 25 ]'
 ```
 Additionally, we can user the `--hunger` (`-h`) and `--intention` (`-in`) flags to set the gopher's hunger (in the interval (0, 1)) or simulate the gopher with intention, respectively.
+
+We have also implemented a camera-ready functionality, which allows the user to open a static image of the board in the browser.
+This option takes in the following arguments:
+```
+./gopher-cli.py genetic-algorithm simulate '<trap_encoding>' -na -g '<state_encoding>'
+```
+The `--no-animation` (`-na`) flag tells the compiler to turn off animation, and the `--gopher-state` (`-g`) flag tells the compiler to put a gopher on the board with state `<state_encoding>.`
+The `<state_encoding>` is formatted as `[x, y, rotation, state],` where (`x`, `y`) is the gopher's 0-indexed position from the top left, `rotation` is the gopher's rotation in degrees, and `state` is the index of the gopher's health state, in the order `[dead, alive, hit].`
+The default state is `[1, 4, 0, 1].`
 
 ## Getting the Fitness of a Gopher
 To find the fitness of an arbitrary list encoding, we can use the CLI command:

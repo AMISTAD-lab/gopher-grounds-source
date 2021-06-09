@@ -2,7 +2,7 @@
 import argparse
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions 
-from geneticAlgorithm.encoding import singleDecoding
+from geneticAlgorithm.encoding import singleDecoding, singleEncoding
 import geneticAlgorithm.experiment as geneticExperiment
 from geneticAlgorithm.main import geneticAlgorithm
 import geneticAlgorithm.utils as util
@@ -82,6 +82,8 @@ simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap g
 simulateTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 simulateTrap.add_argument('--hunger', help='set the hunger for the simulated gopher (0, 1)', type=float, default=0)
 simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
+simulateTrap.add_argument('--no-animation', '-na', help='turns off animation', action='store_true')
+simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[1, 4, 0, 1]')
 
 # get fitness trap flags
 fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
@@ -105,7 +107,8 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
     print(trapInfo[1])
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
-    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention)
+    gopherState = util.convertStringToEncoding(args.gopher_state)
+    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
         print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))

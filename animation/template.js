@@ -13,6 +13,9 @@ var gopher = document.createElement("img");
 gopher.id = "gopher";
 
 var trapList = [] // Contains all the info for the steps of the animation and the traps to show.
+var showAnimation = true // Whether or not to show the animation
+var gopherDefaultPos = 14 // If not showing animation, where should gopher be?
+var gopherDefaultState = [1, 3, 0, 1] // gopher state is given by [x, y, rotation, state], where state in ['dead', 'alive', 'hit']
 
 var fps = 2; // show two frames per second
 
@@ -20,7 +23,9 @@ var trapNum = 0;	// the number of the trap to start the animation at
 var trapFrameNum = 0; // current step of the trap 
 var frameNum = 0; // frame count for the overall animation
 
+// Refitting the grid ot be 
 gridContainer.style.width = $('#gridContainer').height() * 0.6 + 'px';
+gridContainer.style.margin = '0 auto';
 
 // Calls init only once document has loaded.
 $(document).ready(function () {
@@ -31,7 +36,17 @@ $(document).ready(function () {
 function init() 
 {
 	getInput(); // get input that is written to the file.
-	animate();
+	updateGrid(trapList[trapNum][0]);
+
+	if (showAnimation) {
+		animate();
+	} else {
+		console.log('here')
+		// Add the image of the gopher to the HTML element
+		gopher.src = getGopherImageName(gopherDefaultState)
+		gopher.style.transform = `rotate(${gopherDefaultState[2]}deg)`
+		$(`div.gridDiv:nth-of-type(${getNth([gopherDefaultState[1] + 1, gopherDefaultState[0] + 1])})`).append(gopher); // prepend so gopher is on top
+	}
 }
 
 /** The animation. Calls draw. */
@@ -43,7 +58,6 @@ function animate(){
 	// animation ends after last trap has been run 
 	if (trapNum >= trapList.length) 
 	{
-		// show the proper ending screen 
 		console.log("ANIMATION FINISHED");
 		clearTimeout(timer);
 		return;
@@ -58,6 +72,7 @@ function draw(){
 	console.log("trapFrameNum is " + trapFrameNum);
 	if (frameNum < getNumStartSteps())
 	{
+		console.log(trapList[trapNum][0])
 		// show the first trap
 		updateGrid(trapList[trapNum][0]);
 	}
@@ -200,6 +215,7 @@ function updateGrid(gridListIn)
 			gridContainer.appendChild(div);
 		}
 	}
+
 }
 
 

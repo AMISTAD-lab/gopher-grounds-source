@@ -164,15 +164,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
             if showLogs:
                 os.system('cls' if os.name == 'nt' else 'clear')
 
-            trapStr = '[ '
-            # Convert trap to array form
-            for j, digit in enumerate(trap):
-                trapStr += str(digit)
-                
-                if j < len(trap) - 1:
-                    trapStr += ', '
-            
-            trapStr += ' ]'
+            trapStr = utils.convertEncodingToString(trap)
 
             writeData.append([i + 1, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), conf_interval, intention, threshold])
             print('FINISHED EXPERIMENT {}.'.format(i + 1))
