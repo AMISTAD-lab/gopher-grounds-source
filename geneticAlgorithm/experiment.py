@@ -133,8 +133,19 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
     if outputFile[-4:] != '.csv':
         raise Exception('Please enter a valid file extension for the output file. {} was given'.format(outputFile))
 
+    # Defining the function name for logging purposes
+    functionName = ''
+    if fitnessFunction == functions.randomFitness:
+        functionName = 'random'
+    elif fitnessFunction == functions.coherentFitness:
+        functionName = 'coherence'
+    elif fitnessFunction == functions.functionalFitness:
+        functionName = 'functional'
+    elif fitnessFunction == functions.combinedFitness:
+        functionName = 'combined'
+
     experimentNum = 0
-    directory = './csv/'
+    directory = './csv/{}/'.format(functionName)
     filePath = '{}{}'.format(directory, outputFile)
 
     if not os.path.exists(directory):
@@ -160,17 +171,6 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                 writer = csv.writer(out)
                 writer.writerow(headers)
             out.close()
-
-    # Defining the function name for logging purposes
-    functionName = ''
-    if fitnessFunction == functions.randomFitness:
-        functionName = 'random'
-    elif fitnessFunction == functions.coherentFitness:
-        functionName = 'coherence'
-    elif fitnessFunction == functions.functionalFitness:
-        functionName = 'functional'
-    elif fitnessFunction == functions.combinedFitness:
-        functionName = 'combined'
 
     # Run the experiment many times
     for i in range(numExperiments):
