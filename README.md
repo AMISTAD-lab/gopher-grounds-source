@@ -105,6 +105,7 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | --conf_level | -c | 0.95 | confidence level for our confidence interval |
 | --intention | -in | False | whether the simulated gopher has intention or not |
 | --keep-freqs | -k | False | whether or not to log the frequencies to a CSV |
+| --overwrite | -w | False | overwrites the experiment CSV file created with a new one |
 
 <sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.
 

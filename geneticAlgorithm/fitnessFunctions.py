@@ -9,12 +9,20 @@ functionalFitnesses = {}
 coherentFitnesses = {}
 combinedFitnesses = {}
 
+randomFreqs = {}
 functionalFreqs = {}
 coherentFreqs = {}
 combinedFreqs = {}
 
-def randomFitness(_):
+def randomFitness(configuration):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
+    strEncoding = np.array2string(singleEncoding(configuration))
+
+    if strEncoding not in randomFreqs:
+        randomFreqs[strEncoding] = 0
+    
+    randomFreqs[strEncoding] += 1
+
     return np.random.random()
 
 def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):

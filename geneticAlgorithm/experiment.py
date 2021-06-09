@@ -126,88 +126,86 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     
     return trap, fitness, proportion, stderr, conf_interval, intention
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, maxIterations=10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, improvedCallback=True, callbackFactor=0.95):
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, maxIterations=10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, improvedCallback=True, callbackFactor=0.95, overwrite=False):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
     headers = ['Experiment', 'Trap', 'Fitness', 'Fitness_Funct', 'Prop_Dead', 'Stand_Err','Conf_Interval', 'Intention?', 'Threshold']
-    firstLine = 'Total Experiments:'
 
-    if outputFile[-4:] == '.csv':
-        # Defining the function name for logging purposes
-        functionName = ''
-        if fitnessFunction == functions.randomFitness:
-            functionName = 'random'
-        elif fitnessFunction == functions.coherentFitness:
-            functionName = 'coherence'
-        elif fitnessFunction == functions.functionalFitness:
-            functionName = 'functional'
-        elif fitnessFunction == functions.combinedFitness:
-            functionName = 'combined'
+    if outputFile[-4:] != '.csv':
+        raise Exception('Please enter a valid file extension for the output file. {} was given'.format(outputFile))
 
-        # Run the experiment many times
-        writeData = [headers]
-        for i in range(numExperiments):
-            trap, fitness, proportion, stderr, conf_interval, intention = runExperiment(
-                fitnessFunction,
-                threshold,
-                'max',
-                maxIterations,
-                showLogs,
-                improvedCallback,
-                callbackFactor,
-                numSimulations,
-                confLevel,
-                intention,
-                False,
-                export=False
-            )
+    experimentNum = 0
+    directory = './csv/'
+    filePath = '{}{}'.format(directory, outputFile)
 
-            if showLogs:
-                os.system('cls' if os.name == 'nt' else 'clear')
-
-            trapStr = utils.convertEncodingToString(trap)
-
-            writeData.append([i + 1, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), conf_interval, intention, threshold])
-            print('FINISHED EXPERIMENT {}.'.format(i + 1))
-
-            # Write data to csv
-            with open(outputFile, 'w+') as out:
-                writer = csv.writer(out)
-                writer.writerows(writeData)
-                out.close()
-
-    # Also able to write to .txt
-    elif outputFile[-4:] == '.txt':
-        # Check if the file exists first
-        if not os.path.isfile('./' + outputFile):
-            with open(outputFile, 'w+') as out:
-                out.write(firstLine + '0\n')
-                out.close()
-
-        with open(outputFile, 'r') as out:
-            fileLines = out.readlines()
-            
-            # Handling malformed files
-            if fileLines == []:
-                fileLines = [firstLine + '0\n']
-                out.close()
-        
-        with open(outputFile, 'w+') as out:
-            out.writelines(fileLines)
-            out.write('---------------------------\n')
-            out.write('BATCH EXPERIMENT STARTED.\n')
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+    elif not os.path.isfile(filePath) or overwrite:
+        with open(filePath, 'w+') as out:
+            writer = csv.writer(out)
+            writer.writerow(headers)
             out.close()
-        
-        for _ in range(numExperiments):
-            runExperiment(fitnessFunction, threshold, 'max', 10000, showLogs, improvedCallback, numSimulations, confLevel, intention, False, True, outputFile)
-
-        with open(outputFile, 'a') as out:
-            out.write('BATCH EXPERIMENT FINISHED.\n')
-            out.write('---------------------------\n\n')
-            out.close()
-    
     else:
-        raise Exception('Please enter a valid file extension for the output file (.csv and .txt supported). {} was given'.format(outputFile))
-    
+        isPopulated = False
+        with open(filePath, 'r') as out:
+            reader = csv.reader(out)
+            for line in reader:
+                isPopulated = True
+                if line[0] == headers[0]:
+                    continue
+                experimentNum = int(line[0])
+            out.close()
+
+        if not isPopulated:
+            with open(filePath, 'w') as out:
+                writer = csv.writer(out)
+                writer.writerow(headers)
+            out.close()
+
+    # Defining the function name for logging purposes
+    functionName = ''
+    if fitnessFunction == functions.randomFitness:
+        functionName = 'random'
+    elif fitnessFunction == functions.coherentFitness:
+        functionName = 'coherence'
+    elif fitnessFunction == functions.functionalFitness:
+        functionName = 'functional'
+    elif fitnessFunction == functions.combinedFitness:
+        functionName = 'combined'
+
+    # Run the experiment many times
+    for i in range(numExperiments):
+        print('STARTING EXPERIMENT {}.\n'.format(i + 1))
+
+        # Clearing old write data
+        writeData = []
+
+        trap, fitness, proportion, stderr, conf_interval, intention = runExperiment(
+            fitnessFunction,
+            threshold,
+            'max',
+            maxIterations,
+            showLogs,
+            improvedCallback,
+            callbackFactor,
+            numSimulations,
+            confLevel,
+            intention,
+            False,
+            export=False
+        )
+
+        trapStr = utils.convertEncodingToString(trap)
+
+        writeData = [experimentNum + i + 1, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), conf_interval, intention, threshold]
+        print('FINISHED EXPERIMENT {}.\n\n'.format(i + 1))
+
+        # Write data to csv
+        with open(filePath, 'a') as out:
+            writer = csv.writer(out)
+            writer.writerow(writeData)
+            out.close()
+        
+        
     print("SIMULATION FINISHED.")
 
 def updateFrequencyCSV(fitnessFunc, freqDict):

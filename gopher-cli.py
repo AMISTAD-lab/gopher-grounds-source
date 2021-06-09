@@ -76,6 +76,7 @@ geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 geneticExperimentParser.add_argument('--keep-freqs', '-k', help='exports the count dictionary to a CSV file', action='store_true')
+geneticExperimentParser.add_argument('--overwrite', '-w', help='overwrites the experiment csv file', action='store_true')
 
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
@@ -121,6 +122,7 @@ elif args.command == 'genetic-algorithm':
     freqs = {}
     if args.function == 'random':
         fitnessFunc = functions.randomFitness
+        freqs = functions.randomFreqs
     elif args.function == 'coherence':
         fitnessFunc = functions.coherentFitness
         freqs = functions.coherentFreqs
@@ -208,8 +210,9 @@ elif args.command == 'genetic-algorithm':
             fileName,
             args.intention,
             args.no_improved_callback,
-            args.callback_factor
+            args.callback_factor,
+            args.overwrite
         )
 
-        if args.keep_freqs and args.function != 'random':
+        if args.keep_freqs:
             geneticExperiment.updateFrequencyCSV(args.function, freqs)
