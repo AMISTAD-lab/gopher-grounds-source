@@ -208,17 +208,21 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
         
     print("SIMULATION FINISHED.")
 
-def updateFrequencyCSV(fitnessFunc, freqDict):
+def updateFrequencyCSV(fileName, fitnessFunc, freqDict):
     """
     Updates the frequencies in CSVs when a new batch run experiments is issued
     """
-    filePath = 'frequencies/{}Freqs.csv'.format(fitnessFunc)
+    if fileName[-4:] == 'csv':
+        fileName = fileName[:-4]
+
+    directory = './frequencies/{}'.format(fitnessFunc)
+    filePath = '{}/{}Freqs.csv'.format(directory, fileName)
     headers = ['Trap', 'Freq']
 
     # If the path does not exist, then create it
     if not os.path.isfile('./' + filePath):
-        if not os.path.exists('./frequencies'):
-            os.mkdir('./frequencies')
+        if not os.path.exists(directory):
+            os.mkdir(directory)
 
         with open(filePath, 'w') as out:
             writer = csv.writer(out)

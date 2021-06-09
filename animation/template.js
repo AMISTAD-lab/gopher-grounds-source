@@ -16,6 +16,7 @@ var trapList = [] // Contains all the info for the steps of the animation and th
 var showAnimation = true // Whether or not to show the animation
 var gopherDefaultPos = 14 // If not showing animation, where should gopher be?
 var gopherDefaultState = [1, 3, 0, 1] // gopher state is given by [x, y, rotation, state], where state in ['dead', 'alive', 'hit']
+var manualFrame = 0
 
 var fps = 2; // show two frames per second
 
@@ -36,12 +37,12 @@ $(document).ready(function () {
 function init() 
 {
 	getInput(); // get input that is written to the file.
-	updateGrid(trapList[trapNum][0]);
 
 	if (showAnimation) {
 		animate();
 	} else {
-		console.log('here')
+		drawStaticGrid(trapList[trapNum], manualFrame);
+
 		// Add the image of the gopher to the HTML element
 		gopher.src = getGopherImageName(gopherDefaultState)
 		gopher.style.transform = `rotate(${gopherDefaultState[2]}deg)`
@@ -72,7 +73,6 @@ function draw(){
 	console.log("trapFrameNum is " + trapFrameNum);
 	if (frameNum < getNumStartSteps())
 	{
-		console.log(trapList[trapNum][0])
 		// show the first trap
 		updateGrid(trapList[trapNum][0]);
 	}
@@ -279,6 +279,52 @@ function getCurrentlyDisplayedGrid(){
 	return gridArr;
 }
 
+/** --------------- Manual methods --------- */
+
+/** Manually prints a static grid at the given frame number
+ * @param frameNum The frame number to determine which active cells are on
+ */
+function drawStaticGrid(trap, frame) {
+	gridList = trap[0]
+
+	activeStateList = null
+
+	if (frame < trap[1].length) {
+		activeStateList = trap[1][frame]
+	}
+
+	// remove existing grid by deleting all gridElements.
+	gridContainer.innerHTML = "";
+
+	// set up number of columns in grid. 
+	gridContainer.style.gridTemplateColumns = "repeat(" + String(gridList[0].length) + ", 1fr)";
+
+	// set up elements: loop through terrain, adding div element
+	for (let row = 0; row < gridList.length; row++)
+	{
+		for (let col = 0; col < gridList[0].length; col++)
+		{
+			// create div element, set its position.
+			let div = document.createElement("div");
+			div.style.gridColumnStart = col + 1;
+			div.style.gridRowStart = row + 1; // add 1 because col, rows in gridlayout start at 1. 
+			div.style.gridColumnEnd = col + 2;
+			div.style.gridRowEnd = row + 2;
+			div.classList.add("gridDiv");
+
+			// NOTE: if setting up terrain ONCE and then just updating specific cells 
+				// (i.e where gopher is, then keep this here. Otherwise, set up images each frame.)
+			let image = document.createElement("img");
+			image.src = getImageName(gridList[row][col], activeStateList ? activeStateList[row][col] : 0);// activeStateList[row][col]); // initialize board to its initial state. 
+			image.style.transform = "rotate(" + getRotInDegrees(gridList[row][col][3]) + "deg)"; // fourth element is rotation. 
+			//image.classList.add(".gridImage");
+			div.appendChild(image);
+
+			// add to grid Container
+			gridContainer.appendChild(div);
+		}
+	}
+}
 
 /** --------------- Helper methods ----------*/
 /** 

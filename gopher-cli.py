@@ -85,6 +85,7 @@ simulateTrap.add_argument('--hunger', help='set the hunger for the simulated gop
 simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 simulateTrap.add_argument('--no-animation', '-na', help='turns off animation', action='store_true')
 simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[1, 4, 0, 1]')
+simulateTrap.add_argument('--frame', '-f', help='the frame of the grid to print', type=int, default=0)
 
 # get fitness trap flags
 fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
@@ -109,7 +110,7 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     gopherState = util.convertStringToEncoding(args.gopher_state)
-    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState)
+    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
         print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
@@ -215,4 +216,4 @@ elif args.command == 'genetic-algorithm':
         )
 
         if args.keep_freqs:
-            geneticExperiment.updateFrequencyCSV(args.function, freqs)
+            geneticExperiment.updateFrequencyCSV(fileName, args.function, freqs)

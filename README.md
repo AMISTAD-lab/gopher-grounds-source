@@ -34,11 +34,12 @@ Additionally, we can user the `--hunger` (`-h`) and `--intention` (`-in`) flags 
 We have also implemented a camera-ready functionality, which allows the user to open a static image of the board in the browser.
 This option takes in the following arguments:
 ```
-./gopher-cli.py genetic-algorithm simulate '<trap_encoding>' -na -g '<state_encoding>'
+./gopher-cli.py genetic-algorithm simulate '<trap_encoding>' -na -g '<state_encoding> -f FRAME_NUM'
 ```
 The `--no-animation` (`-na`) flag tells the compiler to turn off animation, and the `--gopher-state` (`-g`) flag tells the compiler to put a gopher on the board with state `<state_encoding>.`
 The `<state_encoding>` is formatted as `[x, y, rotation, state],` where (`x`, `y`) is the gopher's 0-indexed position from the top left, `rotation` is the gopher's rotation in degrees, and `state` is the index of the gopher's health state, in the order `[dead, alive, hit].`
 The default state is `[1, 4, 0, 1].`
+Finally, we have the `--frame` (`-f`) flag that determines what frame of the trap the board should display
 
 ## Getting the Fitness of a Gopher
 To find the fitness of an arbitrary list encoding, we can use the CLI command:

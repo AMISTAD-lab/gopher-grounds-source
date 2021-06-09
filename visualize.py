@@ -4,7 +4,7 @@ import geneticAlgorithm.utils as util
 newjsFileName = "animation/animation.js" # will write and read files in the animation folder.
 template = "animation/template.js"
 
-def writeTojs(trapList, noAnimation=False, gopherState=[1, 4, 0, 1]):
+def writeTojs(trapList, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
     """ 
     Inputs:
         trapList: a list with elements of the form [initTrapBoard, activeTrapCells, gopherTrapCells]
@@ -28,6 +28,7 @@ def writeTojs(trapList, noAnimation=False, gopherState=[1, 4, 0, 1]):
     jsFile.write("\ttrapList = " + str(trapList) + ";\n")
     jsFile.write("\tshowAnimation = {};\n".format(str(not noAnimation).lower()))
     jsFile.write("\tgopherDefaultState = {};\n".format(gopherState))
+    jsFile.write("\tmanualFrame = {}\n".format(frame))
     jsFile.write("}")
 
     jsFile.close()
