@@ -199,6 +199,8 @@ elif args.command == 'genetic-algorithm':
         fileName = args.output_file
         if not fileName:
             fileName = '{}{}IntentionThresh{}.csv'.format(args.function, '' if args.intention else 'No', args.threshold)
+        elif fileName[-4:] != '.csv':
+            raise Exception('No extension at the end of the file!')
     
         geneticExperiment.runBatchExperiments(
             args.num_experiments,
