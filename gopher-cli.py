@@ -84,7 +84,7 @@ simulateTrap.add_argument('trap', help='the encoded trap as a string (surrounded
 simulateTrap.add_argument('--hunger', help='set the hunger for the simulated gopher (0, 1)', type=float, default=0)
 simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 simulateTrap.add_argument('--no-animation', '-na', help='turns off animation', action='store_true')
-simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[1, 4, 0, 1]')
+simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[-1, -1, 0, 1]')
 simulateTrap.add_argument('--frame', '-f', help='the frame of the grid to print', type=int, default=0)
 
 # get fitness trap flags

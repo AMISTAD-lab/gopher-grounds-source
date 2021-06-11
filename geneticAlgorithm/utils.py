@@ -28,6 +28,10 @@ def convertEncodingToString(encoding):
     encodingStr += ' ]'
     return encodingStr
 
+def convertStringToDecoding(strEncoding):
+    """Takes in a string encoding and returns the decoded trap """
+    return encoding.singleDecoding(convertStringToEncoding(strEncoding))
+
 def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measure = "max", maxIterations = 10000, showLogs = True, improvedCallback=True):
     """
     Runs the genetic algorithm with the given parameters and writes a new file with the unique list encodings and counts.

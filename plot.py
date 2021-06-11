@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import geneticAlgorithm.fitnessFunctions as functions
+import geneticAlgorithm.utils as util
+
+## Library functions
 
 def createDataframe(inputFileNames) -> pd.DataFrame:
     """
@@ -35,14 +39,14 @@ def createDataframe(inputFileNames) -> pd.DataFrame:
 
     return df
 
-def jitter(arr) -> np.ndarray:
+def addJitter(arr) -> np.ndarray:
     """
     Takes in an array and introduces jitter into the data points
     """
     stdev = .01 * (max(arr) - min(arr))
     return arr + np.random.randn(len(arr)) * stdev
 
-def createScatterplot(df: pd.DataFrame, x='Fitness', y='Prop_Dead', isJitter=False):
+def createScatterplot(df: pd.DataFrame, x='Fitness', y='Prop_Dead', jitter=True, xlabel='', ylabel='', title='', filterIntent=True, labelLoc='upper right'):
     """
     Takes in a dataframe and creates a scatter plot of y vs x with an optional argument for jitter
     """
@@ -51,19 +55,63 @@ def createScatterplot(df: pd.DataFrame, x='Fitness', y='Prop_Dead', isJitter=Fal
 
     intentionIndices = df.index[df['Intention?'] == True].to_numpy()
 
-    if isJitter:
-        x = jitter(x)
-        y = jitter(y)
+    if jitter:
+        x = addJitter(x)
+        y = addJitter(y)
 
-    plt.scatter(x[~intentionIndices], y[~intentionIndices], facecolor='b', edgecolor='b', marker='.', s=30, label='No intention')
-    plt.scatter(x[intentionIndices], y[intentionIndices], facecolor='none', edgecolor='r', marker='.', s=30, label='Intention')
-    plt.legend(loc='upper right')
-    plt.xlabel('Coherence')
-    plt.ylabel('Lethality (Proportion of Gophers Dead)')
-    plt.title('Lethality vs. Coherence for Coherently Optimized Traps')
+    if filterIntent:
+        plt.scatter(x[~intentionIndices], y[~intentionIndices], facecolor='b', edgecolor='b', marker='.', s=30, label='No intention')
+        plt.scatter(x[intentionIndices], y[intentionIndices], facecolor='none', edgecolor='r', marker='.', s=30, label='Intention')
+        plt.legend(loc = labelLoc)
+    else:
+        plt.scatter(x, y)
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
     plt.show()
-    pass
 
-inputFiles = ['./csv/coherence/coherenceExperimentData.csv']
+inputFiles = ['./csv/functional/functionalExperimentData.csv']
 
-createScatterplot(createDataframe(inputFiles), isJitter=True)
+## Plotting functions
+def coherenceLethalityVsCoherence():
+    """
+    Creates a plot of lethality vs coherence for coherently optimized traps
+    """
+    inputFile = './csv/coherence/coherenceExperimentData.csv'
+
+    df = createDataframe([inputFile])
+    createScatterplot(
+        df,
+        jitter = True,
+        xlabel = 'Coherence',
+        ylabel = 'Lethality (Proportion of Gophers Dead)',
+        title = 'Lethality vs. Coherence for Coherently Optimized Traps'
+    )
+
+def functionalCoherenceVsLethality():
+    """
+    Creates a plot of coherence vs lethality for functionally optimized traps
+    """
+    inputFile = './csv/functional/functionalExperimentData.csv'
+
+    getCoherenceFromString = \
+        lambda strEncoding : functions.coherentFitness(util.convertStringToDecoding(strEncoding))
+
+    df = createDataframe([inputFile])
+    
+    # Adding the coherence to the dataframe
+    df['Coherence'] = df.apply(
+        lambda row : getCoherenceFromString(row['Trap']),
+        axis = 1
+    )
+
+    createScatterplot(
+        df,
+        x = 'Prop_Dead',
+        y = 'Coherence',
+        ylabel = 'Coherence',
+        xlabel = 'Lethality (Proportion of Gophers Dead)',
+        title = 'Coherence vs. Lethality for Functionially Optimized Traps',
+        labelLoc = 'upper left'
+    )
