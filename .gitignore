@@ -139,3 +139,6 @@ dmypy.json
 # Whitelist these .txt files
 !quick-instructions.txt
 !requirements.txt
+
+# VSCode
+.vscode/

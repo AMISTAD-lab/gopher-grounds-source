@@ -2,7 +2,7 @@
 import argparse
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions 
-from geneticAlgorithm.encoding import singleDecoding
+from geneticAlgorithm.encoding import singleDecoding, singleEncoding
 import geneticAlgorithm.experiment as geneticExperiment
 from geneticAlgorithm.main import geneticAlgorithm
 import geneticAlgorithm.utils as util
@@ -76,12 +76,16 @@ geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
 geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 geneticExperimentParser.add_argument('--keep-freqs', '-k', help='exports the count dictionary to a CSV file', action='store_true')
+geneticExperimentParser.add_argument('--overwrite', '-w', help='overwrites the experiment csv file', action='store_true')
 
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
 simulateTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 simulateTrap.add_argument('--hunger', help='set the hunger for the simulated gopher (0, 1)', type=float, default=0)
 simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
+simulateTrap.add_argument('--no-animation', '-na', help='turns off animation', action='store_true')
+simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[1, 4, 0, 1]')
+simulateTrap.add_argument('--frame', '-f', help='the frame of the grid to print', type=int, default=0)
 
 # get fitness trap flags
 fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
@@ -105,7 +109,8 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
     print(trapInfo[1])
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
-    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention)
+    gopherState = util.convertStringToEncoding(args.gopher_state)
+    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
         print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
@@ -118,6 +123,7 @@ elif args.command == 'genetic-algorithm':
     freqs = {}
     if args.function == 'random':
         fitnessFunc = functions.randomFitness
+        freqs = functions.randomFreqs
     elif args.function == 'coherence':
         fitnessFunc = functions.coherentFitness
         freqs = functions.coherentFreqs
@@ -193,6 +199,8 @@ elif args.command == 'genetic-algorithm':
         fileName = args.output_file
         if not fileName:
             fileName = '{}{}IntentionThresh{}.csv'.format(args.function, '' if args.intention else 'No', args.threshold)
+        elif fileName[-4:] != '.csv':
+            raise Exception('No extension at the end of the file!')
     
         geneticExperiment.runBatchExperiments(
             args.num_experiments,
@@ -205,8 +213,9 @@ elif args.command == 'genetic-algorithm':
             fileName,
             args.intention,
             args.no_improved_callback,
-            args.callback_factor
+            args.callback_factor,
+            args.overwrite
         )
 
-        if args.keep_freqs and args.function != 'random':
-            geneticExperiment.updateFrequencyCSV(args.function, freqs)
+        if args.keep_freqs:
+            geneticExperiment.updateFrequencyCSV(fileName, args.function, freqs)

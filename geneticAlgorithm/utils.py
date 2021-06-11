@@ -18,6 +18,16 @@ def convertStringToEncoding(strEncoding):
     digitList = strList.split(',') # splitting number strings by digits
     return [int(digit.strip()) for digit in digitList]
 
+def convertEncodingToString(encoding):
+    """Takes in an encoding and returns the string version of it"""
+    encodingStr = '[ '
+    for i, elem in enumerate(encoding):            
+        encodingStr += '{}'.format(str(elem))
+        if i < len(encoding) - 1:
+            encodingStr += ', '
+    encodingStr += ' ]'
+    return encodingStr
+
 def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measure = "max", maxIterations = 10000, showLogs = True, improvedCallback=True):
     """
     Runs the genetic algorithm with the given parameters and writes a new file with the unique list encodings and counts.
@@ -66,11 +76,11 @@ def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measur
     
     return bestTrap, bestFitness
 
-def simulateTrapInBrowser(listEncoding, hunger=0, intention=False):
+def simulateTrapInBrowser(listEncoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
     """Takes in a list encoding and simulates the trap in the browser"""
     decodedList = encoding.singleDecoding(listEncoding)
     simulationInfo = sim.simulateTrap(createTrap(decodedList), intention, hunger=hunger, forceEnter=True)[:3]
-    vis.writeTojs([simulationInfo], False)
+    vis.writeTojs([simulationInfo], noAnimation, gopherState, frame)
 
     # opens the animation in the web browser
     webbrowser.open_new_tab("file://" + os.path.realpath("./animation/animation.html"))
