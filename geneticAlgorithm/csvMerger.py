@@ -1,14 +1,18 @@
 from typing import List
 import pandas as pd
 
-def mergeCSVFiles(fileNames, fitnessFunction):
+def mergeCSVFiles(fileNames, fitnessFunction, outputFile, frequencies=True):
     """
     Takes in .csv file paths and merges them all into one compiled file
     """
-    filePath = './frequencies/{}/{}FreqsCompiled.csv'.format(fitnessFunction, fitnessFunction)
+    directory = 'frequencies'
+    if not frequencies:
+        directory = 'csv'
+
+    filePath = './{}/{}/{}.csv'.format(directory, fitnessFunction, fitnessFunction, outputFile)
     # Read in the CSV as a dataframe to allow for easy manipulation
     dataframes: List[pd.DataFrame] = [
-        pd.read_csv('./frequencies/{}/{}'.format(fitnessFunction, file), index_col = 0)
+        pd.read_csv('./{}/{}/{}'.format(directory, fitnessFunction, file), index_col = 0)
         for file in fileNames
     ]
 
