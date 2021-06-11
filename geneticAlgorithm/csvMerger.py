@@ -7,7 +7,10 @@ def mergeCSVFiles(fileNames, fitnessFunction):
     """
     filePath = './frequencies/{}/{}FreqsCompiled.csv'.format(fitnessFunction, fitnessFunction)
     # Read in the CSV as a dataframe to allow for easy manipulation
-    dataframes: List[pd.DataFrame] = [pd.read_csv(file, index_col = 0) for file in fileNames]
+    dataframes: List[pd.DataFrame] = [
+        pd.read_csv('./frequencies/{}/{}'.format(fitnessFunction, file), index_col = 0)
+        for file in fileNames
+    ]
 
     masterDf: pd.DataFrame = None
     for i, df in enumerate(dataframes):
