@@ -134,7 +134,7 @@ def binaryDistanceFitness(configuration, targetTrap):
 
     return numDiff/(len(encoding) - 3)
 
-def DistanceFitness(configuration, targetTrap):
+def distanceFitness(configuration, targetTrap):
     """Assigns a fitness based on the distance to the target configuration"""
     encodedTarget = singleEncoding(targetTrap)
     # Convert list to string to reference in dictionary
@@ -153,6 +153,6 @@ def DistanceFitness(configuration, targetTrap):
     distance = 0
     for i in range(len(encoding)):
         if encoding[i] != encodedTarget[i]:
-            numDiff += 1
+            distance += 1
 
-    return numDiff/(len(encoding) - 3)
+    return distance / (len(encoding) - 3)
