@@ -8,11 +8,15 @@ from geneticAlgorithm.utils import createTrap
 functionalFitnesses = {}
 coherentFitnesses = {}
 combinedFitnesses = {}
+binaryDistanceFitnesses = {}
+distanceFitneses = {}
 
 randomFreqs = {}
 functionalFreqs = {}
 coherentFreqs = {}
 combinedFreqs = {}
+binaryDistanceFreqs = {}
+distanceFreqs = {}
 
 def randomFitness(configuration):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""
@@ -106,3 +110,49 @@ def combinedFitness(configuration):
     combinedFitnesses[strEncoding] = result
     
     return result
+
+def binaryDistanceFitness(configuration, targetTrap):
+    """Assigns a fitness based on the binary distance to the target configuration"""
+    encodedTarget = singleEncoding(targetTrap)
+    # Convert list to string to reference in dictionary
+    encoding = singleEncoding(configuration)
+    strEncoding = np.array2string(encoding)
+
+    # Maintain frequency dictionary
+    if strEncoding not in binaryDistanceFreqs:
+        binaryDistanceFreqs[strEncoding] = 0
+    
+    binaryDistanceFreqs[strEncoding] += 1
+
+    if strEncoding in binaryDistanceFitnesses:
+        return binaryDistanceFitnesses[strEncoding]
+
+    numDiff = 0.0
+    for i in range(len(encoding)):
+        if encoding[i] != encodedTarget[i]:
+            numDiff += 1
+
+    return numDiff/(len(encoding) - 3)
+
+def DistanceFitness(configuration, targetTrap):
+    """Assigns a fitness based on the distance to the target configuration"""
+    encodedTarget = singleEncoding(targetTrap)
+    # Convert list to string to reference in dictionary
+    encoding = singleEncoding(configuration)
+    strEncoding = np.array2string(encoding)
+
+    # Maintain frequency dictionary
+    if strEncoding not in binaryDistanceFreqs:
+        binaryDistanceFreqs[strEncoding] = 0
+    
+    binaryDistanceFreqs[strEncoding] += 1
+
+    if strEncoding in binaryDistanceFitnesses:
+        return binaryDistanceFitnesses[strEncoding]
+
+    distance = 0
+    for i in range(len(encoding)):
+        if encoding[i] != encodedTarget[i]:
+            numDiff += 1
+
+    return numDiff/(len(encoding) - 3)
