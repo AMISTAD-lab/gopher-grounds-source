@@ -112,6 +112,6 @@ def functionalCoherenceVsLethality():
         y = 'Coherence',
         ylabel = 'Coherence',
         xlabel = 'Lethality (Proportion of Gophers Dead)',
-        title = 'Coherence vs. Lethality for Functionially Optimized Traps',
+        title = 'Coherence vs. Lethality for Functionally Optimized Traps',
         labelLoc = 'upper left'
     )

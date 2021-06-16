@@ -148,10 +148,7 @@ def functional_specified_complexity(connectionTuple):
 def isTrap(trap, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed"""
     connectionTuple = connectionsPerPiece(trap)
-    if functional_specified_complexity(connectionTuple) >= sigVal:
-        return True
-    else:
-        return False
+    return functional_specified_complexity(connectionTuple) >= sigVal
 
 def getCoherenceValue(trap):
     """given a trap, determines the coherence value of the trap"""
