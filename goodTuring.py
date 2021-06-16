@@ -4,7 +4,6 @@ This file contains all the necessary functions to apply a Simple Good Turing smo
 import copy
 import csv
 import pandas as pd
-import time
 
 def createFreqOfFreqs(fitnessFunction):
     """
@@ -14,22 +13,23 @@ def createFreqOfFreqs(fitnessFunction):
     inputPath = './frequencies/{}/{}FreqsCompiled.csv'.format(fitnessFunction, fitnessFunction)
     outputPath = './frequencies/{}/{}FreqOfFreqs.csv'.format(fitnessFunction, fitnessFunction)
 
-    # Read in the file to count
-    df = pd.read_csv(inputPath, index_col=0, dtype={'Trap': 'string', 'Freq': 'Int32'})
-    
     # Maintain a dictionary of counts
     freqOfFreqs = {}
 
-    # Count the frequency of all the frequencies
-    for i in range(len(df.index)):
-        if i == 0:
-            continue
+    with open(inputPath, 'r') as out:
+        reader = csv.reader(out)
 
-        currFreq = df.iloc[i].Freq
-        if currFreq not in freqOfFreqs:
-            freqOfFreqs[currFreq] = 0
-        
-        freqOfFreqs[currFreq] += 1
+        for row in reader:
+            if row[1] == 'Freq':
+                continue
+
+            currFreq = int(row[1])
+
+            if currFreq not in freqOfFreqs:
+                freqOfFreqs[currFreq] = 0
+            
+            freqOfFreqs[currFreq] += 1
+        out.close()
 
     # Write the data to a file
     with open(outputPath, 'w+') as out:
@@ -50,4 +50,4 @@ def createFreqOfFreqs(fitnessFunction):
 
     return freqOfFreqs
 
-createFreqOfFreqs('random')
+createFreqOfFreqs('coherence')

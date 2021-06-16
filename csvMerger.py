@@ -6,7 +6,7 @@ def mergeFreqs(fileNames, fitnessFunction, outputFile):
     Takes in .csv file paths to frequency counts and merges them all into one compiled file
     """
     directory = 'frequencies'
-    filePath = './{}/{}/{}.csv'.format(directory, fitnessFunction, fitnessFunction, outputFile)
+    filePath = './{}/{}/{}.csv'.format(directory, fitnessFunction, outputFile)
     # Read in the CSV as a dataframe to allow for easy manipulation
     dataframes: List[pd.DataFrame] = [
         pd.read_csv('./{}/{}/{}'.format(directory, fitnessFunction, file), index_col = 0)
