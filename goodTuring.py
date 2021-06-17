@@ -7,6 +7,9 @@ import numpy as np
 from numpy.core.fromnumeric import sort
 from scipy import linalg
 
+# Define constant necessary for computing the smoothed probability
+TOTAL = 427929800129788411
+
 def createFreqOfFreqs(fitnessFunction):
     """
     Returns a dictionary of all frequencies of frequencies of the given input file.
@@ -109,34 +112,65 @@ def turingProb(configuration, freqDict, fofDict):
 
     return r_star / N
 
-def SGTProbs(freqDict, fofDict, confidenceLevel=1.96):
+def sgtProbs(fofDict, confidenceLevel=1.65):
     """
     Returns a dictionary mapping the observed frequency to the corresponding smoothed proabilities
     That is, a dictionary {freq: SGTProb}
     """
-    probDict = {}
+
     N = np.sum([freq * fofDict[freq] for freq in fofDict])
     sortedFreq = sorted(fofDict.keys()) #a array of sorted freqs
-    print(N == sum(freqDict.values()))
+    # print(N == sum(freqDict.values()))
 
-    probDict[0] = fofDict[1] / N
+    # Compute total probability for objects that has been seen 0 times
+    p0 = fofDict[1] / N
 
     # Compute the dictionary of {r: Z_r}
     Z = computeZ(fofDict, sortedFreq)
 
-     # Compute a linear regression of log(Z[r]) on log(r)
+    # Compute a linear regression of log(Z[r]) on log(r)
     a, b = logLinearReg(Z)
 
     # Simple Good Turing
-    rSmoothed = {}
+    r_smoothed = {}
     useLinear = False
     for r in sortedFreq:
-        r_linear = r * (1 + 1/r)^(b + 1) 
+        r_linear = r * (1 + 1/r)**(b + 1)  # estimates of r using LGT
+
+        # If we didn't start use LGT (still using Turing estimate) 
+        if not useLinear:
+            # 1. if N_r+1==0, switch to LGT (!!!Not sure if we have this)
+            if r+1 not in fofDict:
+                print("reached unobserved frequency before crossing the 'smoothing threshold.'")
+                useLinear = True
+                r_smoothed[r] = r_linear
+                continue
+            # 2. if |r_linear - r_turing| <= t, switch to LGT
+            t = confidenceLevel * np.sqrt((r+1)**2 * (fofDict[r+1] / fofDict[r]**2) * (1 + fofDict[r+1]/fofDict[r]))
+            r_turing = (r + 1) * fofDict[r + 1] / fofDict[r] # estimates of r using Tuirng estimates
+            if abs(r_linear - r_turing) <= t:
+                print("crossed the 'smoothing threshold.'")
+                useLinear = True
+                r_smoothed[r] = r_linear
+                continue
+            # 3. else, use r_turing
+            r_smoothed[r] = r_turing
 
         # If we started using LGT, continue use it
+        if useLinear:
+            r_smoothed[r] = r_linear
 
-        # If we didn't start use LGT (still using Turing estimate), check 1.the difference between two estimates, 2.if N_r+1==0, switch to LGT
-    pass
+    # Renormalization
+    sgtProb = {}
+    sgtProb[0] = p0 / (TOTAL - N)
+    unnormTotal = np.sum([r_smoothed[r] * fofDict[r] for r in sortedFreq])
+    for r in sortedFreq:
+        sgtProb[r] = (1 - p0) * (r_smoothed[r] / unnormTotal)
+
+    # checkTotal = np.sum([sgtProb[r] * fofDict[r] for r in sortedFreq]) + p0
+    # print(checkTotal)
+
+    return sgtProb
 
 def computeZ(fofDict, sortedFreq):
     """
@@ -152,7 +186,7 @@ def computeZ(fofDict, sortedFreq):
             q = sortedFreq[index - 1]
         # Find t
         if index == len(sortedFreq) -  1:
-            t = r + (r - q)        # Not sure what this should be
+            t = 2 * r -q 
         else:
             t = sortedFreq[index + 1]
     
@@ -169,12 +203,22 @@ def logLinearReg(zDict):
         print('Warning: slope b > -1.0')
     return a, b
 
+def getSmoothedProb(configuration, freqDict, sgtDict):
+    """
+    Returns the SGT-smoothed probability of a given configuration
+    """
+    strEncoding = np.array2string(np.array(configuration))
+    r = 0 if strEncoding not in freqDict else freqDict[strEncoding]
+    return sgtDict[r]
 
+#Testing
 freqDict = loadFrequencies('coherence')
-print("finish loading freqDict")
-print()
 fofDict = loadFoF('coherence')
 sortedFreq = sorted(fofDict.keys())
-Z = computeZ(fofDict, sortedFreq)
-logLinearReg(Z)
+
+sgtTest = sgtProbs(fofDict)
+print("This is the sgt-smoothed probability dictionary:")
+print(sgtTest)
+print("This is the probability of a certain trap:")
+print(getSmoothedProb([11, 43, 13,  5,  1, 40, 77,  2, 33, 31,  0, 15], freqDict, sgtTest))
 
