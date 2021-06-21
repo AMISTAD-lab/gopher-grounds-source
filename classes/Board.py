@@ -15,7 +15,7 @@ from classes.Arrow import *
 
 import numpy as np
 import math as m
-import algorithms as alg
+import libs.algorithms as alg
 import legacy.designedTraps as dt
 
 #loads in the functional traps from the designedTraps file

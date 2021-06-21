@@ -3,7 +3,7 @@ from enums.Cell import *
 from enums.Angle import *
 from enums.Rotation import *
 from enums.Thick import *
-import simulation as s
+import libs.simulation as s
 
 class Door(Cell):
     def __init__(self, x, y, ownerBoard, angleType=AngleType.na, rotationType=RotationType.up, active=False):

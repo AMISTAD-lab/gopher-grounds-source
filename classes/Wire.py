@@ -2,7 +2,7 @@ from enums.Cell import *
 from enums.Rotation import *
 from enums.Direction import *
 import classes.Cell as c
-import algorithms as alg
+import libs.algorithms as alg
 
 class Wire(c.Cell):
     def __init__(self, x, y, ownerBoard, angleType, rotationType, thickType, active=False):

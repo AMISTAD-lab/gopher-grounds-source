@@ -7,7 +7,7 @@ import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleDecoding
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.utils as utils
-import simulation as sim
+import libs.simulation as sim
 
 def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=False, printStatistics = True):
     '''

@@ -3,7 +3,7 @@ from classes.Cell import *
 from enums.Angle import *
 from enums.Rotation import *
 from classes.Projectile import *
-import algorithms as alg
+import libs.algorithms as alg
 
 class Arrow(Cell):
     def __init__(self, x, y, ownerBoard, angleType, rotationType, thickType, active=False):

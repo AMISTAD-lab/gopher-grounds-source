@@ -1,5 +1,5 @@
 import numpy as np
-import algorithms as alg
+import libs.algorithms as alg
 import geneticAlgorithm.analytical as analytical
 import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleEncoding

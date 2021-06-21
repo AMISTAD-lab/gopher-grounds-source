@@ -1,4 +1,4 @@
-import algorithms as alg
+import libs.algorithms as alg
 
 #DEFAULTS#
 WIDE_PROJECTILE_STRENGTH = 0.45 #thick wire
