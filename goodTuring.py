@@ -98,19 +98,19 @@ def loadFoF(fitnessFunc):
 
     return compiledDict
 
-def turingProb(configuration, freqDict, fofDict):
-    """
-    Returns the frequency of a given configuration, the dictionary of frequencies,
-    and the dictionary of frequencies of frequencies
-    """
-    strEncoding = np.array2string(np.array(configuration))
-    r = 0 if strEncoding not in freqDict else freqDict[strEncoding]
+# def turingProb(configuration, freqDict, fofDict):
+#     """
+#     Returns the frequency of a given configuration, the dictionary of frequencies,
+#     and the dictionary of frequencies of frequencies
+#     """
+#     strEncoding = np.array2string(np.array(configuration))
+#     r = 0 if strEncoding not in freqDict else freqDict[strEncoding]
 
-    r_star = (r + 1) * fofDict[r + 1] / fofDict[r]
+#     r_star = (r + 1) * fofDict[r + 1] / fofDict[r]
 
-    N = np.sum([freq * fofDict[freq] for freq in fofDict])
+#     N = np.sum([freq * fofDict[freq] for freq in fofDict])
 
-    return r_star / N
+#     return r_star / N
 
 def sgtProbs(fofDict, confidenceLevel=1.65):
     """
@@ -139,7 +139,7 @@ def sgtProbs(fofDict, confidenceLevel=1.65):
 
         # If we didn't start use LGT (still using Turing estimate) 
         if not useLinear:
-            # 1. if N_r+1==0, switch to LGT (!!!Not sure if we have this)
+            # 1. if N_r+1==0, switch to LGT
             if r+1 not in fofDict:
                 print("reached unobserved frequency before crossing the 'smoothing threshold.'")
                 useLinear = True
