@@ -142,3 +142,6 @@ dmypy.json
 
 # VSCode
 .vscode/
+
+# SQLite
+*.db*
