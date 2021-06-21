@@ -145,6 +145,7 @@ def sgtProbs(fofDict, confidenceLevel=1.65):
                 useLinear = True
                 r_smoothed[r] = r_linear
                 continue
+
             # 2. if |r_linear - r_turing| <= t, switch to LGT
             t = confidenceLevel * np.sqrt((r+1)**2 * (fofDict[r+1] / fofDict[r]**2) * (1 + fofDict[r+1]/fofDict[r]))
             r_turing = (r + 1) * fofDict[r + 1] / fofDict[r] # estimates of r using Tuirng estimates
@@ -153,6 +154,7 @@ def sgtProbs(fofDict, confidenceLevel=1.65):
                 useLinear = True
                 r_smoothed[r] = r_linear
                 continue
+            
             # 3. else, use r_turing
             r_smoothed[r] = r_turing
 
@@ -182,13 +184,12 @@ def computeZ(fofDict, sortedFreq):
         # Find q
         if index == 0:
             q = 0
-        else:
-            q = sortedFreq[index - 1]
+        q = sortedFreq[index - 1]
+
         # Find t
         if index == len(sortedFreq) -  1:
             t = 2 * r -q 
-        else:
-            t = sortedFreq[index + 1]
+        t = sortedFreq[index + 1]
     
         Z[r] = fofDict[r] / (0.5 * (t - q))
     return Z
@@ -196,11 +197,12 @@ def computeZ(fofDict, sortedFreq):
 def logLinearReg(zDict):
     x = np.log(np.fromiter(zDict.keys(), dtype=int))
     y = np.log(np.fromiter(zDict.values(), dtype=float))
-    A = np.vstack([x, np.ones(len(x))]).T
+    # a nx2 matrix [x^T | 1]
+    A = np.vstack([x, np.ones(len(x))]).T   
     b, a = np.linalg.lstsq(A, y, rcond=None)[0]
     print('Regression: log(z) = {b}*log(r) + {a}'.format(b = b, a = a))
     if b > -1.0:
-        print('Warning: slope b > -1.0')
+        raise Exception('Warning: slope b > -1.0')
     return a, b
 
 def getSmoothedProb(configuration, freqDict, sgtDict):
