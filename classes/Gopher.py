@@ -1,9 +1,9 @@
 from enums.Cell import *
 from classes.Floor import *
 from enums.Rotation import *
-import algorithms as alg
+import libs.algorithms as alg
 import numpy as np
-import magicVariables as mv
+import legacy.magicVariables as mv
 
 class Gopher:
     def __init__(self, start_x, start_y, ownerBoard, intention, rotationType=RotationType.up):

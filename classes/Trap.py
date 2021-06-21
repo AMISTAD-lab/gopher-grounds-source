@@ -6,7 +6,7 @@ from classes.Food import *
 from classes.Arrow import *
 from classes.Wire import *
 from classes.Door import *
-import algorithms as alg
+import libs.algorithms as alg
 import numpy as np
 
 class Trap(Board):

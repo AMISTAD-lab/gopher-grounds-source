@@ -5,8 +5,8 @@ import classes.Trap as TrapClass
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.encoding as encoding
 from geneticAlgorithm.main import geneticAlgorithm
-import simulation as sim
-import visualize as vis
+import libs.simulation as sim
+import libs.visualize as vis
 
 def createTrap(configuration):
     """Takes in a board configuration and wraps that configuration in a trap class"""

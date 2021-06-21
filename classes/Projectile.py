@@ -1,7 +1,7 @@
 from enums.Direction import *
 from enums.Thick import *
-import simulation as s
-import magicVariables as mv
+import libs.simulation as s
+import legacy.magicVariables as mv
 
 
 class Projectile:

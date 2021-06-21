@@ -1,5 +1,5 @@
-#import simulation as sim
-import visualize as vis
+#import libs.simulation as sim
+import libs.visualize as vis
 import legacy.experiment as exp
 import os
 import webbrowser

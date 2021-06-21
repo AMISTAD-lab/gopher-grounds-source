@@ -1,8 +1,8 @@
-import simulation as s
+import libs.simulation as s
 import copy
 import classes.Trap as t
 import numpy as np
-import magicVariables as mv
+import legacy.magicVariables as mv
 import legacy.data as d
 
 pref = {

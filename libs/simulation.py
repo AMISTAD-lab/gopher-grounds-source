@@ -1,6 +1,6 @@
 from classes.Gopher import *
 
-import algorithms as alg
+import libs.algorithms as alg
 import math as m
 
 gopher = None    

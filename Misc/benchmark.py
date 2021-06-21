@@ -1,6 +1,6 @@
 import numpy as np
 from geneticAlgorithm.utils import createTrap
-import simulation as sim
+import libs.simulation as sim
 from legacy.designedTraps import *
 import geneticAlgorithm.analytical as analytical
 import time
