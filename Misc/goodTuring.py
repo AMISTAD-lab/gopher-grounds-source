@@ -75,14 +75,16 @@ def loadFoF(fitnessFunc):
 
     return compiledDict
 
-def sgtProbs(fofDict, confidenceLevel=1.65):
+def getProbDict(fofDict, confidenceLevel=1.65):
     """
     Returns a dictionary mapping the observed frequency to the corresponding smoothed proabilities
     That is, a dictionary {freq: SGTProb}
     """
-
     N = np.sum([freq * fofDict[freq] for freq in fofDict])
     sortedFreq = sorted(fofDict.keys()) # an array of sorted freqs
+
+    if (len(sortedFreq) == 1):
+        return { sortedFreq[0]: 1 / constants.TOTAL }
 
     # Compute total probability for objects that has been seen 0 times
     p0 = fofDict[1] / N
@@ -173,27 +175,25 @@ def logLinearReg(zDict):
 
     return a, b
 
-def getSmoothedProb(configuration, fitnessFunc, sgtDict):
+def getSmoothedProb(configuration, fitnessFunc, probDict):
     """
     Returns the SGT-smoothed probability of a given configuration
     """
     r = dbLibrary.getTrapFreq(configuration, fitnessFunc)
-    return sgtDict[r]
+    return probDict[r]
 
 def testSGT(configuration, function = 'coherence'):
     # Testing
     fofDict = loadFoF(function)
-    sgtTest = sgtProbs(fofDict)
+    probDict = getProbDict(fofDict)
 
-    for key in sgtTest:
-        num = int(np.log(sgtTest[key]) / np.log(10))
-        sgtTest[key] = round(sgtTest[key], -num + 3)
+    for key in probDict:
+        num = int(np.log(probDict[key]) / np.log(10))
+        probDict[key] = round(probDict[key], -num + 3)
 
     print("This is the sgt-smoothed probability dictionary:")
 
-    pprint.pprint(sgtTest)
+    pprint.pprint(probDict)
 
     print("This is the probability of a certain trap:")
-    print(getSmoothedProb(configuration, function, sgtTest))
-
-testSGT('[48 82 82 43  1 46 48  2 32 67  0 45]', 'random')
+    print(getSmoothedProb(configuration, function, probDict))
