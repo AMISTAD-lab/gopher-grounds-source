@@ -4,10 +4,9 @@ from database.client import client
 from database.constants import *
 
 def tableExists(tableName: str):
+    ''' Returns true if a table with the given tableName exists '''
     cursor = client.cursor()
-    '''
-    Returns true if a table with the given tableName exists
-    '''
+
     queryData = {
         'type': 'table',
         'name': tableName
@@ -96,6 +95,7 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
 
     print('Starting to load {} frequencies'.format(fitnessFunction))
     rowCount = 0
+    numBars = 1000
 
     # Get the number of lines in the file
     with open(inputFile) as file:
@@ -104,7 +104,7 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
         rowCount = i - 1
         file.close()
 
-    with IncrementalBar('Processing {} frequencies:'.format(fitnessFunction.lower()), max = int(rowCount / 10000)) as bar:
+    with IncrementalBar('Processing {} frequencies:'.format(fitnessFunction.lower()), max = numBars) as bar:
         currentBatch = []
         with open(inputFile, 'r') as out:
             reader = csv.reader(out)
@@ -123,13 +123,16 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
                 currentBatch.append(parsedRow)
 
                 # Commit every 1000 elements and reset batch to limit memory usage
-                if i % 10000 == 0:
-                    bar.next()
+                if i % 1000 == 0:
                     cursor.executemany(
                         'INSERT INTO {} VALUES (?, ?, ?);'.format(FREQ_TABLE),
                         currentBatch
                     )
                     currentBatch = []
+                
+                # Increment the bar 
+                if i % (rowCount // numBars) == 0:
+                    bar.next()
             
             # Committing the remainder of the rows that may have not been added
             if currentBatch:
