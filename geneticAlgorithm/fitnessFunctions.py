@@ -134,25 +134,26 @@ def binaryDistanceFitness(configuration, targetTrap):
 
     return numDiff/(len(encoding) - 3)
 
-def distanceFitness(configuration, targetTrap):
-    """Assigns a fitness based on the distance to the target configuration"""
-    encodedTarget = singleEncoding(targetTrap)
-    # Convert list to string to reference in dictionary
-    encoding = singleEncoding(configuration)
-    strEncoding = np.array2string(encoding)
+# TODO: Fix this function
+# def distanceFitness(configuration, targetTrap):
+#     """Assigns a fitness based on the distance to the target configuration"""
+#     encodedTarget = singleEncoding(targetTrap)
+#     # Convert list to string to reference in dictionary
+#     encoding = singleEncoding(configuration)
+#     strEncoding = np.array2string(encoding)
 
-    # Maintain frequency dictionary
-    if strEncoding not in binaryDistanceFreqs:
-        binaryDistanceFreqs[strEncoding] = 0
+#     # Maintain frequency dictionary
+#     if strEncoding not in binaryDistanceFreqs:
+#         binaryDistanceFreqs[strEncoding] = 0
     
-    binaryDistanceFreqs[strEncoding] += 1
+#     binaryDistanceFreqs[strEncoding] += 1
 
-    if strEncoding in binaryDistanceFitnesses:
-        return binaryDistanceFitnesses[strEncoding]
+#     if strEncoding in binaryDistanceFitnesses:
+#         return binaryDistanceFitnesses[strEncoding]
 
-    distance = 0
-    for i in range(len(encoding)):
-        if encoding[i] != encodedTarget[i]:
-            distance += 1
+#     distance = 0
+#     for i in range(len(encoding)):
+#         if encoding[i] != encodedTarget[i]:
+#             distance += 1
 
-    return distance / (len(encoding) - 3)
+#     return distance / (len(encoding) - 3)
