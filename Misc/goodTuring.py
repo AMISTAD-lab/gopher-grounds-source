@@ -175,10 +175,11 @@ def logLinearReg(zDict):
 
     return a, b
 
-def getSmoothedProb(configuration, fitnessFunc, probDict):
+def getSmoothedProb(configuration, fitnessFunc):
     """
     Returns the SGT-smoothed probability of a given configuration
     """
+    probDict = getProbDict(loadFoF(fitnessFunc))
     r = dbLibrary.getTrapFreq(configuration, fitnessFunc)
     return probDict[r]
 
@@ -192,8 +193,8 @@ def testSGT(configuration, function = 'coherence'):
         probDict[key] = round(probDict[key], -num + 3)
 
     print("This is the sgt-smoothed probability dictionary:")
-
     pprint.pprint(probDict)
+    print()
 
     print("This is the probability of a certain trap:")
-    print(getSmoothedProb(configuration, function, probDict))
+    print(getSmoothedProb(configuration, function))
