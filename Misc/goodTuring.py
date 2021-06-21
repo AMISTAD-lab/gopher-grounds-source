@@ -4,6 +4,8 @@ This file contains all the necessary functions to apply a Simple Good Turing smo
 import copy
 import csv
 import numpy as np
+import pprint
+import database.library as dbLibrary
 import geneticAlgorithm.constants as constants
 
 def createFreqOfFreqs(fitnessFunction):
@@ -50,27 +52,6 @@ def createFreqOfFreqs(fitnessFunction):
         out.close()
 
     return freqOfFreqs
-
-def loadFrequencies(fitnessFunc):
-    """
-    Returns a dictionary of { 'strEncoding': frequency } of all frequencies of a given fitness function
-    """
-    outputPath = './frequencies/{}/{}FreqsCompiled.csv'.format(fitnessFunc, fitnessFunc)
-
-    compiledDict = {}
-    with open(outputPath, 'r') as out:
-        reader = csv.reader(out)
-
-        for row in reader:
-            if row[1] == 'Freq':
-                continue
-
-            if row[0] in compiledDict:
-                raise Exception('Duplicate trap {}'.format(row[0]))
-            
-            compiledDict[row[0]] = int(row[1])
-    
-    return compiledDict
 
 def loadFoF(fitnessFunc):
     """
@@ -185,28 +166,34 @@ def logLinearReg(zDict):
     A = np.vstack([x, np.ones(len(x))]).T   
     b, a = np.linalg.lstsq(A, y, rcond=None)[0]
 
-    print('Regression: log(z) = {b}*log(r) + {a}'.format(b = b, a = a))
+    print('Regression: log(z) = {} * log(r) + {}'.format(round(b, 3), round(a, 3)))
 
     if b > -1.0:
         raise Exception('Warning: slope b > -1.0')
 
     return a, b
 
-def getSmoothedProb(configuration, freqDict, sgtDict):
+def getSmoothedProb(configuration, fitnessFunc, sgtDict):
     """
     Returns the SGT-smoothed probability of a given configuration
     """
-    strEncoding = np.array2string(np.array(configuration))
-    r = 0 if strEncoding not in freqDict else freqDict[strEncoding]
+    r = dbLibrary.getTrapFreq(configuration, fitnessFunc)
     return sgtDict[r]
 
-# Testing
-# freqDict = loadFrequencies('coherence')
-# fofDict = loadFoF('coherence')
-# sortedFreq = sorted(fofDict.keys())
+def testSGT(configuration, function = 'coherence'):
+    # Testing
+    fofDict = loadFoF(function)
+    sgtTest = sgtProbs(fofDict)
 
-# sgtTest = sgtProbs(fofDict)
-# print("This is the sgt-smoothed probability dictionary:")
-# print(sgtTest)
-# print("This is the probability of a certain trap:")
-# print(getSmoothedProb([11, 43, 13,  5,  1, 40, 77,  2, 33, 31,  0, 15], freqDict, sgtTest))
+    for key in sgtTest:
+        num = int(np.log(sgtTest[key]) / np.log(10))
+        sgtTest[key] = round(sgtTest[key], -num + 3)
+
+    print("This is the sgt-smoothed probability dictionary:")
+
+    pprint.pprint(sgtTest)
+
+    print("This is the probability of a certain trap:")
+    print(getSmoothedProb(configuration, function, sgtTest))
+
+testSGT('[48 82 82 43  1 46 48  2 32 67  0 45]', 'random')
