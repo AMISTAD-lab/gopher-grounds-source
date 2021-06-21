@@ -144,4 +144,4 @@ dmypy.json
 .vscode/
 
 # SQLite
-*.db
+*.db*

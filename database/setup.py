@@ -47,7 +47,7 @@ def setupTables(overwrite = False):
     # Close cursor
     cursor.close()
 
-def loadExperiments(inputFile):
+def loadExperiments(inputFile: str):
     ''' Takes an input file (as csv) and loads all the data from the CSV into the database '''
     # Open a cursor
     cursor = client.cursor()

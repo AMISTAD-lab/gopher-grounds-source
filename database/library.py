@@ -3,7 +3,7 @@ from typing import List, Union
 from database.client import client
 from database.constants import *
 
-def getTrapFreq(trap: Union[str, List[int], np.ndarray], fitnessFunc: str = None) -> Union[List, int]:
+def getTrapFreq(trap: Union[str, List[int], np.ndarray], fitnessFunc: str = None) -> int:
     ''' Takes in a trap and returns the frequency of that trap with the fitness function '''
     # Open a cursor
     cursor = client.cursor()
@@ -36,7 +36,7 @@ def getTrapFreq(trap: Union[str, List[int], np.ndarray], fitnessFunc: str = None
     # Closing cursor
     cursor.close()
 
-    return frequency
+    return frequency[0]
 
 def addFreq(trap: Union[str, List[int], np.ndarray], function: str):
     ''' Increments the frequency of the given trap in the database '''
