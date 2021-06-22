@@ -1,6 +1,7 @@
 import csv
 import os
 import pandas as pd
+from progress.bar import IncrementalBar
 from typing import List
 import geneticAlgorithm.encoding as encoding
 import geneticAlgorithm.fitnessFunctions as functions
@@ -60,7 +61,7 @@ def mergeExperiments(fileNames, fitnessFunction, outputFile):
 
     pd.DataFrame.to_csv(masterDf, filePath)
 
-def updateCSV(fitness: str):
+def updateCSV(fitness: str, thresholds: None):
     '''
     Takes a list of input CSV files and adds:
         - column for functional fitness
@@ -73,7 +74,9 @@ def updateCSV(fitness: str):
     outputPath = './temps/{func}/{func}{{}}Thresh{{}}Freqs.csv'.format(func = fitness)
 
     # Define potential thresholds and intentions
-    thresholds = (i / 5 for i in range(6))
+    if not thresholds:
+        thresholds = (i / 5 for i in range(6))
+    
     intentions = ('NoIntention', 'Intention')
 
     # Create paths if they do not exist
@@ -91,6 +94,9 @@ def updateCSV(fitness: str):
         if os.path.exists(inputPath.format(intent, thresh))
     ]
 
+    tableCounts = []
+    numBars = 1000
+
     # Add row count to the file
     for intent, thresh in pairs:
         with open(inputPath.format(intent, thresh), 'r+') as fileOut:
@@ -100,36 +106,47 @@ def updateCSV(fitness: str):
                 numRows = len(fileLines) - 1
                 fileIn.write('{}\n'.format(numRows))
 
+                tableCounts.append(numRows)
+
                 fileIn.close()
                 fileOut.close()
+
+    # Takes in a string representation of a list and makes it an encoding
+    createEncoding = lambda x: [
+        int(digit.strip())
+        for digit in x[1:-1].split(' ')
+        if digit
+    ]
 
     # Add columns to the file
-    for intent, thresh in pairs:
-        with open(inputPath.format(intent, thresh), 'r') as fileOut:
-            reader = csv.reader(fileOut)
-            with open(outputPath.format(intent, thresh), 'a') as fileIn:
-                writer = csv.writer(fileIn)
+    for i, (intent, thresh) in enumerate(pairs):
+        count = 0
+        with IncrementalBar('Processing {} {} thresh {}:\t'.format(fitness, intent.lower(), thresh), max=numBars) as bar:
+            with open(inputPath.format(intent, thresh), 'r') as fileOut:
+                reader = csv.reader(fileOut)
+                with open(outputPath.format(intent, thresh), 'a') as fileIn:
+                    writer = csv.writer(fileIn)
+                
+                    # Reads a row from one file and writes the updated row to a new file
+                    for j, row in enumerate(reader):
+                        if j == 0:
+                            row.extend(['Function', 'Coherence', 'Threshold'])
+                            writer.writerow(row)
+                            continue
+                        
+                        # Adding columns
+                        trap = createEncoding(row[0])
+                        row.append(round(functions.functionalFitness(encoding.singleDecoding(trap)), 4))
+                        row.append(round(functions.coherentFitness(encoding.singleDecoding(trap)), 4))
+                        row.append(thresh)
 
-                # Takes in a string representation of a list and makes it an encoding
-                createEncoding = lambda x: [
-                    int(digit.strip())
-                    for digit in x[1:-1].split(' ')
-                    if digit
-                ]
-            
-                # Reads a row from one file and writes the updated row to a new file
-                for i, row in enumerate(reader):
-                    if i == 0:
-                        row.extend(['Function', 'Coherence', 'Threshold'])
                         writer.writerow(row)
-                        continue
-                    
-                    trap = createEncoding(row[0])
-                    row.append(round(functions.functionalFitness(encoding.singleDecoding(trap)), 4))
-                    row.append(round(functions.coherentFitness(encoding.singleDecoding(trap)), 4))
-                    row.append(0)
 
-                    writer.writerow(row)
+                        # Increment the bar 
+                        if count % (tableCounts[i] // numBars) == 0:
+                            bar.next()
 
-                fileIn.close()
-                fileOut.close()
+                        count += 1
+
+                    fileIn.close()
+                    fileOut.close()
