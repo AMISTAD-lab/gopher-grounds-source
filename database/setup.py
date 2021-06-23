@@ -1,11 +1,8 @@
 import csv
 import os
-from typing import List
 from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
-import geneticAlgorithm.fitnessFunctions as functions
-import geneticAlgorithm.encoding as encoding
 
 def exists(tableName: str, type: str):
     ''' Returns true if a table with the given tableName exists '''
@@ -31,30 +28,35 @@ def setupTables(overwrite = False):
     '''
     cursor = client.cursor()
 
-    if overwrite:
-        cursor.execute('DROP TABLE IF EXISTS {};'.format(EXP_TABLE))
-        cursor.execute('DROP TABLE IF EXISTS {};'.format(FREQ_TABLE))
-        cursor.execute('DROP INDEX IF EXISTS {};'.format(FREQ_INDEX))
+    tables = [(EXP_TABLE, EXP_SCHEMA), (FREQ_TABLE, FREQ_SCHEMA)]
+    indexes = [
+        (FUNC_INDEX, FUNC_INDEX_SCHEMA),
+        (LETH_INDEX, LETH_INDEX_SCHEMA),
+        (COHER_INDEX, COHER_INDEX_SCHEMA)
+    ]
 
-        cursor.execute(EXP_SCHEMA)
-        cursor.execute(FREQ_SCHEMA)
-        cursor.execute(FREQ_INDEX_SCHEMA)
+    if overwrite:
+        for (table, schema) in tables:
+            cursor.execute('DROP TABLE IF EXISTS {};'.format(table))
+            cursor.execute(schema)
+
+        for (index, schema) in indexes:
+            cursor.execute('DROP INDEX IF EXISTS {};'.format(index))
+            cursor.execute(schema)
+
         client.commit()
+
         return
     
-    if not exists(EXP_TABLE, 'table'):
-        cursor.execute(EXP_SCHEMA)
+    for (table, schema) in tables:
+        if not exists(table, 'table'):
+            cursor.execute(schema)
     
-    if not exists(FREQ_TABLE, 'table'):
-        cursor.execute(FREQ_SCHEMA)
+    for (index, schema) in indexes:
+        if not exists(index, 'index'):
+            cursor.execute(schema)
     
-    if not exists(FREQ_INDEX, 'index'):
-        cursor.execute(FREQ_INDEX_SCHEMA)
-    
-    # Commit changes
     client.commit()
-
-    # Close cursor
     cursor.close()
 
 def loadExperiments(inputFile: str):
@@ -119,24 +121,16 @@ def loadFrequencies(thresholds: str, fitnessFunction: str):
     ]
 
     # Get row count
+    rowCount = 0
     for intent, thresh in pairs:
         inputFile = pathTemplate.format(intent, thresh)
 
         with open(inputFile, 'r') as out:
-            reader = csv.reader(out)
-            for i, _ in enumerate(reader):
-                continue
-            rowCount += i
+            rowCount += int(out.readline()[:-1])
+            out.close()
 
     count = 0
     with IncrementalBar('Processing {} frequencies:'.format(fitnessFunction.lower()), max = numBars) as bar:
-        # Takes in a string representation of a list and makes it an encoding
-        createEncoding = lambda x: [
-            int(digit.strip())
-            for digit in x[1:-1].split(' ')
-            if digit
-        ]
-
         for intent, thresh in pairs:
             inputFile = pathTemplate.format(intent, thresh)
             
@@ -145,23 +139,17 @@ def loadFrequencies(thresholds: str, fitnessFunction: str):
                 reader = csv.reader(out)
 
                 for i, row in enumerate(reader):
-                    if i == 0:
+                    if i < 2:
                         continue
 
-                    # Get the row
-                    parsedRow = row
-
                     # Cast data types
-                    parsedRow[1] = int(parsedRow[1])
-                    parsedRow.append(fitnessFunction)
+                    row[1] = int(row[1])
+                    row[2] = float(row[2])
+                    row[3] = float(row[3])
+                    row[4] = float(row[4])
+                    row.append(fitnessFunction)
 
-                    trap = encoding.singleDecoding(createEncoding(parsedRow[0]))
-
-                    parsedRow.append(functions.functionalFitness(trap))
-                    parsedRow.append(functions.coherentFitness(trap))
-                    parsedRow.append(thresh)
-
-                    currentBatch.append(parsedRow)
+                    currentBatch.append(row)
 
                     # Commit every 1000 elements and reset batch to limit memory usage
                     if count % 1000 == 0:
@@ -184,19 +172,16 @@ def loadFrequencies(thresholds: str, fitnessFunction: str):
                         currentBatch
                     )
 
-        print()
-        print('Committing changes to database...')
-
-        # Commit changes
-        client.commit()
-
         # Complete bar
         bar.finish()
 
-        # Close cursor
-        cursor.close()
+    print('Committing changes to database...\n')
 
-        count += 1
+    # Commit changes
+    client.commit()
+
+    # Close cursor
+    cursor.close()
 
 def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'combined')):
     ''' Inserts all of the compiled csv files into the database '''
@@ -206,7 +191,7 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'combined')):
         thresholds = [0.2, 0.4, 0.6, 0.8]
 
         if fitness == 'functional':
-            thresholds.append(1)
+            thresholds.append(1.0)
 
         loadExperiments(experimentPath.format(fitness, fitness))
         loadFrequencies(thresholds, fitness)

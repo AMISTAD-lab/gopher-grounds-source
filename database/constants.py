@@ -4,7 +4,9 @@ This file contains the schema for the database, or a constants file for database
 
 EXP_TABLE = 'experiments'
 FREQ_TABLE = 'frequencies'
-FREQ_INDEX = 'idx_frequencies_freq'
+FUNC_INDEX = 'idx_frequencies_func'
+LETH_INDEX = 'idx_frequencies_lethality'
+COHER_INDEX = 'idx_frequencies_coherence'
 
 EXP_SCHEMA = 'CREATE TABLE {} (\
     trap TEXT PRIMARY KEY, \
@@ -20,12 +22,18 @@ EXP_SCHEMA = 'CREATE TABLE {} (\
 FREQ_SCHEMA = 'CREATE TABLE {} (\
     trap TEXT, \
     frequency INTEGER, \
-    fitnessFunc TEXT, \
-    function REAL, \
+    lethality REAL, \
     coherence REAL, \
     threshold REAL, \
-    PRIMARY KEY(trap, fitnessFunc) \
+    fitnessFunc TEXT, \
+    PRIMARY KEY(trap, fitnessFunc, threshold) \
 );'.format(FREQ_TABLE)
 
-FREQ_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (fitnessFunc, frequency)'.format(FREQ_INDEX, FREQ_TABLE)
+FUNC_INDEX_SCHEMA = \
+    'CREATE INDEX {} ON {} (fitnessFunc, trap);'.format(FUNC_INDEX, FREQ_TABLE)
+
+LETH_INDEX_SCHEMA = \
+    'CREATE INDEX {} ON {} (lethality, threshold);'.format(LETH_INDEX, FREQ_TABLE)
+
+COHER_INDEX_SCHEMA = \
+    'CREATE INDEX {} ON {} (coherence, threshold);'.format(COHER_INDEX, FREQ_TABLE)
