@@ -6,6 +6,7 @@ from enums.Thick import *
 import classes.Cell as c
 import numpy as np
 import math as m
+import goodTuring as gt
 
 def findDir(rotationType, angleType):
     """returns the direction of a trap piece from our bottom-up perspective (primarily for the arrow)"""
@@ -144,6 +145,21 @@ def functional_specified_complexity(connectionTuple):
     k = r * p / v
     fsc = -m.log(k, 2)
     return fsc
+
+def new_functional_specified_complexity(encodedTrap, trap, function, sgtDict):
+    """returns the fsc (surprisal) of a based on real distribution, given the trap, fitness function, and sgt dictionary
+    connection tuple: (numerator, denominator) of the simplified fraction for valid connections / wire and arrow pieces"""
+    connectionTuple = connectionsPerPiece(trap)
+    global r
+    p = gt.getSmoothedProb(encodedTrap, function, sgtDict)
+    v = 1 / f_g[connectionTuple]
+    k = r * p / v
+    fsc = -m.log(k, 2)
+    return fsc
+
+def newIsTrap(encodedTrap, trap, function, sgtDict, sigVal=13.29):
+    """given a trap, fitness function and a significant value, determines whether the trap is coherent enough to be considered designed"""
+    return new_functional_specified_complexity(encodedTrap, trap, function, sgtDict) >= sigVal
 
 def isTrap(trap, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed"""

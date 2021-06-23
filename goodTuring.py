@@ -103,7 +103,7 @@ def sgtProbs(fofDict, confidenceLevel=1.65):
         if not useLinear:
             # 1. if N_r+1==0, switch to LGT
             if (r + 1) not in fofDict:
-                print("reached unobserved frequency before crossing the 'smoothing threshold.'")
+                # print("reached unobserved frequency before crossing the 'smoothing threshold.'")
                 useLinear = True
                 r_smoothed[r] = r_linear
                 continue
@@ -116,7 +116,7 @@ def sgtProbs(fofDict, confidenceLevel=1.65):
             r_turing = (r + 1) * Nrr / Nr # estimates of r using Tuirng estimates
 
             if abs(r_linear - r_turing) <= t:
-                print("crossed the 'smoothing threshold.'")
+                # print("crossed the 'smoothing threshold.'")
                 useLinear = True
                 r_smoothed[r] = r_linear
                 continue
@@ -166,10 +166,10 @@ def logLinearReg(zDict):
     A = np.vstack([x, np.ones(len(x))]).T   
     b, a = np.linalg.lstsq(A, y, rcond=None)[0]
 
-    print('Regression: log(z) = {} * log(r) + {}'.format(round(b, 3), round(a, 3)))
+    # print('Regression: log(z) = {} * log(r) + {}'.format(round(b, 3), round(a, 3)))
 
     if b > -1.0:
-        raise Exception('Warning: slope b > -1.0')
+        print('Warning: slope b > -1.0')
 
     return a, b
 
@@ -196,4 +196,4 @@ def testSGT(configuration, function = 'coherence'):
     print("This is the probability of a certain trap:")
     print(getSmoothedProb(configuration, function, sgtTest))
 
-testSGT('[48 82 82 43  1 46 48  2 32 67  0 45]', 'random')
+# testSGT('[48 82 82 43  1 46 48  2 32 67  0 45]', 'functional')
