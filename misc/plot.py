@@ -119,7 +119,8 @@ def functionalCoherenceVsLethality():
 
 def lethalityDist(fitness: str, numBins = 10):
     """ Creates plot of trap distributions for lethality """
-    fig, axes = plt.subplots(1, 5, sharey='row')
+    fig, axes = plt.subplots(1, 5 if fitness == 'functional' else 4, sharey='row')
+    plt.subplots_adjust(wspace=0.6)
 
     histData = dbLib.getLethalityData(fitness)
 
@@ -127,7 +128,6 @@ def lethalityDist(fitness: str, numBins = 10):
 
     for i, key in enumerate(keys):
         if key not in histData or not any(histData[key]):
-            axes = np.delete(axes, i)
             continue
         axes[i].set_title(f'Threshold {key}')
         axes[i].set_xlabel('Lethality value')
@@ -146,8 +146,8 @@ def lethalityDist(fitness: str, numBins = 10):
     plt.show()
 
 def coherenceDist(fitness: str, numBins = 10):
-    fig, axes = plt.subplots(1, 5, sharey='row')
-    axes.set_xlabel('Coherence value')
+    fig, axes = plt.subplots(1, 5 if fitness == 'functional' else 4, sharey='none', sharex='all')
+    plt.subplots_adjust(wspace=0.6)
 
     histData = dbLib.getCoherenceData(fitness)
 
@@ -155,7 +155,6 @@ def coherenceDist(fitness: str, numBins = 10):
 
     for i, key in enumerate(keys):
         if key not in histData or not any(histData[key]):
-            axes = np.delete(axes, i)
             continue
         axes[i].set_title(f'Threshold {key}')
         axes[i].set_xlabel('Coherence value')
