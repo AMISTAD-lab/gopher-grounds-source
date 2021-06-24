@@ -33,7 +33,7 @@ FUNC_INDEX_SCHEMA = \
     'CREATE INDEX {} ON {} (fitnessFunc, trap);'.format(FUNC_INDEX, FREQ_TABLE)
 
 LETH_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (lethality, threshold);'.format(LETH_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} (fitnessFunc, lethality, threshold);'.format(LETH_INDEX, FREQ_TABLE)
 
 COHER_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (coherence, threshold);'.format(COHER_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} (fitnessFunc, coherence, threshold);'.format(COHER_INDEX, FREQ_TABLE)

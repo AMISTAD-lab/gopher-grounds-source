@@ -153,8 +153,10 @@ def loadFrequencies(thresholds: str, fitnessFunction: str):
 
                     # Commit every 1000 elements and reset batch to limit memory usage
                     if count % 1000 == 0:
-                        cursor.executemany(
-                            'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?);'.format(FREQ_TABLE),
+                        cursor.executemany(f' \
+                            INSERT INTO {FREQ_TABLE} VALUES (?, ?, ?, ?, ?, ?) \
+                            ON CONFLICT (trap, fitnessFunc, threshold) \
+                            DO UPDATE SET frequency = frequency + 1;',
                             currentBatch
                         )
                         currentBatch = []
@@ -167,8 +169,10 @@ def loadFrequencies(thresholds: str, fitnessFunction: str):
                 
                 # Committing the remainder of the rows that may have not been added
                 if currentBatch:
-                    cursor.executemany(
-                        'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?);'.format(FREQ_TABLE),
+                    cursor.executemany(f' \
+                        INSERT INTO {FREQ_TABLE} VALUES (?, ?, ?, ?, ?, ?) \
+                        ON CONFLICT (trap, fitnessFunc, threshold) \
+                        DO UPDATE SET frequency = frequency + 1;',
                         currentBatch
                     )
 
