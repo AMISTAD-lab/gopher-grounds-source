@@ -146,20 +146,20 @@ def functional_specified_complexity(connectionTuple):
     fsc = -m.log(k, 2)
     return fsc
 
-def new_functional_specified_complexity(encodedTrap, trap, function, sgtDict):
+def new_functional_specified_complexity(encodedTrap, trap, function):
     """returns the fsc (surprisal) of a based on real distribution, given the trap, fitness function, and sgt dictionary
     connection tuple: (numerator, denominator) of the simplified fraction for valid connections / wire and arrow pieces"""
     connectionTuple = connectionsPerPiece(trap)
     global r
-    p = gt.getSmoothedProb(encodedTrap, function, sgtDict)
+    p = gt.getSmoothedProb(encodedTrap, function)
     v = 1 / f_g[connectionTuple]
     k = r * p / v
     fsc = -m.log(k, 2)
     return fsc
 
-def newIsTrap(encodedTrap, trap, function, sgtDict, sigVal=13.29):
+def newIsTrap(encodedTrap, trap, function, sigVal=13.29):
     """given a trap, fitness function and a significant value, determines whether the trap is coherent enough to be considered designed"""
-    return new_functional_specified_complexity(encodedTrap, trap, function, sgtDict) >= sigVal
+    return new_functional_specified_complexity(encodedTrap, trap, function) >= sigVal
 
 def isTrap(trap, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed"""
