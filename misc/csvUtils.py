@@ -150,3 +150,16 @@ def updateCSV(fitness: str, thresholds: None):
 
                     fileIn.close()
                     fileOut.close()
+
+def updateGenerationFile(inputPath, data, headers = None):
+    '''
+    Takes in an input path and a 2D list, then adds the contents of the list to the given input file
+    '''
+    if not os.path.exists(inputPath):
+        with open(inputPath, 'w+') as out:
+            writer = csv.writer(out)
+            writer.writerow(headers)
+
+    with open(inputPath, 'a') as out:
+        writer = csv.writer(out)
+        writer.writerows(data)

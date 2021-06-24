@@ -76,12 +76,9 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | Flag | Abbrev. | Default | Description |
 | :--: | :----------: | :-----: | :---------: |
 | --help | -h | N/A | help for any given parser|
-| --measure| -m | 'max' | termination measure for the threshold |
 | --threshold | -t | 0.8 | value of `measure` over which we terminate|
 | --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
-| --no-improved-callback | -nc | False | turns off the improved callback optimization |
-| --callback-factor | -f | 0.95 | changes the callback factor |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
 | --ouput-file | -o | x<sup>1</sup> | output file name (must include `.txt` extension) |
 | --show | -s | False | simulates the trap in a browser (only for `generate` parser) |
@@ -101,7 +98,6 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | --threshold | -t | 0.8 | value of `measure` over which we terminate|
 | --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
 | --show-logs | -l | False | turns on printing of generation data |
-| --no-improved-callback | -nc | False | turns off the improved callback optimization |
 | --ouput-file | -o | x<sup>1</sup> | output file name (`.csv` or `.txt` allowed) |
 | --conf_level | -c | 0.95 | confidence level for our confidence interval |
 | --intention | -in | False | whether the simulated gopher has intention or not |

@@ -7,7 +7,7 @@ A library of all essential functions for the genetic algorithm
 """
 
 def initializePopulation(cellAlphabet, populationSize = 20):
-    """Initializes the population by sampling from the search space"""
+    """ Initializes the population by sampling from the search space """
     population = []
     for _ in range(populationSize):
         # Temporary variable to store configuration as it is generated
@@ -27,29 +27,7 @@ def initializePopulation(cellAlphabet, populationSize = 20):
 
         population.append(member)
 
-    return encoding.listDecoding(population)
-
-def checkTermination(fitnesses, measure, threshold):
-    """Checks termination as a function of the given fitnesses.
-       Stops when measure ('all', 'mean', 'median') of fitness meets threshold
-    """
-    if (measure not in ['all', 'mean', 'median', 'max']):
-        raise ValueError('measure must be \'all\', \'mean\', \'median\', or \'max\'.')
-
-    # Ensure if all fitnesses meet threshold (if we are using this metric)
-    if measure == 'all':
-        for i in range(len(fitnesses)):
-            if fitnesses[i] < threshold:
-                return False
-
-    # Check if mean or median threshold is met (if we are using either metric)
-    elif (measure == 'mean' and np.mean(fitnesses) < threshold) \
-        or (measure == 'median' and np.median(fitnesses) < threshold) \
-            or (measure == 'max' and np.max(fitnesses) < threshold):
-        return False
-
-    # If we get to this part, then all thresholds are met, and we can terminate
-    return True
+    return np.array(population)
 
 def selectionFunc(population, fitnesses, numSelected = 2):
     """
@@ -65,7 +43,7 @@ def selectionFunc(population, fitnesses, numSelected = 2):
         k = numSelected
     )
 
-    return chosenMembers
+    return np.array(chosenMembers)
 
 def crossoverFunc(member1, member2):
     """Crosses-over two members to form a new member"""
@@ -86,4 +64,5 @@ def mutationFunc(cellAlphabet, member):
 
     # Change the member of the encoded population and the generated index (not door or food)
     member[index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
-    return member
+
+    return np.array(member)

@@ -39,8 +39,7 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
 
     return proportion, stderr, conf_interval
 
-def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, showLogs=True, 
-    improvedCallback=True, callbackFactor=0.95, numSimulations=10000, confLevel=0.95, intention=False, printStatistics=True, export=False, outputFile='experiment.txt'):
+def runExperiment(fitnessFunc, threshold, maxIterations=10000, showLogs=True, numSimulations=5000, confLevel=0.95, intention=False, printStatistics=True, export=False, outputFile='experiment.txt'):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
@@ -52,7 +51,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     fitness = 0
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = utils.geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback, callbackFactor)
+    _, trap, fitness = utils.geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxIterations, showLogs)
 
     # Run the experiment on the generated (optimized) trap
     proportion, stderr, conf_interval = runSimulations(trap, numSimulations, confLevel, intention, printStatistics)
@@ -126,7 +125,7 @@ def runExperiment(fitnessFunc, threshold, measure='max', maxIterations=10000, sh
     
     return trap, fitness, proportion, stderr, conf_interval, intention
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 10000, maxIterations=10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, improvedCallback=True, callbackFactor=0.95, overwrite=False):
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxIterations=10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, overwrite=False):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
     headers = ['Experiment', 'Trap', 'Fitness', 'Fitness_Funct', 'Prop_Dead', 'Stand_Err','Conf_Interval', 'Intention?', 'Threshold']
 
@@ -182,11 +181,8 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
         trap, fitness, proportion, stderr, conf_interval, intention = runExperiment(
             fitnessFunction,
             threshold,
-            'max',
             maxIterations,
             showLogs,
-            improvedCallback,
-            callbackFactor,
             numSimulations,
             confLevel,
             intention,

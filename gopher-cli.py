@@ -36,12 +36,9 @@ geneticSubparsers = geneticParser.add_subparsers(help='genetic algorithm subpars
 # generate trap flags
 generateTrap = geneticSubparsers.add_parser('generate', help='generates a trap')
 generateTrap.add_argument('function', help='a choice of {random, coherence, functional, combined}')
-generateTrap.add_argument('--measure', '-m', help='the measure for the threshold (max, mean, median, all)', default='max')
 generateTrap.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 generateTrap.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
-generateTrap.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
-generateTrap.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 generateTrap.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
 generateTrap.add_argument('--show', '-s', help='show output in browser', action='store_true')
@@ -49,12 +46,9 @@ generateTrap.add_argument('--show', '-s', help='show output in browser', action=
 # run experiment flags
 geneticExperimentParser = geneticSubparsers.add_parser('runExperiment', help='runs an experiment')
 geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
-geneticExperimentParser.add_argument('--measure', '-m', help='the measure for the threshold (max, mean, median, all)', default='max')
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
-geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
-geneticExperimentParser.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 geneticExperimentParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
@@ -69,8 +63,6 @@ geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of 
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
-geneticExperimentParser.add_argument('--no-improved-callback', '-nc', help='turn off improved callback', action='store_false')
-geneticExperimentParser.add_argument('--callback-factor', '-f', help='changes the callback factor (in (0, 1))', type=float, default=0.95)
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
@@ -113,26 +105,31 @@ elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
-        print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
-        print('Functional fitness:\t', round(functions.functionalFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
-        print('Combined fitness:\t', round(functions.combinedFitness(singleDecoding(util.convertStringToEncoding(args.trap))), 3))
+        print('Coherence fitness:\t', round(functions.coherentFitness(util.convertStringToEncoding(args.trap)), 3))
+        print('Functional fitness:\t', round(functions.functionalFitness(util.convertStringToEncoding(args.trap)), 3))
+        print('Combined fitness:\t', round(functions.combinedFitness(util.convertStringToEncoding(args.trap)), 3))
 
 elif args.command == 'genetic-algorithm':
     # Defining the fitness function
     fitnessFunc = lambda x : 0
     freqs = {}
+    fof = {}
     if args.function == 'random':
         fitnessFunc = functions.randomFitness
         freqs = functions.randomFreqs
+        fof = functions.randomFoF
     elif args.function == 'coherence':
         fitnessFunc = functions.coherentFitness
         freqs = functions.coherentFreqs
+        fof = functions.coherentFoF
     elif args.function == 'functional':
         fitnessFunc = functions.functionalFitness
         freqs = functions.functionalFreqs
+        fof = functions.functionalFoF
     elif args.function == 'combined':
         fitnessFunc = functions.combinedFitness
         freqs = functions.combinedFreqs
+        fof = functions.combinedFoF
     else:
         raise Exception(args.function, ' is not a real fitness function value. Please try again')
 
@@ -146,27 +143,27 @@ elif args.command == 'genetic-algorithm':
                 constants.CELL_ALPHABET,
                 fitnessFunc,
                 args.threshold,
-                args.measure,
                 args.max_iterations,
                 args.no_logs,
-                args.no_improved_callback
             )
         else:
             finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
                 constants.CELL_ALPHABET,
                 fitnessFunc,
                 args.threshold,
-                args.measure,
                 args.max_iterations,
                 args.no_logs,
-                args.no_improved_callback,
-                args.callback_factor
+                trial = 1,
+                export = True,
+                functionName = args.function
             )
 
-        print('Trap (encoded):\t', bestTrap)
-        print('Coherence fitness:\t', round(functions.coherentFitness(singleDecoding(bestTrap)), 3))
-        print('Functional fitness:\t', round(functions.functionalFitness(singleDecoding(bestTrap)), 3))
-        print('Combined fitness:\t', round(functions.combinedFitness(singleDecoding(bestTrap)), 3))
+        print('Trap (encoded):\t\t', bestTrap)
+        print('Coherence fitness:\t', round(functions.coherentFitness(bestTrap), 3))
+        print('Functional fitness:\t', round(functions.functionalFitness(bestTrap), 3))
+        print('Combined fitness:\t', round(functions.combinedFitness(bestTrap), 3))
+
+        print(fof)
 
         if args.show:
             util.simulateTrapInBrowser(bestTrap)
@@ -178,8 +175,6 @@ elif args.command == 'genetic-algorithm':
             args.measure, 
             args.max_iterations, 
             args.no_logs, 
-            args.no_improved_callback,
-            args.callback_factor,
             args.num_simulations, 
             args.conf_level, 
             args.intention, 
@@ -212,8 +207,6 @@ elif args.command == 'genetic-algorithm':
             args.show_logs,
             fileName,
             args.intention,
-            args.no_improved_callback,
-            args.callback_factor,
             args.overwrite
         )
 
