@@ -5,6 +5,7 @@ import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleEncoding
 from geneticAlgorithm.utils import createTrap
 
+randomFitnesses = {}
 functionalFitnesses = {}
 coherentFitnesses = {}
 combinedFitnesses = {}
@@ -23,9 +24,16 @@ def randomFitness(configuration):
     strEncoding = np.array2string(singleEncoding(configuration))
 
     if strEncoding not in randomFreqs:
-        randomFreqs[strEncoding] = 0
+        randomFreqs[strEncoding] = [0]
     
-    randomFreqs[strEncoding] += 1
+    randomFreqs[strEncoding][0] += 1
+
+    if strEncoding in randomFitnesses:
+        return randomFitnesses[strEncoding]
+
+    # Add data to the row
+    randomFreqs[strEncoding].append(round(functionalFitness(configuration), 4))
+    randomFreqs[strEncoding].append(round(coherentFitness(configuration), 4))
 
     return np.random.random()
 
@@ -41,9 +49,9 @@ def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_E
 
     # Maintain frequency dictionary
     if strEncoding not in functionalFreqs:
-        functionalFreqs[strEncoding] = 0
+        functionalFreqs[strEncoding] = [0]
     
-    functionalFreqs[strEncoding] += 1
+    functionalFreqs[strEncoding][0] += 1
 
     if strEncoding in functionalFitnesses:
         return functionalFitnesses[strEncoding]
@@ -55,6 +63,10 @@ def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_E
     fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
 
     functionalFitnesses[strEncoding] = fitness
+    
+    # Add data to the row
+    functionalFreqs[strEncoding].append(round(fitness, 4))
+    functionalFreqs[strEncoding].append(round(coherentFitness(configuration), 4))
     return fitness
 
 def coherentFitness(configuration):
@@ -65,15 +77,19 @@ def coherentFitness(configuration):
 
     # Maintain frequency dictionary
     if strEncoding not in coherentFreqs:
-        coherentFreqs[strEncoding] = 0
+        coherentFreqs[strEncoding] = [0]
     
-    coherentFreqs[strEncoding] += 1
+    coherentFreqs[strEncoding][0] += 1
 
     if strEncoding in coherentFitnesses:
         return coherentFitnesses[strEncoding]
 
     fitness = alg.getCoherenceValue(createTrap(configuration))
     coherentFitnesses[strEncoding] = fitness
+
+    # Add data to the row
+    coherentFreqs[strEncoding].append(round(functionalFitness(configuration), 4))
+    coherentFreqs[strEncoding].append(round(fitness, 4))
 
     return fitness
 
@@ -85,9 +101,9 @@ def combinedFitness(configuration):
 
     # Maintain frequency dictionary
     if strEncoding not in combinedFreqs:
-        combinedFreqs[strEncoding] = 0
+        combinedFreqs[strEncoding] = [0]
     
-    combinedFreqs[strEncoding] += 1
+    combinedFreqs[strEncoding][0] += 1
 
     if strEncoding in combinedFitnesses:
         return combinedFitnesses[strEncoding]
@@ -101,15 +117,19 @@ def combinedFitness(configuration):
     evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(2 * np.abs(x - y)))
     
     # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
-    result = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
+    fitness = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
 
     # If the difference is too large, then penalize the fitness
     if (np.abs(functionality - coherence) > MAX_DIFF):
-        result /= 2
+        fitness /= 2
 
-    combinedFitnesses[strEncoding] = result
+    combinedFitnesses[strEncoding] = fitness
     
-    return result
+    # Add data to the row
+    combinedFreqs[strEncoding].append(round(functionalFitness(configuration), 4))
+    combinedFreqs[strEncoding].append(round(coherentFitness(configuration), 4))
+
+    return fitness
 
 def binaryDistanceFitness(configuration, targetTrap):
     """Assigns a fitness based on the binary distance to the target configuration"""
@@ -132,7 +152,7 @@ def binaryDistanceFitness(configuration, targetTrap):
         if encoding[i] != encodedTarget[i]:
             numDiff += 1
 
-    return numDiff/(len(encoding) - 3)
+    return numDiff / (len(encoding) - 3)
 
 # TODO: Fix this function
 # def distanceFitness(configuration, targetTrap):

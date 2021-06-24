@@ -1,24 +1,25 @@
 import csv
+import os
 from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
 
-def tableExists(tableName: str):
+def exists(tableName: str, type: str):
     ''' Returns true if a table with the given tableName exists '''
     cursor = client.cursor()
 
     queryData = {
-        'type': 'table',
+        'type': type,
         'name': tableName
     }
 
-    isTable = cursor.execute(
+    exists = cursor.execute(
         'SELECT name FROM sqlite_master WHERE type=:type and name=:name', 
         queryData
     ).fetchone()
 
-    cursor = client.cursor()
-    return bool(isTable)
+    cursor.close()
+    return bool(exists)
 
 def setupTables(overwrite = False):
     '''
@@ -27,24 +28,35 @@ def setupTables(overwrite = False):
     '''
     cursor = client.cursor()
 
+    tables = [(EXP_TABLE, EXP_SCHEMA), (FREQ_TABLE, FREQ_SCHEMA)]
+    indexes = [
+        (FUNC_INDEX, FUNC_INDEX_SCHEMA),
+        (LETH_INDEX, LETH_INDEX_SCHEMA),
+        (COHER_INDEX, COHER_INDEX_SCHEMA)
+    ]
+
     if overwrite:
-        cursor.execute('DROP TABLE IF EXISTS {};'.format(EXP_TABLE))
-        cursor.execute('DROP TABLE IF EXISTS {};'.format(FREQ_TABLE))
-        cursor.execute(EXP_SCHEMA)
-        cursor.execute(FREQ_SCHEMA)
+        for (table, schema) in tables:
+            cursor.execute('DROP TABLE IF EXISTS {};'.format(table))
+            cursor.execute(schema)
+
+        for (index, schema) in indexes:
+            cursor.execute('DROP INDEX IF EXISTS {};'.format(index))
+            cursor.execute(schema)
+
         client.commit()
+
         return
     
-    if not tableExists(EXP_TABLE):
-        cursor.execute(EXP_SCHEMA)
+    for (table, schema) in tables:
+        if not exists(table, 'table'):
+            cursor.execute(schema)
     
-    if not tableExists(FREQ_TABLE):
-        cursor.execute(FREQ_SCHEMA)
+    for (index, schema) in indexes:
+        if not exists(index, 'index'):
+            cursor.execute(schema)
     
-    # Commit changes
     client.commit()
-
-    # Close cursor
     cursor.close()
 
 def loadExperiments(inputFile: str):
@@ -85,7 +97,7 @@ def loadExperiments(inputFile: str):
     # Close cursor
     cursor.close()
 
-def loadFrequencies(inputFile: str, fitnessFunction: str):
+def loadFrequencies(thresholds: str, fitnessFunction: str):
     ''' Takes in a frequency csv file as input and loads the data into the database '''
     if not fitnessFunction:
         raise Exception('Need to include the fitness function to insert into {}.'.format(FREQ_TABLE))
@@ -97,57 +109,80 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
     rowCount = 0
     numBars = 1000
 
-    # Get the number of lines in the file
-    with open(inputFile) as file:
-        for i, _ in enumerate(file):
-            pass
-        rowCount = i - 1
-        file.close()
+    # Create a template with the fitness function pre-populated, and the other variables populated later
+    pathTemplate = './frequencies/{func}/{func}{{}}Thresh{{}}Freqs.csv'.format(func = fitnessFunction)
 
-    with IncrementalBar('Processing {} frequencies:'.format(fitnessFunction.lower()), max = numBars) as bar:
-        currentBatch = []
+    # Create all pairs of intentions and thresholds if the file exists
+    pairs = [
+        (intent, thresh)
+        for thresh in thresholds
+        for intent in ('NoIntention', 'Intention')
+        if os.path.exists(pathTemplate.format(intent, thresh))
+    ]
+
+    # Get row count
+    rowCount = 0
+    for intent, thresh in pairs:
+        inputFile = pathTemplate.format(intent, thresh)
+
         with open(inputFile, 'r') as out:
-            reader = csv.reader(out)
+            rowCount += int(out.readline()[:-1])
+            out.close()
 
-            for i, row in enumerate(reader):
-                if i == 0:
-                    continue
+    count = 0
+    with IncrementalBar('Processing {} frequencies:'.format(fitnessFunction.lower()), max = numBars) as bar:
+        for intent, thresh in pairs:
+            inputFile = pathTemplate.format(intent, thresh)
+            
+            currentBatch = []
+            with open(inputFile, 'r') as out:
+                reader = csv.reader(out)
 
-                # Get the row
-                parsedRow = row
+                for i, row in enumerate(reader):
+                    if i < 2:
+                        continue
 
-                # Cast data types
-                parsedRow[1] = int(parsedRow[1])
-                parsedRow.append(fitnessFunction)
+                    # Cast data types
+                    row[1] = int(row[1])
+                    row[2] = float(row[2])
+                    row[3] = float(row[3])
+                    row[4] = float(row[4])
+                    row.append(fitnessFunction)
 
-                currentBatch.append(parsedRow)
+                    currentBatch.append(row)
 
-                # Commit every 1000 elements and reset batch to limit memory usage
-                if i % 1000 == 0:
-                    cursor.executemany(
-                        'INSERT INTO {} VALUES (?, ?, ?);'.format(FREQ_TABLE),
+                    # Commit every 1000 elements and reset batch to limit memory usage
+                    if count % 1000 == 0:
+                        cursor.executemany(f' \
+                            INSERT INTO {FREQ_TABLE} VALUES (?, ?, ?, ?, ?, ?) \
+                            ON CONFLICT (trap, fitnessFunc, threshold) \
+                            DO UPDATE SET frequency = frequency + 1;',
+                            currentBatch
+                        )
+                        currentBatch = []
+                    
+                    # Increment the bar 
+                    if count % (rowCount // numBars) == 0:
+                        bar.next()
+
+                    count += 1
+                
+                # Committing the remainder of the rows that may have not been added
+                if currentBatch:
+                    cursor.executemany(f' \
+                        INSERT INTO {FREQ_TABLE} VALUES (?, ?, ?, ?, ?, ?) \
+                        ON CONFLICT (trap, fitnessFunc, threshold) \
+                        DO UPDATE SET frequency = frequency + 1;',
                         currentBatch
                     )
-                    currentBatch = []
-                
-                # Increment the bar 
-                if i % (rowCount // numBars) == 0:
-                    bar.next()
-            
-            # Committing the remainder of the rows that may have not been added
-            if currentBatch:
-                cursor.executemany(
-                    'INSERT INTO {} VALUES (?, ?, ?);'.format(FREQ_TABLE),
-                    currentBatch
-                )
 
-    print('Committing changes to database...')
+        # Complete bar
+        bar.finish()
+
+    print('Committing changes to database...\n')
 
     # Commit changes
     client.commit()
-
-    # Complete bar
-    bar.finish()
 
     # Close cursor
     cursor.close()
@@ -155,11 +190,15 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
 def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'combined')):
     ''' Inserts all of the compiled csv files into the database '''
     experimentPath = './csv/{}/{}ExperimentData.csv'
-    frequencyPath = './frequencies/{}/{}FreqsCompiled.csv'
 
     for fitness in fitnesses:
+        thresholds = [0.2, 0.4, 0.6, 0.8]
+
+        if fitness == 'functional':
+            thresholds.append(1.0)
+
         loadExperiments(experimentPath.format(fitness, fitness))
-        loadFrequencies(frequencyPath.format(fitness, fitness), fitness)
+        loadFrequencies(thresholds, fitness)
     
     print('Done.')
 
