@@ -8,7 +8,7 @@ import misc.csvUtils as csvUtils
 
 cellAlphabet = [x for x in range(93)]
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True, trial = None, export = False, functionName = ''):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True, trial = None, export = False, functionName = '', barData={}):
     """
     Finds a near-optimal solution in the search space using the given fitness function
     Returns a 3-tuple of (finalPopulation, bestTrap (encoded), bestFitness)
@@ -16,6 +16,16 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     fitnesses = np.array([0 for _ in range(15)])
 
     population = []
+
+    # Destructure population into CSV format
+    getWriteData = lambda population : [
+            [
+                trial, generation, trap, functionName,
+                round(functions.functionalFitness(trap), 4),
+                round(functions.coherentFitness(trap), 4)
+            ]
+            for trap in population
+        ]
 
     # Sampling the (encoded) population until we get one non-zero member
     while(np.count_nonzero(fitnesses) == 0):
@@ -25,26 +35,19 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     # Recalculate frequencies
     fitnesses = [fitnessFunc(member, updateFreq=True) for member in population]
 
-    generation = 1
+    generation = 0
     startTime = lastTime = time.time()
 
-    writeData = [
-        [
-            trial, generation, trap, functionName,
-            round(functions.functionalFitness(trap), 4),
-            round(functions.coherentFitness(trap), 4)
-        ]
-        for trap in population
-    ]
-
-    inputPath = f'./frequencies/{functionName}.csv'
-    headers = ['Trial', 'Generation', 'Trap', 'Function', 'Lethality', 'Coherence']
-
-    if export:
-        csvUtils.updateCSV(inputPath, writeData, headers)
-        writeData = []
+    freqPath = constants.frequencyPath.format(functionName)
+    headers = constants.frequencyHeaders
+    writeData = getWriteData(population)
 
     while generation < maxGenerations:
+        # Write frequency data before we change the population
+        if export and generation % 1000 == 0:
+            csvUtils.updateCSV(freqPath, writeData, headers)
+            writeData = []
+
         if showLogs and (generation % 50 == 0):
             print("Generation {}:".format(generation))
             print("Max fitness\t:", round(max(fitnesses), 3))
@@ -70,22 +73,24 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
         fitnesses = np.array([fitnessFunc(member, updateFreq=True) for member in newPopulation])
         population = newPopulation
 
-        if export:
-            for trap in population:
-                writeData.append([
-                    trial, generation, trap, functionName,
-                    round(functions.functionalFitness(trap), 4),
-                    round(functions.coherentFitness(trap), 4)
-                ])
-            
-            if generation % 1000 == 0:
-                csvUtils.updateCSV(inputPath, writeData, headers)
-                writeData = []
-
         generation += 1
 
+        # Add new data to the writeData list
+        if export:
+            writeData.extend(getWriteData(population))
+
+        if barData:
+            barData['counter'] += 1
+
+            numBars, maxSteps = barData['numBars'], barData['maxSteps']
+            modulo = maxSteps // numBars if numBars <= maxSteps else 1
+            
+            if barData['counter'] % modulo == 0:
+                barData['bar'].next(n=max(1, numBars / maxSteps))
+            
+
     if export and writeData:
-        csvUtils.updateCSV(inputPath, writeData, headers)
+        csvUtils.updateCSV(freqPath, writeData, headers)
 
     if showLogs:
         print("Generation {}:".format(generation - 1))

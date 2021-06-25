@@ -48,7 +48,7 @@ geneticExperimentParser.add_argument('function', help='a choice of {random, cohe
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
-geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
+geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=5000)
 geneticExperimentParser.add_argument('--no-print-stats', '-np', help='turn off statistic printing', action='store_false')
 
 # run batch experiments flags
@@ -59,8 +59,8 @@ geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show-logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write')
-geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
-geneticExperimentParser.add_argument('--overwrite', '-w', help='overwrites the experiment csv file', action='store_true')
+geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=5000)
+geneticExperimentParser.add_argument('--no-overwrite', '-nw', help='overwrites the experiment csv file', action='store_false')
 
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
@@ -135,7 +135,7 @@ elif args.command == 'genetic-algorithm':
                 constants.CELL_ALPHABET,
                 fitnessFunc,
                 args.threshold,
-                args.max_iterations,
+                args.max_generations,
                 args.no_logs,
             )
         else:
@@ -143,7 +143,7 @@ elif args.command == 'genetic-algorithm':
                 constants.CELL_ALPHABET,
                 fitnessFunc,
                 args.threshold,
-                args.max_iterations,
+                args.max_generations,
                 args.no_logs,
             )
 
@@ -161,7 +161,7 @@ elif args.command == 'genetic-algorithm':
         trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
             fitnessFunc, 
             args.threshold,
-            maxGenerations=args.max_iterations,
+            maxGenerations=args.max_generations,
             showLogs=args.no_logs,
             numSimulations=args.num_simulations,
             printStatistics=False,
@@ -181,8 +181,8 @@ elif args.command == 'genetic-algorithm':
             fitnessFunction=fitnessFunc,
             threshold=args.threshold,
             numSimulations=args.num_simulations,
-            maxGenerations=args.max_iterations,
+            maxGenerations=args.max_generations,
             showLogs=args.show_logs,
             experimentFile=args.output_file,
-            overwrite=args.overwrite
+            overwrite=args.no_overwrite
         )
