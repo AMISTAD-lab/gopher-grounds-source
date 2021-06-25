@@ -42,6 +42,9 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     headers = constants.frequencyHeaders
     writeData = getWriteData(population)
 
+    currMax = np.argmax(fitnesses)
+    maxFitness, bestTrap = fitnesses[currMax], population[currMax]
+
     while generation < maxGenerations:
         # Write frequency data before we change the population
         if export and generation % 1000 == 0:
@@ -70,8 +73,14 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
             childMutated = lib.mutationFunc(constants.CELL_ALPHABET, child)
             newPopulation.append(childMutated)
 
+        # Calculating new fitnesses and updating the optimal solutions
         fitnesses = np.array([fitnessFunc(member, updateFreq=True) for member in newPopulation])
         population = newPopulation
+
+        currMax = np.argmax(fitnesses)
+        if fitnesses[currMax] > maxFitness:
+            maxFitness = fitnesses[currMax]
+            bestTrap = newPopulation[currMax]
 
         generation += 1
 
@@ -102,7 +111,5 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
         print("Total Time\t:", round(time.time() - startTime, 4))
         print("------------------------")
         print()
-    
-    optimalIndex = np.where(fitnesses == np.max(fitnesses))[0][0]
 
-    return np.array(population), population[optimalIndex], fitnesses[optimalIndex]
+    return np.array(population), bestTrap, maxFitness
