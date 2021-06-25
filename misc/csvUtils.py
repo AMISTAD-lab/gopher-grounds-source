@@ -61,105 +61,18 @@ def mergeExperiments(fileNames, fitnessFunction, outputFile):
 
     pd.DataFrame.to_csv(masterDf, filePath)
 
-def updateCSV(fitness: str, thresholds: None):
-    '''
-    Takes a list of input CSV files and adds:
-        - column for functional fitness
-        - column for coherent fitness
-        - column for threshold
-        - row at the top which contains the number of entries
-    '''
-    # Create a template with the fitness function pre-populated, and the other variables populated later
-    inputPath = './frequencies/{func}/{func}{{}}Thresh{{}}Freqs.csv'.format(func = fitness)
-    outputPath = './temps/{func}/{func}{{}}Thresh{{}}Freqs.csv'.format(func = fitness)
-
-    # Define potential thresholds and intentions
-    if not thresholds:
-        thresholds = (i / 5 for i in range(6))
-    
-    intentions = ('NoIntention', 'Intention')
-
-    # Create paths if they do not exist
-    if not os.path.exists('./temps'):
-        os.mkdir('./temps')
-
-    if not os.path.exists('./temps/{}'.format(fitness)):
-        os.mkdir('./temps/{}'.format(fitness))
-
-    # Create all pairs of intentions and thresholds if the file exists
-    pairs = [
-        (intent, thresh)
-        for thresh in thresholds
-        for intent in intentions
-        if os.path.exists(inputPath.format(intent, thresh))
-    ]
-
-    tableCounts = []
-    numBars = 1000
-
-    # Add row count to the file
-    for intent, thresh in pairs:
-        with open(inputPath.format(intent, thresh), 'r+') as fileOut:
-            with open(outputPath.format(intent, thresh), 'w+') as fileIn:
-                fileLines = fileOut.readlines()
-
-                numRows = len(fileLines) - 1
-                fileIn.write('{}\n'.format(numRows))
-
-                tableCounts.append(numRows)
-
-                fileIn.close()
-                fileOut.close()
-
-    # Takes in a string representation of a list and makes it an encoding
-    createEncoding = lambda x: [
-        int(digit.strip())
-        for digit in x[1:-1].split(' ')
-        if digit
-    ]
-
-    # Add columns to the file
-    for i, (intent, thresh) in enumerate(pairs):
-        count = 0
-        with IncrementalBar('Processing {} {} thresh {}:\t'.format(fitness, intent.lower(), thresh), max=numBars) as bar:
-            with open(inputPath.format(intent, thresh), 'r') as fileOut:
-                reader = csv.reader(fileOut)
-                with open(outputPath.format(intent, thresh), 'a') as fileIn:
-                    writer = csv.writer(fileIn)
-                
-                    # Reads a row from one file and writes the updated row to a new file
-                    for j, row in enumerate(reader):
-                        if j == 0:
-                            row.extend(['Function', 'Coherence', 'Threshold'])
-                            writer.writerow(row)
-                            continue
-                        
-                        # Adding columns
-                        trap = createEncoding(row[0])
-                        row.append(round(functions.functionalFitness(encoding.singleDecoding(trap)), 4))
-                        row.append(round(functions.coherentFitness(encoding.singleDecoding(trap)), 4))
-                        row.append(thresh)
-
-                        writer.writerow(row)
-
-                        # Increment the bar 
-                        if count % (tableCounts[i] // numBars) == 0:
-                            bar.next()
-
-                        count += 1
-
-                    fileIn.close()
-                    fileOut.close()
-
-def updateGenerationFile(inputPath, data, headers = None):
+def updateCSV(inputPath, data=None, headers = None, overwrite=False):
     '''
     Takes in an input path and a 2D list, then adds the contents of the list to the given input file
     '''
-    if not os.path.exists(inputPath):
+    if not os.path.exists(inputPath) or overwrite:
         with open(inputPath, 'w+') as out:
             writer = csv.writer(out)
             writer.writerow(headers)
+            out.close()
 
-    with open(inputPath, 'a') as out:
-        writer = csv.writer(out)
-        writer.writerows(data)
+    if data:
+        with open(inputPath, 'a') as out:
+            writer = csv.writer(out)
+            writer.writerows(data)
+            out.close()

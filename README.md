@@ -77,7 +77,7 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | :--: | :----------: | :-----: | :---------: |
 | --help | -h | N/A | help for any given parser|
 | --threshold | -t | 0.8 | value of `measure` over which we terminate|
-| --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
+| --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
 | --ouput-file | -o | x<sup>1</sup> | output file name (must include `.txt` extension) |
@@ -88,20 +88,15 @@ These flags are just for the `genetic-algorithm runExperiment` parser:
 | :--: | :----------: | :-----: | :---------: |
 | --num-simulations | -s | 10,000 | number of simulations to run on a trap |
 | --no-print-stats | -np | False | turns off printing of simulation statistics |
-| --conf_level | -c | 0.95 | confidence level for our confidence interval |
-| --intention | -in | False | whether the simulated gopher has intention or not |
 
 These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | Flag | Abbrev. | Default | Description |
 | :--: | :----------: | :-----: | :---------: |
 | --num-experiments | -e | 10 | number of experiements to run |
 | --threshold | -t | 0.8 | value of `measure` over which we terminate|
-| --max-iterations | -i | 10,000 | maximum number of iterations the algorithm runs |
+| --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
 | --show-logs | -l | False | turns on printing of generation data |
 | --ouput-file | -o | x<sup>1</sup> | output file name (`.csv` or `.txt` allowed) |
-| --conf_level | -c | 0.95 | confidence level for our confidence interval |
-| --intention | -in | False | whether the simulated gopher has intention or not |
-| --keep-freqs | -k | False | whether or not to log the frequencies to a CSV |
 | --overwrite | -w | False | overwrites the experiment CSV file created with a new one |
 
 <sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.

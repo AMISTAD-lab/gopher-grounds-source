@@ -2,7 +2,6 @@
 import argparse
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions 
-from geneticAlgorithm.encoding import singleDecoding, singleEncoding
 import geneticAlgorithm.experiment as geneticExperiment
 from geneticAlgorithm.main import geneticAlgorithm
 import geneticAlgorithm.utils as util
@@ -37,7 +36,7 @@ geneticSubparsers = geneticParser.add_subparsers(help='genetic algorithm subpars
 generateTrap = geneticSubparsers.add_parser('generate', help='generates a trap')
 generateTrap.add_argument('function', help='a choice of {random, coherence, functional, combined}')
 generateTrap.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
-generateTrap.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
+generateTrap.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
 generateTrap.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
@@ -47,27 +46,20 @@ generateTrap.add_argument('--show', '-s', help='show output in browser', action=
 geneticExperimentParser = geneticSubparsers.add_parser('runExperiment', help='runs an experiment')
 geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
-geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
+geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
-geneticExperimentParser.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
-geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write', default='experiment.txt')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-print-stats', '-np', help='turn off statistic printing', action='store_false')
-geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
-geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
 
 # run batch experiments flags
 geneticExperimentParser = geneticSubparsers.add_parser('runBatchExperiments', help='runs an experiment')
 geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
 geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of experiments to run', type=int, default=10)
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
-geneticExperimentParser.add_argument('--max-iterations', '-i', help='the maximum number of iterations to run', type=int, default=10000)
-geneticExperimentParser.add_argument('--show_logs', '-l', help='turns on logs for generations', action='store_true')
+geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
+geneticExperimentParser.add_argument('--show-logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--output-file', '-o', help='the output file to which we write')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=10000)
-geneticExperimentParser.add_argument('--conf-level', '-c', help='set the confidence level', type=float, default=0.95)
-geneticExperimentParser.add_argument('--intention', '-in', help='give the simulated gopher intention', action='store_true')
-geneticExperimentParser.add_argument('--keep-freqs', '-k', help='exports the count dictionary to a CSV file', action='store_true')
 geneticExperimentParser.add_argument('--overwrite', '-w', help='overwrites the experiment csv file', action='store_true')
 
 # simulate trap flags
@@ -153,9 +145,6 @@ elif args.command == 'genetic-algorithm':
                 args.threshold,
                 args.max_iterations,
                 args.no_logs,
-                trial = 1,
-                export = True,
-                functionName = args.function
             )
 
         print('Trap (encoded):\t\t', bestTrap)
@@ -171,16 +160,12 @@ elif args.command == 'genetic-algorithm':
     elif args.genetic == 'runExperiment':
         trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
             fitnessFunc, 
-            args.threshold, 
-            args.measure, 
-            args.max_iterations, 
-            args.no_logs, 
-            args.num_simulations, 
-            args.conf_level, 
-            args.intention, 
-            False, 
-            args.export, 
-            args.output_file
+            args.threshold,
+            maxGenerations=args.max_iterations,
+            showLogs=args.no_logs,
+            numSimulations=args.num_simulations,
+            printStatistics=False,
+            keepFreqs=False
         )
 
         print('Trap (Encoded):\t ', trap)
@@ -191,24 +176,13 @@ elif args.command == 'genetic-algorithm':
         print('Intention?:\t', 'Yes' if intention else 'No')
 
     elif args.genetic == 'runBatchExperiments':
-        fileName = args.output_file
-        if not fileName:
-            fileName = '{}{}IntentionThresh{}.csv'.format(args.function, '' if args.intention else 'No', args.threshold)
-        elif fileName[-4:] != '.csv':
-            raise Exception('No extension at the end of the file!')
-    
         geneticExperiment.runBatchExperiments(
-            args.num_experiments,
-            fitnessFunc,
-            args.threshold,
-            args.num_simulations,
-            args.max_iterations,
-            args.conf_level,
-            args.show_logs,
-            fileName,
-            args.intention,
-            args.overwrite
+            numExperiments=args.num_experiments,
+            fitnessFunction=fitnessFunc,
+            threshold=args.threshold,
+            numSimulations=args.num_simulations,
+            maxGenerations=args.max_iterations,
+            showLogs=args.show_logs,
+            experimentFile=args.output_file,
+            overwrite=args.overwrite
         )
-
-        if args.keep_freqs:
-            geneticExperiment.createFreqCSV(fileName, args.function, freqs, args.threshold)

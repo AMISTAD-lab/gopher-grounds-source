@@ -8,7 +8,7 @@ import misc.csvUtils as csvUtils
 
 cellAlphabet = [x for x in range(93)]
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxIterations = 10000, showLogs = True, trial = None, export = False, functionName = ''):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True, trial = None, export = False, functionName = ''):
     """
     Finds a near-optimal solution in the search space using the given fitness function
     Returns a 3-tuple of (finalPopulation, bestTrap (encoded), bestFitness)
@@ -25,7 +25,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxIterations = 10000
     # Recalculate frequencies
     fitnesses = [fitnessFunc(member, updateFreq=True) for member in population]
 
-    generation  = 0
+    generation = 1
     startTime = lastTime = time.time()
 
     writeData = [
@@ -41,10 +41,10 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxIterations = 10000
     headers = ['Trial', 'Generation', 'Trap', 'Function', 'Lethality', 'Coherence']
 
     if export:
-        csvUtils.updateGenerationFile(inputPath, writeData, headers)
+        csvUtils.updateCSV(inputPath, writeData, headers)
         writeData = []
 
-    while generation < maxIterations:
+    while generation < maxGenerations:
         if showLogs and (generation % 50 == 0):
             print("Generation {}:".format(generation))
             print("Max fitness\t:", round(max(fitnesses), 3))
@@ -79,13 +79,13 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxIterations = 10000
                 ])
             
             if generation % 1000 == 0:
-                csvUtils.updateGenerationFile(inputPath, writeData, headers)
+                csvUtils.updateCSV(inputPath, writeData, headers)
                 writeData = []
 
         generation += 1
 
     if export and writeData:
-        csvUtils.updateGenerationFile(inputPath, writeData, headers)
+        csvUtils.updateCSV(inputPath, writeData, headers)
 
     if showLogs:
         print("Generation {}:".format(generation - 1))

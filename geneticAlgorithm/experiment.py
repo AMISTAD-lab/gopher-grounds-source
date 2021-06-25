@@ -7,7 +7,9 @@ import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleDecoding
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.utils as utils
+from geneticAlgorithm.main import geneticAlgorithm
 import libs.simulation as sim
+import misc.csvUtils as csvUtils
 
 def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=False, printStatistics = True):
     '''
@@ -37,197 +39,132 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
         print('Std Error: ', round(stderr, 3))
         print('CI: [', round(conf_interval[0], 3), ', ', round(conf_interval[1], 3), ']')
 
-    return proportion, stderr, conf_interval
+    return proportion, stderr
 
-def runExperiment(fitnessFunc, threshold, maxIterations=10000, showLogs=True, numSimulations=5000, confLevel=0.95, intention=False, printStatistics=True, export=False, outputFile='experiment.txt'):
+def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, keepFreqs=False):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
     survives the trap, along with a confidence interval. Can optionally export the findings to another file.
-    Returns a 5-tuple of (trap (encoded), fitness, proportion, stderr, conf_interval)
+    Returns a list of 2 5-tuples of (trap (encoded), fitness, proportion, stderr, intention), where intention
+    is varied between True and False
     '''
-    # File to export the genetic output data
-    trap = []
-    fitness = 0
+    # Defining the function name for logging purposes
+    functionName = ''
+    if fitnessFunc == functions.randomFitness:
+        functionName = 'random'
+    elif fitnessFunc == functions.coherentFitness:
+        functionName = 'coherence'
+    elif fitnessFunc == functions.functionalFitness:
+        functionName = 'functional'
+    elif fitnessFunc == functions.combinedFitness:
+        functionName = 'combined'
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = utils.geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxIterations, showLogs)
+    _, trap, fitness = geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxGenerations, showLogs, trial=trialNo, export=keepFreqs, functionName=functionName)
 
     # Run the experiment on the generated (optimized) trap
-    proportion, stderr, conf_interval = runSimulations(trap, numSimulations, confLevel, intention, printStatistics)
-
-    # Write to the file if we are exporting
-    if export:
-        firstLine = 'Total Experiments: '
-        
-        # Defining the function name for logging purposes
-        functionName = ''
-        if fitnessFunc == functions.randomFitness:
-            functionName = 'random'
-        elif fitnessFunc == functions.coherentFitness:
-            functionName = 'coherence'
-        elif fitnessFunc == functions.functionalFitness:
-            functionName = 'functional'
-        elif fitnessFunc == functions.combinedFitness:
-            functionName = 'combined'
-
-        # Check if the file exists first
-        if not os.path.isfile('./' + outputFile):
-            with open(outputFile, 'w+') as out:
-                out.write(firstLine + '0\n')
-                out.close()
-
-        # Write the data from the experiment to the file
-        experimentNum = 0
-        fileLines = []
-        with open(outputFile, 'r') as out:
-            fileLines = out.readlines()
-            
-            # Handling malformed files
-            if fileLines == []:
-                fileLines = [firstLine + '0\n']
-            
-            experimentNum = int(fileLines[0][len(firstLine):].strip()) + 1
-            fileLines[0] = firstLine + str(experimentNum) + '\n'
-            out.close()
-
-        with open(outputFile, 'w') as out:
-            out.writelines(fileLines)
-            out.close()
-
-        with open(outputFile, 'a') as out:
-            out.write('\n')
-            out.write('Experiment {}\n'.format(experimentNum))
-            out.write('-------------\n')
-            out.write('Trap\t\t\t\t:\t')
-            
-            # Print array
-            out.write('[ ')
-            
-            # Convert to array form
-            for j, digit in enumerate(trap):
-                out.write(str(digit))
-                
-                if j < len(trap) - 1:
-                    out.write(', ')
-            
-            out.write(' ]\n')
-
-            # Write statistics
-            out.write('Fitness\t\t\t\t:\t{}\n'.format(str(round(fitness, 3))))
-            out.write('Function\t\t\t:\t{}\n'.format(functionName))
-            out.write('Proportion Dead\t\t:\t{}\n'.format(round(proportion, 4)))
-            out.write('Standard Error\t\t:\t{}\n'.format(round(stderr, 3)))
-            out.write('Confidence Interval\t:\t[{}, {}]\n'.format(round(conf_interval[0], 3), round(conf_interval[1], 3)))
-            out.write('Intention?\t\t\t:\t{}\n'.format('Yes' if intention else 'No'))
-            out.write('\n')
-            out.close()
+    retList = []
+    for intention in (True, False):
+        proportion, stderr = runSimulations(trap, numSimulations=numSimulations, intention=intention, printStatistics=printStatistics)
+        retList.append([trap, fitness, proportion, stderr, intention])
     
-    return trap, fitness, proportion, stderr, conf_interval, intention
+    return retList
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxIterations=10000, confLevel=0.95, showLogs=False, outputFile='experiment.csv', intention=False, overwrite=False):
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxGenerations=10000, showLogs=False, experimentFile=None, overwrite=False):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
-    headers = ['Experiment', 'Trap', 'Fitness', 'Fitness_Funct', 'Prop_Dead', 'Stand_Err','Conf_Interval', 'Intention?', 'Threshold']
-
-    if outputFile[-4:] != '.csv':
-        raise Exception('Please enter a valid file extension for the output file. {} was given'.format(outputFile))
+    headers = ['Trial', 'Trap', 'Function', 'Intention', 'Lethality', 'Coherence', 'PropDead', 'StdErr']
 
     # Defining the function name for logging purposes
     functionName = ''
+    fof = {}
     if fitnessFunction == functions.randomFitness:
         functionName = 'random'
+        fof = functions.randomFoF
     elif fitnessFunction == functions.coherentFitness:
         functionName = 'coherence'
+        fof = functions.coherentFoF
     elif fitnessFunction == functions.functionalFitness:
         functionName = 'functional'
+        fof = functions.functionalFoF
     elif fitnessFunction == functions.combinedFitness:
         functionName = 'combined'
+        fof = functions.combinedFoF
+
+    # If we do not have a file to write to, populate with default value
+    if not experimentFile:
+        experimentFile = f'{functionName}.csv'
 
     experimentNum = 0
-    directory = './csv/{}/'.format(functionName)
-    filePath = '{}{}'.format(directory, outputFile)
 
-    if not os.path.exists(directory):
-        os.mkdir(directory)
-    elif not os.path.isfile(filePath) or overwrite:
-        with open(filePath, 'w+') as out:
-            writer = csv.writer(out)
-            writer.writerow(headers)
-            out.close()
+    experimentPath = f'./csv/{functionName}/{experimentFile}.csv'
+
+    # If the directory does not exist, create it
+    if not os.path.exists(f'./csv/{functionName}/'):
+        os.mkdir(f'./{functionName}')
+
+    # If the path exists but not the file, or we are overwriting the file, create it
+    elif not os.path.isfile(experimentPath) or overwrite:
+        csvUtils.updateCSV(experimentPath, headers=headers, overwrite=overwrite)
+
+    # Counting the number of experiments in the file to append to easily
     else:
         isPopulated = False
-        with open(filePath, 'r') as out:
+        with open(experimentPath, 'r') as out:
             reader = csv.reader(out)
             for line in reader:
                 isPopulated = True
                 if line[0] == headers[0]:
                     continue
-                experimentNum = int(line[0])
+                experimentNum = int(line[0]) + 1
             out.close()
 
         if not isPopulated:
-            with open(filePath, 'w') as out:
+            with open(experimentPath, 'w') as out:
                 writer = csv.writer(out)
                 writer.writerow(headers)
             out.close()
 
     # Run the experiment many times
     for i in range(numExperiments):
-        print('STARTING EXPERIMENT {}.\n'.format(i + 1))
+        print('STARTING EXPERIMENT {}.'.format(i + 1))
 
         # Clearing old write data
         writeData = []
 
-        trap, fitness, proportion, stderr, conf_interval, intention = runExperiment(
+        # Generates and runs simulations on a trap, returning experiment data
+        experimentData = runExperiment(
             fitnessFunction,
             threshold,
-            maxIterations,
-            showLogs,
-            numSimulations,
-            confLevel,
-            intention,
-            False,
-            export=False
+            maxGenerations,
+            showLogs=showLogs,
+            numSimulations=numSimulations,
+            printStatistics=False,
+            trialNo=i+1,
+            keepFreqs=True,
         )
 
-        trapStr = utils.convertEncodingToString(trap)
+        # Writes the experiment data to a CSV
+        for trap, fitness, proportion, stderr, intention in experimentData: 
+            trapStr = utils.convertEncodingToString(trap)
 
-        writeData = [experimentNum + i + 1, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), conf_interval, intention, threshold]
-        print('FINISHED EXPERIMENT {}.\n\n'.format(i + 1))
+            writeData = [experimentNum + i, trapStr, round(fitness, 4), functionName, round(proportion, 4), round(stderr, 4), intention, threshold]
 
-        # Write data to csv
-        with open(filePath, 'a') as out:
-            writer = csv.writer(out)
-            writer.writerow(writeData)
-            out.close()
+            # Write data to csv
+            with open(experimentPath, 'a') as out:
+                writer = csv.writer(out)
+                writer.writerow(writeData)
+                out.close()
+
+        print('FINISHED EXPERIMENT {}.\n'.format(i + 1))
         
-    print("SIMULATION FINISHED.")
+    print("SIMULATION FINISHED.\n")
 
-def createFreqCSV(fileName, fitnessFunc, freqDict, threshold):
-    """
-    Updates the frequencies in CSVs when a new batch run experiments is issued
-    """
-    if fileName[-4:] == '.csv':
-        fileName = fileName[:-4]
+    print("WRITING FREQUENCY OF FREQUENCY DATA...")
+    fofPath = f'./frequencies/{functionName}FoF.csv'
+    fofHeaders = [['Frequency', 'FrequencyOfFrequency']]
+    fofData = [[key, fof[key]] for key in sorted(fof.keys())]
 
-    directory = './frequencies/{}'.format(fitnessFunc)
-    filePath = '{}/{}Freqs.csv'.format(directory, fileName)
-    headers = ['Trap', 'Freq', 'Functional', 'Coherence', 'Threshold']
+    csvUtils.updateCSV(fofPath, fofData, fofHeaders, True)
 
-    # If the path does not exist, then create it
-    if not os.path.isfile('./' + filePath):
-        if not os.path.exists(directory):
-            os.mkdir(directory)
-
-    with open(filePath, 'w+') as out:
-        writer = csv.writer(out)
-        writer.writerow(headers)
-        out.close()
-
-    with open(filePath, 'a') as out:
-        writer = csv.writer(out)
-
-        for trap in freqDict:
-            writer.writerow([trap, *freqDict[trap], threshold])
-        
-        out.close()
+    print('DONE.')
