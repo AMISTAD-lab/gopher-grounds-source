@@ -30,10 +30,10 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     # Sampling the (encoded) population until we get one non-zero member
     while(np.count_nonzero(fitnesses) == 0):
         population = lib.initializePopulation(cellAlphabet)
-        fitnesses = [fitnessFunc(member) for member in population]
+        fitnesses = fitnessFunc(population)
     
     # Recalculate frequencies
-    fitnesses = [fitnessFunc(member, updateFreq=True) for member in population]
+    fitnesses = fitnessFunc(population, updateFreq=True)
 
     generation = 0
     startTime = lastTime = time.time()
@@ -74,7 +74,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
             newPopulation.append(childMutated)
 
         # Calculating new fitnesses and updating the optimal solutions
-        fitnesses = np.array([fitnessFunc(member, updateFreq=True) for member in newPopulation])
+        fitnesses = fitnessFunc(newPopulation, updateFreq = True)
         population = newPopulation
 
         currMax = np.argmax(fitnesses)

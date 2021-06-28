@@ -1,3 +1,4 @@
+from typing import List, Union
 import numpy as np
 import libs.algorithms as alg
 import geneticAlgorithm.analytical as analytical
@@ -45,64 +46,88 @@ def updateFreqs(strEncoding, freqDict, fofDict):
 
     fofDict[oldFreq + 1] += 1
 
-def randomFitness(encoding, updateFreq=False):
-    """Assigns a random fitness to each configuration (choosing uniformly at random)"""    
-    strEncoding = np.array2string(encoding)
+def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]], updateFreq=False):
+    """Assigns a random fitness to each configuration (choosing uniformly at random)"""   
+    ## Prevent duplicate code
+    def calcFitness (encoding: List[int], updateFreq = False):
+        strEncoding = np.array2string(encoding)
 
-    if updateFreq:
-        updateFreqs(strEncoding, randomFreqs, randomFoF)
+        if updateFreq:
+            updateFreqs(strEncoding, randomFreqs, randomFoF)
 
-    # Returning cached value
-    if strEncoding in randomFitnesses:
-        return randomFitnesses[strEncoding]
+        # Returning cached value
+        if strEncoding in randomFitnesses:
+            return randomFitnesses[strEncoding]
 
-    return np.random.random()
+        return np.random.random()
+    
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+        return calcFitness(encodedInput, updateFreq)
 
-def functionalFitness(encoding, defaultProbEnter = constants.DEFAULT_PROB_ENTER, updateFreq=False):
+    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+
+def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER, updateFreq=False):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
     or compute the the given configuration's probability of killing a gopher
     """
-    configuration = singleDecoding(encoding)
+    ## Prevent duplicate code
+    def calcFitness(encoding, updateFreq=False):
+        configuration = singleDecoding(encoding)
 
-    # Convert list to string to reference in dictionary
-    strEncoding = np.array2string(encoding)
+        # Convert list to string to reference in dictionary
+        strEncoding = np.array2string(encoding)
 
-    if updateFreq:
-        updateFreqs(strEncoding, functionalFreqs, functionalFoF)
+        if updateFreq:
+            updateFreqs(strEncoding, functionalFreqs, functionalFoF)
 
-    # Returning cached value if possible
-    if strEncoding in functionalFitnesses:
-        return functionalFitnesses[strEncoding]
+        # Returning cached value if possible
+        if strEncoding in functionalFitnesses:
+            return functionalFitnesses[strEncoding]
 
-    # This is the max probability of killing a gopher 
-    theoreticalMax = (1 - 0.55 ** 2) * defaultProbEnter
+        # This is the max probability of killing a gopher 
+        theoreticalMax = (1 - 0.55 ** 2) * defaultProbEnter
 
-    # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
-    fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
+        # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
+        fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
 
-    functionalFitnesses[strEncoding] = fitness
-    
-    return fitness
+        functionalFitnesses[strEncoding] = fitness
+        
+        return fitness
 
-def coherentFitness(encoding, updateFreq=False):
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+        return calcFitness(encodedInput, updateFreq)
+
+    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+
+def coherentFitness(encodedInput, updateFreq=False):
     """Assigns a fitness based on the coherence of a given configuration"""
-    configuration = singleDecoding(encoding)
+    ## Prevent duplicate code
+    def calcFitness(encoding, updateFreq=False):
+        configuration = singleDecoding(encoding)
 
-    # Convert list to string to reference in dictionary
-    strEncoding = np.array2string(encoding)
+        # Convert list to string to reference in dictionary
+        strEncoding = np.array2string(encoding)
+        
+        if updateFreq:
+            updateFreqs(strEncoding, coherentFreqs, coherentFoF)
+
+        if strEncoding in coherentFitnesses:
+            return coherentFitnesses[strEncoding]
+
+        fitness = alg.getCoherenceValue(createTrap(configuration))
+        coherentFitnesses[strEncoding] = fitness
+
+        return fitness
     
-    if updateFreq:
-        updateFreqs(strEncoding, coherentFreqs, coherentFoF)
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+        return calcFitness(encodedInput, updateFreq)
 
-    if strEncoding in coherentFitnesses:
-        return coherentFitnesses[strEncoding]
-
-    fitness = alg.getCoherenceValue(createTrap(configuration))
-    coherentFitnesses[strEncoding] = fitness
-
-    return fitness
+    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
 
 def combinedFitness(encoding, updateFreq=False):
     """Assigns a fitness based on the coherence AND function of a configuration"""
