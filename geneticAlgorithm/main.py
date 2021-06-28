@@ -2,13 +2,13 @@ import copy
 import numpy as np
 import time
 import geneticAlgorithm.constants as constants
-import geneticAlgorithm.encoding as encoding
+import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.library as lib
+import misc.csvUtils as csvUtils
 
 cellAlphabet = [x for x in range(93)]
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxIterations = 10000,
- showLogs = True, improvedCallback = True, callbackFactor = 0.95):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True, trial = None, export = False, functionName = '', barData={}):
     """
     Finds a near-optimal solution in the search space using the given fitness function
     Returns a 3-tuple of (finalPopulation, bestTrap (encoded), bestFitness)
@@ -17,17 +17,42 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
 
     population = []
 
-    # Sampling the population until we get one non-zero member
+    # Destructure population into CSV format
+    getWriteData = lambda population : [
+            [
+                trial, generation, trap, functionName,
+                round(functions.functionalFitness(trap), 4),
+                round(functions.coherentFitness(trap), 4)
+            ]
+            for trap in population
+        ]
+
+    # Sampling the (encoded) population until we get one non-zero member
     while(np.count_nonzero(fitnesses) == 0):
         population = lib.initializePopulation(cellAlphabet)
-        fitnesses = [fitnessFunc(member) for member in population]
+        fitnesses = fitnessFunc(population)
+    
+    # Recalculate frequencies
+    fitnesses = fitnessFunc(population, updateFreq=True)
 
-    counter  = 0
+    generation = 0
     startTime = lastTime = time.time()
 
-    while not lib.checkTermination(fitnesses, measure, threshold) and counter < maxIterations:
-        if showLogs and (counter % 50 == 0):
-            print("Generation {}:".format(counter))
+    freqPath = constants.frequencyPath.format(functionName)
+    headers = constants.frequencyHeaders
+    writeData = getWriteData(population)
+
+    currMax = np.argmax(fitnesses)
+    maxFitness, bestTrap = fitnesses[currMax], population[currMax]
+
+    while generation < maxGenerations:
+        # Write frequency data before we change the population
+        if export and generation % 1000 == 0:
+            csvUtils.updateCSV(freqPath, writeData, headers)
+            writeData = []
+
+        if showLogs and (generation % 50 == 0):
+            print("Generation {}:".format(generation))
             print("Max fitness\t:", round(max(fitnesses), 3))
             print("Min fitness\t:", round(min(fitnesses), 3))
             print("Mean fitness\t:", round(np.mean(fitnesses), 3))
@@ -40,39 +65,44 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
             # Set last time
             lastTime = time.time()
 
-        # Make a deep copy of the population and fitness to compare with the new generation
-        originalPop = copy.deepcopy(population)
-        originalFit = copy.deepcopy(fitnesses)
-
         # Creating new population using genetic algorithm
         newPopulation = []
         for _ in range(len(population)):
-            parents = lib.selectionFunc(population, fitnesses)
-            parent1, parent2 = encoding.listEncoding(parents)
+            parent1, parent2 = lib.selectionFunc(population, fitnesses)
             child = lib.crossoverFunc(parent1, parent2)
             childMutated = lib.mutationFunc(constants.CELL_ALPHABET, child)
-            newPopulation.append(encoding.singleDecoding(childMutated))
+            newPopulation.append(childMutated)
 
-        fitnesses = np.array([fitnessFunc(member) for member in newPopulation])
+        # Calculating new fitnesses and updating the optimal solutions
+        fitnesses = fitnessFunc(newPopulation, updateFreq = True)
         population = newPopulation
 
-        # Dismisses the new population if its fitness is less than (old pop's fitness * callbackFactor).
-        # callbackFactor should be in the interval [0, 1], where 0 is equivalent to having improvedCallback=False.
-        if improvedCallback:
-            if measure == 'max' and np.max(fitnesses) < callbackFactor * np.max(originalFit):
-                population = originalPop
-                fitnesses = originalFit
-            elif measure == 'mean' and np.mean(fitnesses) < callbackFactor*np.mean(originalFit):
-                population = originalPop
-                fitnesses = originalFit
-            elif np.median(fitnesses) < callbackFactor*np.median(originalFit):
-                    population = originalPop
-                    fitnesses = originalFit
+        currMax = np.argmax(fitnesses)
+        if fitnesses[currMax] > maxFitness:
+            maxFitness = fitnesses[currMax]
+            bestTrap = newPopulation[currMax]
 
-        counter += 1
+        generation += 1
+
+        # Add new data to the writeData list
+        if export:
+            writeData.extend(getWriteData(population))
+
+        if barData:
+            barData['counter'] += 1
+
+            numBars, maxSteps = barData['numBars'], barData['maxSteps']
+            modulo = maxSteps // numBars if numBars <= maxSteps else 1
+            
+            if barData['counter'] % modulo == 0:
+                barData['bar'].next(n=max(1, numBars / maxSteps))
+            
+
+    if export and writeData:
+        csvUtils.updateCSV(freqPath, writeData, headers)
 
     if showLogs:
-        print("Generation {}:".format(counter))
+        print("Generation {}:".format(generation - 1))
         print("Max fitness\t:", round(max(fitnesses), 3))
         print("Min fitness\t:", round(min(fitnesses), 3))
         print("Mean fitness\t:", round(np.mean(fitnesses), 3))
@@ -81,7 +111,5 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure = 'max', maxI
         print("Total Time\t:", round(time.time() - startTime, 4))
         print("------------------------")
         print()
-    
-    optimalIndex = np.where(fitnesses == np.max(fitnesses))[0][0]
 
-    return np.array(population), encoding.singleEncoding(population[optimalIndex]), fitnesses[optimalIndex]
+    return np.array(population), bestTrap, maxFitness

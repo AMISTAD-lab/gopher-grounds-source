@@ -1,10 +1,17 @@
+from typing import List, Union
 import numpy as np
 import libs.algorithms as alg
 import geneticAlgorithm.analytical as analytical
 import geneticAlgorithm.constants as constants
-from geneticAlgorithm.encoding import singleEncoding
+from geneticAlgorithm.encoding import singleDecoding, singleEncoding
 from geneticAlgorithm.utils import createTrap
 
+randomFoF = {}
+functionalFoF = {}
+coherentFoF = {}
+combinedFoF = {}
+
+randomFitnesses = {}
 functionalFitnesses = {}
 coherentFitnesses = {}
 combinedFitnesses = {}
@@ -18,98 +25,139 @@ combinedFreqs = {}
 binaryDistanceFreqs = {}
 distanceFreqs = {}
 
-def randomFitness(configuration):
-    """Assigns a random fitness to each configuration (choosing uniformly at random)"""
-    strEncoding = np.array2string(singleEncoding(configuration))
-
-    if strEncoding not in randomFreqs:
-        randomFreqs[strEncoding] = 0
+def updateFreqs(strEncoding, freqDict, fofDict):
+    ''' Increments the strEncoding freq by 1 and updates all frequencies of frequencies '''
+    # Putting in frequencies if not already there
+    if strEncoding not in freqDict:
+        freqDict[strEncoding] = 0
     
-    randomFreqs[strEncoding] += 1
+    # Keeping track of old frequency
+    oldFreq = freqDict[strEncoding]
 
-    return np.random.random()
+    # Updating frequency
+    freqDict[strEncoding] += 1
 
-def functionalFitness(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+    # Subtracting 1 from old FoF and adding 1 to new FoF
+    if oldFreq in fofDict:
+        fofDict[oldFreq] -= 1
+
+    if ((oldFreq + 1) not in fofDict):
+        fofDict[oldFreq + 1] = 0
+
+    fofDict[oldFreq + 1] += 1
+
+def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]], updateFreq=False):
+    """Assigns a random fitness to each configuration (choosing uniformly at random)"""   
+    ## Prevent duplicate code
+    def calcFitness (encoding: List[int], updateFreq = False):
+        strEncoding = np.array2string(encoding)
+
+        if updateFreq:
+            updateFreqs(strEncoding, randomFreqs, randomFoF)
+
+        # Returning cached value
+        if strEncoding in randomFitnesses:
+            return randomFitnesses[strEncoding]
+
+        return np.random.random()
+    
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+        return calcFitness(encodedInput, updateFreq)
+
+    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+
+def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER, updateFreq=False):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
     or compute the the given configuration's probability of killing a gopher
     """
-    # Convert list to string to reference in dictionary
-    encoding = singleEncoding(configuration)
-    strEncoding = np.array2string(encoding)
+    ## Prevent duplicate code
+    def calcFitness(encoding, updateFreq=False):
+        configuration = singleDecoding(encoding)
 
-    # Maintain frequency dictionary
-    if strEncoding not in functionalFreqs:
-        functionalFreqs[strEncoding] = 0
-    
-    functionalFreqs[strEncoding] += 1
+        # Convert list to string to reference in dictionary
+        strEncoding = np.array2string(encoding)
 
-    if strEncoding in functionalFitnesses:
-        return functionalFitnesses[strEncoding]
+        if updateFreq:
+            updateFreqs(strEncoding, functionalFreqs, functionalFoF)
 
-    # This is the max probability of killing a gopher 
-    theoreticalMax = (1 - 0.55 ** 2) * defaultProbEnter
+        # Returning cached value if possible
+        if strEncoding in functionalFitnesses:
+            return functionalFitnesses[strEncoding]
 
-    # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
-    fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
+        # This is the max probability of killing a gopher 
+        theoreticalMax = (1 - 0.55 ** 2) * defaultProbEnter
 
-    functionalFitnesses[strEncoding] = fitness
-    return fitness
+        # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
+        fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
 
-def coherentFitness(configuration):
+        functionalFitnesses[strEncoding] = fitness
+        
+        return fitness
+
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+        return calcFitness(encodedInput, updateFreq)
+
+    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+
+def coherentFitness(encodedInput, updateFreq=False):
     """Assigns a fitness based on the coherence of a given configuration"""
-    # Convert list to string to reference in dictionary
-    encoding = singleEncoding(configuration)
-    strEncoding = np.array2string(encoding)
+    ## Prevent duplicate code
+    def calcFitness(encoding, updateFreq=False):
+        configuration = singleDecoding(encoding)
 
-    # Maintain frequency dictionary
-    if strEncoding not in coherentFreqs:
-        coherentFreqs[strEncoding] = 0
+        # Convert list to string to reference in dictionary
+        strEncoding = np.array2string(encoding)
+        
+        if updateFreq:
+            updateFreqs(strEncoding, coherentFreqs, coherentFoF)
+
+        if strEncoding in coherentFitnesses:
+            return coherentFitnesses[strEncoding]
+
+        fitness = alg.getCoherenceValue(createTrap(configuration))
+        coherentFitnesses[strEncoding] = fitness
+
+        return fitness
     
-    coherentFreqs[strEncoding] += 1
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+        return calcFitness(encodedInput, updateFreq)
 
-    if strEncoding in coherentFitnesses:
-        return coherentFitnesses[strEncoding]
+    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
 
-    fitness = alg.getCoherenceValue(createTrap(configuration))
-    coherentFitnesses[strEncoding] = fitness
-
-    return fitness
-
-def combinedFitness(configuration):
+def combinedFitness(encoding, updateFreq=False):
     """Assigns a fitness based on the coherence AND function of a configuration"""
     # Convert list to string to reference in dictionary
-    encoding = singleEncoding(configuration)
     strEncoding = np.array2string(encoding)
-
-    # Maintain frequency dictionary
-    if strEncoding not in combinedFreqs:
-        combinedFreqs[strEncoding] = 0
     
-    combinedFreqs[strEncoding] += 1
+    if updateFreq:
+        updateFreqs(strEncoding, combinedFreqs, combinedFoF)
 
     if strEncoding in combinedFitnesses:
         return combinedFitnesses[strEncoding]
 
     MAX_DIFF = 0.2
 
-    coherence = coherentFitness(configuration)
-    functionality = functionalFitness(configuration)
+    coherence = coherentFitness(encoding)
+    functionality = functionalFitness(encoding)
 
     sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
     evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(2 * np.abs(x - y)))
     
     # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
-    result = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
+    fitness = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
 
     # If the difference is too large, then penalize the fitness
     if (np.abs(functionality - coherence) > MAX_DIFF):
-        result /= 2
+        fitness /= 2
 
-    combinedFitnesses[strEncoding] = result
-    
-    return result
+    combinedFitnesses[strEncoding] = fitness
+
+    return fitness
 
 def binaryDistanceFitness(configuration, targetTrap):
     """Assigns a fitness based on the binary distance to the target configuration"""

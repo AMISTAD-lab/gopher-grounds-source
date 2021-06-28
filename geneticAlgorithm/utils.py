@@ -2,7 +2,6 @@ import numpy as np
 import os
 import webbrowser
 import classes.Trap as TrapClass
-import geneticAlgorithm.constants as constants
 import geneticAlgorithm.encoding as encoding
 from geneticAlgorithm.main import geneticAlgorithm
 import libs.simulation as sim
@@ -32,13 +31,13 @@ def convertStringToDecoding(strEncoding):
     """Takes in a string encoding and returns the decoded trap """
     return encoding.singleDecoding(convertStringToEncoding(strEncoding))
 
-def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, measure = "max", maxIterations = 10000, showLogs = True, improvedCallback=True):
+def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True):
     """
     Runs the genetic algorithm with the given parameters and writes a new file with the unique list encodings and counts.
     Returns a tuple of the (encoded) trap with highest fitness and the highest fitness
     """
     # Run the simluation and keep track of the unique values in the genetic algorithm
-    finalPopulation, bestTrap, bestFitness = geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, measure, maxIterations, showLogs, improvedCallback)
+    finalPopulation, bestTrap, bestFitness = geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations, showLogs)
 
     # Find counts and fitnesses of each element in final population
     uniquePopulation = []
