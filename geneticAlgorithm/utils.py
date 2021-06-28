@@ -28,7 +28,7 @@ def convertEncodingToString(encoding):
     return encodingStr
 
 def convertStringToDecoding(strEncoding):
-    """ Takes in a string encoding and returns the decoded trap """
+    """Takes in a string encoding and returns the decoded trap """
     return encoding.singleDecoding(convertStringToEncoding(strEncoding))
 
 def exportGeneticOutput(outputFile, cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True):

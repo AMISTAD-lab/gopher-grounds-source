@@ -155,7 +155,7 @@ def binaryDistanceFitness(configuration, targetTrap):
         if encoding[i] != encodedTarget[i]:
             numDiff += 1
 
-    return numDiff / (len(encoding) - 3)
+    return numDiff/(len(encoding) - 3)
 
 # TODO: Fix this function
 # def distanceFitness(configuration, targetTrap):
