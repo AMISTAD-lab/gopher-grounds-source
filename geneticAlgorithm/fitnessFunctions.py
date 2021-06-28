@@ -212,6 +212,4 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
     newScores = [scores[i] + boosters[i] for i in range(size)]
     newScores = [newScores[i]/max(newScores) for i in range(size)]
 
-    # return multiobjective, functional, and coherent fitnesses as numpy array of 3-tuples
-    returnList = [np.array([newScores[i], functionals[i], coherents[i]]) for i in range(size)]
-    return np.array(returnList)
+    return np.array(newScores)
