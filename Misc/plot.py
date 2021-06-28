@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import database.library as dbLib
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.utils as util
 
@@ -115,3 +116,94 @@ def functionalCoherenceVsLethality():
         title = 'Coherence vs. Lethality for Functionally Optimized Traps',
         labelLoc = 'upper left'
     )
+
+def lethalityDist(fitness: str, numBins = 10):
+    """ Creates plot of trap distributions for lethality """
+    fig, axes = plt.subplots(1, 5 if fitness == 'functional' else 4, sharey='row')
+    plt.subplots_adjust(wspace=0.6)
+
+    histData = dbLib.getLethalityData(fitness)
+
+    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
+
+    for i, key in enumerate(keys):
+        if key not in histData or not any(histData[key]):
+            continue
+        axes[i].set_title(f'Threshold {key}')
+        axes[i].set_xlabel('Lethality value')
+        axes[i].hist(histData[key], numBins)
+
+    if fitness == 'functional':
+        optimized = 'Functionally'
+    elif fitness == 'coherence':
+        optimized = 'Coherently'
+    elif fitness == 'random':
+        optimized = 'randomly'
+    elif fitness == 'combined':
+        optimized = 'Both Functionally and Coherently'
+    
+    fig.suptitle(f'Lethality Distribution for {optimized} Optimized Traps')
+    plt.show()
+
+def coherenceDist(fitness: str, numBins = 10):
+    fig, axes = plt.subplots(1, 5 if fitness == 'functional' else 4, sharey='none', sharex='all')
+    plt.subplots_adjust(wspace=0.6)
+
+    histData = dbLib.getCoherenceData(fitness)
+
+    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
+
+    for i, key in enumerate(keys):
+        if key not in histData or not any(histData[key]):
+            continue
+        axes[i].set_title(f'Threshold {key}')
+        axes[i].set_xlabel('Coherence value')
+        axes[i].hist(histData[key], numBins)
+
+    if fitness == 'functional':
+        optimized = 'Functionally'
+    elif fitness == 'coherence':
+        optimized = 'Coherently'
+    elif fitness == 'random':
+        optimized = 'randomly'
+    elif fitness == 'combined':
+        optimized = 'Both Functionally and Coherently'
+    
+    fig.suptitle(f'Coherence Distribution for {optimized} Optimized Traps')
+    plt.show()
+
+def lethalityDistSeparate(fitness: str, numBins = 10):
+    """ Creates plot of trap distributions for lethality """
+    histData = dbLib.getLethalityData(fitness)
+
+    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
+
+    for i, key in enumerate(keys):
+        if key not in histData or not any(histData[key]):
+            axes = np.delete(axes, i)
+            continue
+        plt.figure(i)
+        
+        plt.title(f'Threshold {key}')
+        plt.xlabel('Lethality value')
+        plt.hist(histData[key], numBins)
+    
+    plt.show()
+
+def coherenceDistSeparate(fitness: str, numBins = 10):
+    """ Creates plot of trap distributions for lethality """
+    histData = dbLib.getCoherenceData(fitness)
+
+    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
+
+    for i, key in enumerate(keys):
+        if key not in histData or not any(histData[key]):
+            axes = np.delete(axes, i)
+            continue
+        plt.figure(i)
+        
+        plt.title(f'Threshold {key}')
+        plt.xlabel('Coherence value')
+        plt.hist(histData[key], numBins)
+    
+    plt.show()
