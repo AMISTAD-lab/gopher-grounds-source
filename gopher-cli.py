@@ -218,4 +218,4 @@ elif args.command == 'genetic-algorithm':
         )
 
         if args.keep_freqs:
-            geneticExperiment.createFreqCSV(fileName, args.function, freqs, args.threshold)
+            geneticExperiment.updateFrequencyCSV(fileName, args.function, freqs)

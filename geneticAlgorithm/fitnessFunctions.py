@@ -1,14 +1,9 @@
-from math import *
 import numpy as np
-import pandas as pd
-import random
 import libs.algorithms as alg
 import geneticAlgorithm.analytical as analytical
 import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleEncoding
-from geneticAlgorithm.encoding import listEncoding
 from geneticAlgorithm.utils import createTrap
-from geneticAlgorithm.encoding import listDecoding
 
 functionalFitnesses = {}
 coherentFitnesses = {}
@@ -162,56 +157,3 @@ def binaryDistanceFitness(configuration, targetTrap):
 #             distance += 1
 
 #     return distance / (len(encoding) - 3)
-
-def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
-    """given a list of traps, calculate the multiobjective (coherence and functional) fitness for each"""
-    """returns an n x 3 numpy array [multifitness, functionalFitness, coherentFitness] in order of population list"""
-    
-    # create preliminary variables
-    size = len(population)
-    functionals = []
-    coherents = []
-    scores = np.empty((0,1), int)
-
-    # determine score of trap by number of other traps it dominates
-    for trap in population:
-        functionals.append(functionalFitness(trap, defaultProbEnter))
-        coherents.append(coherentFitness(trap))  
-    data = {"functional fitness": functionals, "coherent fitness": coherents}
-    df = pd.DataFrame(data, columns = ["functional fitness", "coherent fitness"])
-    for i in range(size):
-        score = 0
-        for j in range(size):
-            if df.loc[i, "functional fitness"] >= df.loc[j, "functional fitness"] \
-                and df.loc[i, "coherent fitness"] >= df.loc[j, "coherent fitness"]:
-                score += 1
-        scores = np.append(scores, score)
-
-    # boost score of a trap depending on how far away it is from other traps of same score (farther is better)
-    # each score booster is in the interval [0,1]
-    boosters = [0 for x in range(size)]
-    posScores = np.unique(scores)
-    for score in posScores:
-        score_i = []
-        for i in range(size):
-            if scores[i] == score:
-                score_i.append(i)
-        for i in score_i:
-            distList = []
-            if len(score_i) == 1:
-                minDist = sqrt(2)   # sqrt(2) is the maximum possible distance between to points in unit square
-            else:
-                functional = df.loc[i, "functional fitness"]
-                coherent = df.loc[i, "coherent fitness"]
-                for j in score_i:
-                    if i != j:
-                        distList.append(dist([df.loc[i, "functional fitness"],df.loc[i, "coherent fitness"]],
-                        [df.loc[j, "functional fitness"],df.loc[j, "coherent fitness"]]))
-                minDist = min(distList)
-            boosters[i] += minDist/sqrt(2)
-    newScores = [scores[i] + boosters[i] for i in range(size)]
-    newScores = [newScores[i]/max(newScores) for i in range(size)]
-
-    # return multiobjective, functional, and coherent fitnesses as numpy array of 3-tuples
-    returnList = [np.array([newScores[i], functionals[i], coherents[i]]) for i in range(size)]
-    return np.array(returnList)

@@ -205,9 +205,10 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
             writer.writerow(writeData)
             out.close()
         
+        
     print("SIMULATION FINISHED.")
 
-def createFreqCSV(fileName, fitnessFunc, freqDict, threshold):
+def updateFrequencyCSV(fileName, fitnessFunc, freqDict):
     """
     Updates the frequencies in CSVs when a new batch run experiments is issued
     """
@@ -216,22 +217,35 @@ def createFreqCSV(fileName, fitnessFunc, freqDict, threshold):
 
     directory = './frequencies/{}'.format(fitnessFunc)
     filePath = '{}/{}Freqs.csv'.format(directory, fileName)
-    headers = ['Trap', 'Freq', 'Functional', 'Coherence', 'Threshold']
+    headers = ['Trap', 'Freq']
 
     # If the path does not exist, then create it
     if not os.path.isfile('./' + filePath):
         if not os.path.exists(directory):
             os.mkdir(directory)
 
-    with open(filePath, 'w+') as out:
-        writer = csv.writer(out)
-        writer.writerow(headers)
-        out.close()
+        with open(filePath, 'w') as out:
+            writer = csv.writer(out)
+            writer.writerow(headers)
+            out.close()
 
-    with open(filePath, 'a') as out:
-        writer = csv.writer(out)
+    # Read in the CSV as a dataframe to allow for easy manipulation
+    df = pd.read_csv('./' + filePath, index_col=0)
 
-        for trap in freqDict:
-            writer.writerow([trap, *freqDict[trap], threshold])
-        
-        out.close()
+    # Update all of the known keys with the given frequencies
+    for i in range(len(df.index)):
+        key = df.index[i]
+        if key in freqDict:
+            df.iloc[i] += freqDict[key]
+            del freqDict[key]
+
+    # Insert all new keys with given frequencies
+    indexes = []
+    vals = []
+    for key in freqDict:
+        indexes.append(key)
+        vals.append(freqDict[key])
+    
+    # Create a new, updated DataFrame
+    df = df.append(pd.DataFrame({ headers[1]: vals }, index=indexes)).astype('int32')
+    pd.DataFrame.to_csv(df, filePath, index_label=headers[0])
