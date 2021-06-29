@@ -139,7 +139,7 @@ def lethalityDist(fitness: str, numBins = 10):
         optimized = 'Coherently'
     elif fitness == 'random':
         optimized = 'randomly'
-    elif fitness == 'combined':
+    elif fitness == 'multiobjective':
         optimized = 'Both Functionally and Coherently'
     
     fig.suptitle(f'Lethality Distribution for {optimized} Optimized Traps')
@@ -166,7 +166,7 @@ def coherenceDist(fitness: str, numBins = 10):
         optimized = 'Coherently'
     elif fitness == 'random':
         optimized = 'randomly'
-    elif fitness == 'combined':
+    elif fitness == 'multiObj':
         optimized = 'Both Functionally and Coherently'
     
     fig.suptitle(f'Coherence Distribution for {optimized} Optimized Traps')

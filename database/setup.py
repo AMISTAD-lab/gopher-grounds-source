@@ -165,7 +165,7 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
     cursor.close()
 
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'combined')):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective')):
     ''' Inserts all of the compiled csv files into the database '''
     experimentPath = './csv/{}/{}ExperimentData.csv'
 

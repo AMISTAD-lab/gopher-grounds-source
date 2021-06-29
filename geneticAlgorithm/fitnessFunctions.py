@@ -13,7 +13,7 @@ from geneticAlgorithm.encoding import listDecoding
 randomFoF = {}
 functionalFoF = {}
 coherentFoF = {}
-combinedFoF = {}
+multiobjFoF = {}
 
 randomFitnesses = {}
 functionalFitnesses = {}
@@ -25,7 +25,7 @@ distanceFitneses = {}
 randomFreqs = {}
 functionalFreqs = {}
 coherentFreqs = {}
-combinedFreqs = {}
+multiobjFreqs = {}
 binaryDistanceFreqs = {}
 distanceFreqs = {}
 
@@ -133,15 +133,12 @@ def coherentFitness(encodedInput, updateFreq=False):
 
     return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
 
-def combinedFitness(encodedInput, updateFreq=False):
+def combinedFitness(encodedInput):
     """Assigns a fitness based on the coherence AND function of a configuration"""
 
-    def calcFitness(encoded, updateFreq=False):
+    def calcFitness(encoded):
         # Convert list to string to reference in dictionary
         strEncoding = np.array2string(encoded)
-        
-        if updateFreq:
-            updateFreqs(strEncoding, combinedFreqs, combinedFoF)
 
         if strEncoding in combinedFitnesses:
             return combinedFitnesses[strEncoding]
@@ -166,10 +163,10 @@ def combinedFitness(encodedInput, updateFreq=False):
         return fitness
     
     # Return either a single fitness or a list of fitnesses, depending on argument
-    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, (np.int32, np.int64))):
-        return calcFitness(encodedInput, updateFreq)
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
+        return calcFitness(encodedInput)
 
-    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+    return np.array([calcFitness(trap) for trap in encodedInput])
 
 def binaryDistanceFitness(configuration, targetTrap):
     """Assigns a fitness based on the binary distance to the target configuration"""
@@ -218,9 +215,19 @@ def binaryDistanceFitness(configuration, targetTrap):
 
 #     return distance / (len(encoding) - 3)
 
-def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
-    """given a list of traps, calculate the multiobjective (coherence and functional) fitness for each"""
-    """returns an n x 3 numpy array [multifitness, functionalFitness, coherentFitness] in order of population list"""
+def multiobjectiveFitness(population, updateFreq=False, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+    """
+    Given a list of traps, calculate the multiobjective (coherence and functional) fitness for each.
+    Returns an 1 x n numpy array [multifitness] * combinedFitness(config_maxScore) in order of population list
+    """
+
+    # Return the combined fitness if one trap is passed in
+    if isinstance(population[0], (np.int32, np.int64)):
+        return combinedFitness(population)
+    
+    if updateFreq:
+        for trap in population:
+            updateFreqs(np.array2string(trap), multiobjFreqs, multiobjFoF)
     
     # create preliminary variables
     size = len(population)
@@ -231,9 +238,11 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
     # determine score of trap by number of other traps it dominates
     for trap in population:
         functionals.append(functionalFitness(trap, defaultProbEnter))
-        coherents.append(coherentFitness(trap))  
+        coherents.append(coherentFitness(trap))
+
     data = {"functional fitness": functionals, "coherent fitness": coherents}
     df = pd.DataFrame(data, columns = ["functional fitness", "coherent fitness"])
+
     for i in range(size):
         score = 0
         for j in range(size):
@@ -256,8 +265,6 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
             if len(score_i) == 1:
                 minDist = sqrt(2)   # sqrt(2) is the maximum possible distance between to points in unit square
             else:
-                functional = df.loc[i, "functional fitness"]
-                coherent = df.loc[i, "coherent fitness"]
                 for j in score_i:
                     if i != j:
                         distList.append(dist([df.loc[i, "functional fitness"],df.loc[i, "coherent fitness"]],
@@ -267,4 +274,4 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
     newScores = [scores[i] + boosters[i] for i in range(size)]
     newScores = [newScores[i]/max(newScores) for i in range(size)]
 
-    return np.array(newScores)*combinedFitness(population[np.argmax(newScores)])
+    return np.array(newScores) * combinedFitness(population[np.argmax(newScores)])

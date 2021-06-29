@@ -69,7 +69,7 @@ For both the parsers, the fitness function will have to be given as input. The c
 - random: randomly generates a fitness for each member in a population
 - coherence: assigns the fitness for each member in a population based on the coherence of that trap
 - functional: assigns the fitness of each member in a population based on the function of that trap
-- combined: assigned the fitness of each member in a population based on both the coherence and function of that trap
+- multiobjective: assigned the fitness of each member in a population based on both the coherence and function of that trap
 
 Now, we can provide a table of the common flags that are shown in the help menu:
 

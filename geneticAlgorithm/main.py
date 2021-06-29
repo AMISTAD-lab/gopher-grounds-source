@@ -22,7 +22,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     getWriteData = lambda population, fitnesses : [
             [
                 trial, generation, trap, functionName,
-                round(fitnesses[i]),
+                round(fitnesses[i], 4),
                 round(functions.functionalFitness(trap), 4),
                 round(functions.coherentFitness(trap), 4),
                 round(functions.combinedFitness(trap), 4),
