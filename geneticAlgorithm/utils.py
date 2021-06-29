@@ -30,7 +30,7 @@ def convertEncodingToString(encoding):
     return encodingStr
 
 def convertStringToDecoding(strEncoding):
-    """Takes in a string encoding and returns the decoded trap """
+    """ Takes in a string encoding and returns the decoded trap """
     return encoding.singleDecoding(convertStringToEncoding(strEncoding))
 
 def simulateTrapInBrowser(listEncoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):

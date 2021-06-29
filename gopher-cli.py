@@ -34,7 +34,7 @@ geneticSubparsers = geneticParser.add_subparsers(help='genetic algorithm subpars
 
 # generate trap flags
 generateTrap = geneticSubparsers.add_parser('generate', help='generates a trap')
-generateTrap.add_argument('function', help='a choice of {random, coherence, functional, combined}')
+generateTrap.add_argument('function', help='a choice of {random, coherence, functional, multiobjective}')
 generateTrap.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 generateTrap.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
@@ -43,7 +43,7 @@ generateTrap.add_argument('--show', '-s', help='show output in browser', action=
 
 # run experiment flags
 geneticExperimentParser = geneticSubparsers.add_parser('runExperiment', help='runs an experiment')
-geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
+geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective}')
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
@@ -52,7 +52,7 @@ geneticExperimentParser.add_argument('--no-print-stats', '-np', help='turn off s
 
 # run batch experiments flags
 geneticExperimentParser = geneticSubparsers.add_parser('runBatchExperiments', help='runs an experiment')
-geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, combined}')
+geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective}')
 geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of experiments to run', type=int, default=10)
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
@@ -117,10 +117,10 @@ elif args.command == 'genetic-algorithm':
         fitnessFunc = functions.functionalFitness
         freqs = functions.functionalFreqs
         fof = functions.functionalFoF
-    elif args.function == 'combined':
-        fitnessFunc = functions.combinedFitness
-        freqs = functions.combinedFreqs
-        fof = functions.combinedFoF
+    elif args.function == 'multiobjective':
+        fitnessFunc = functions.multiobjectiveFitness
+        freqs = functions.multiobjFreqs
+        fof = functions.multiobjFoF
     else:
         raise Exception(args.function, ' is not a real fitness function value. Please try again')
 
@@ -141,7 +141,7 @@ elif args.command == 'genetic-algorithm':
         print('Functional fitness:\t', round(functions.functionalFitness(bestTrap), 3))
         print('Combined fitness:\t', round(functions.combinedFitness(bestTrap), 3))
 
-        print(fof)
+        print('FoF:\t', fof)
 
         if args.show:
             util.simulateTrapInBrowser(bestTrap)

@@ -29,6 +29,28 @@ def initializePopulation(cellAlphabet, populationSize = 20):
 
     return np.array(population)
 
+def checkTerminationMultiobjective(functionals, coherents, measure, threshold):
+    """Checks termination as a function of the given fitnesses.
+       Stops when measure ('all', 'mean', 'median') of fitness meets threshold
+    """
+    if (measure not in ['all', 'mean', 'median', 'max']):
+        raise ValueError('measure must be \'all\', \'mean\', \'median\', or \'max\'.')
+
+    # Ensure if all fitnesses meet threshold (if we are using this metric)
+    if measure == 'all':
+        for i in range(len(functionals)):
+            if functionals[i] < threshold or coherents[i] < threshold:
+                return False
+
+    # Check if mean or median threshold is met (if we are using either metric)
+    elif (measure == 'mean' and (np.mean(functionals) < threshold or np.mean(coherents) < threshold)) \
+        or (measure == 'median' and (np.median(functionals) < threshold or np.median(coherents) < threshold)) \
+            or (measure == 'max' and (np.max(functionals) < threshold or np.max(coherents) < threshold)):
+        return False
+
+    # If we get to this part, then all thresholds are met, and we can terminate
+    return True
+
 def selectionFunc(population, fitnesses, numSelected = 2):
     """
     Performs a roulette wheel-style selection process, giving greater weight to members with greater fitnesses.

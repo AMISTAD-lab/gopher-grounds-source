@@ -1,24 +1,25 @@
 import csv
+import os
 from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
 
-def tableExists(tableName: str):
+def exists(tableName: str, type: str):
     ''' Returns true if a table with the given tableName exists '''
     cursor = client.cursor()
 
     queryData = {
-        'type': 'table',
+        'type': type,
         'name': tableName
     }
 
-    isTable = cursor.execute(
+    exists = cursor.execute(
         'SELECT name FROM sqlite_master WHERE type=:type and name=:name', 
         queryData
     ).fetchone()
 
-    cursor = client.cursor()
-    return bool(isTable)
+    cursor.close()
+    return bool(exists)
 
 def setupTables(overwrite = False):
     '''
@@ -27,24 +28,35 @@ def setupTables(overwrite = False):
     '''
     cursor = client.cursor()
 
+    tables = [(EXP_TABLE, EXP_SCHEMA), (FREQ_TABLE, FREQ_SCHEMA)]
+    indexes = [
+        (FUNC_INDEX, FUNC_INDEX_SCHEMA),
+        (LETH_INDEX, LETH_INDEX_SCHEMA),
+        (COHER_INDEX, COHER_INDEX_SCHEMA)
+    ]
+
     if overwrite:
-        cursor.execute('DROP TABLE IF EXISTS {};'.format(EXP_TABLE))
-        cursor.execute('DROP TABLE IF EXISTS {};'.format(FREQ_TABLE))
-        cursor.execute(EXP_SCHEMA)
-        cursor.execute(FREQ_SCHEMA)
+        for (table, schema) in tables:
+            cursor.execute('DROP TABLE IF EXISTS {};'.format(table))
+            cursor.execute(schema)
+
+        for (index, schema) in indexes:
+            cursor.execute('DROP INDEX IF EXISTS {};'.format(index))
+            cursor.execute(schema)
+
         client.commit()
+
         return
     
-    if not tableExists(EXP_TABLE):
-        cursor.execute(EXP_SCHEMA)
+    for (table, schema) in tables:
+        if not exists(table, 'table'):
+            cursor.execute(schema)
     
-    if not tableExists(FREQ_TABLE):
-        cursor.execute(FREQ_SCHEMA)
+    for (index, schema) in indexes:
+        if not exists(index, 'index'):
+            cursor.execute(schema)
     
-    # Commit changes
     client.commit()
-
-    # Close cursor
     cursor.close()
 
 def loadExperiments(inputFile: str):
@@ -152,14 +164,19 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
     # Close cursor
     cursor.close()
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'combined')):
+
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective')):
     ''' Inserts all of the compiled csv files into the database '''
     experimentPath = './csv/{}/{}ExperimentData.csv'
-    frequencyPath = './frequencies/{}/{}FreqsCompiled.csv'
 
     for fitness in fitnesses:
+        thresholds = [0.2, 0.4, 0.6, 0.8]
+
+        if fitness == 'functional':
+            thresholds.append(1.0)
+
         loadExperiments(experimentPath.format(fitness, fitness))
-        loadFrequencies(frequencyPath.format(fitness, fitness), fitness)
+        loadFrequencies(thresholds, fitness)
     
     print('Done.')
 

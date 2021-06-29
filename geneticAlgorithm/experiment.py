@@ -57,8 +57,8 @@ def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, n
         functionName = 'coherence'
     elif fitnessFunc == functions.functionalFitness:
         functionName = 'functional'
-    elif fitnessFunc == functions.combinedFitness:
-        functionName = 'combined'
+    elif fitnessFunc == functions.multiobjectiveFitness:
+        functionName = 'multiobjective'
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
     _, trap, fitness = geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxGenerations, showLogs, trial=trialNo, functionName=functionName, barData=barData, writer=writer)
@@ -78,16 +78,12 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
     fof = {}
     if fitnessFunction == functions.randomFitness:
         functionName = 'random'
-        fof = functions.randomFoF
     elif fitnessFunction == functions.coherentFitness:
         functionName = 'coherence'
-        fof = functions.coherentFoF
     elif fitnessFunction == functions.functionalFitness:
         functionName = 'functional'
-        fof = functions.functionalFoF
-    elif fitnessFunction == functions.combinedFitness:
-        functionName = 'combined'
-        fof = functions.combinedFoF
+    elif fitnessFunction == functions.multiobjectiveFitness:
+        functionName = 'multiobjective'
 
     experimentNum = 0
 
