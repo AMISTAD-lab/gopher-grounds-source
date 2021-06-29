@@ -38,7 +38,6 @@ generateTrap.add_argument('function', help='a choice of {random, coherence, func
 generateTrap.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 generateTrap.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
-generateTrap.add_argument('--export', '-e', help='whether or not to export data to file (changed with -o flag)',  action='store_true')
 generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
 generateTrap.add_argument('--show', '-s', help='show output in browser', action='store_true')
 
@@ -129,23 +128,13 @@ elif args.command == 'genetic-algorithm':
         # Running the simulation
         bestTrap = []
         bestFitness = 0
-        if args.export:
-            bestTrap, bestFitness = util.exportGeneticOutput(
-                args.output_file,
-                constants.CELL_ALPHABET,
-                fitnessFunc,
-                args.threshold,
-                args.max_generations,
-                args.no_logs,
-            )
-        else:
-            finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
-                constants.CELL_ALPHABET,
-                fitnessFunc,
-                args.threshold,
-                args.max_generations,
-                args.no_logs,
-            )
+        finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
+            constants.CELL_ALPHABET,
+            fitnessFunc,
+            args.threshold,
+            args.max_generations,
+            args.no_logs,
+        )
 
         print('Trap (encoded):\t\t', bestTrap)
         print('Coherence fitness:\t', round(functions.coherentFitness(bestTrap), 3))
@@ -165,7 +154,6 @@ elif args.command == 'genetic-algorithm':
             showLogs=args.no_logs,
             numSimulations=args.num_simulations,
             printStatistics=False,
-            keepFreqs=False
         )
 
         print('Trap (Encoded):\t ', trap)
