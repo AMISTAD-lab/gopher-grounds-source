@@ -1,5 +1,6 @@
 import csv
 import numpy as np
+import os
 from progress.bar import IncrementalBar
 from scipy.stats import norm
 import geneticAlgorithm.constants as constants
@@ -40,7 +41,7 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
 
     return proportion, stderr
 
-def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, keepFreqs=False, barData={}):
+def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, barData={}, writer=None):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
@@ -60,7 +61,7 @@ def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, n
         functionName = 'combined'
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxGenerations, showLogs, trial=trialNo, export=keepFreqs, functionName=functionName, barData=barData)
+    _, trap, fitness = geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxGenerations, showLogs, trial=trialNo, functionName=functionName, barData=barData, writer=writer)
 
     # Run the experiment on the generated (optimized) trap
     retList = []
@@ -70,7 +71,7 @@ def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, n
     
     return retList
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxGenerations=10000, showLogs=False, experimentFile=None, overwrite=False):
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxGenerations=10000, showLogs=False, overwrite=False, suffix=''):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
     # Defining the function name for logging purposes
     functionName = ''
@@ -88,14 +89,10 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
         functionName = 'combined'
         fof = functions.combinedFoF
 
-    # If we do not have a file to write to, populate with default value
-    if not experimentFile:
-        experimentFile = f'{functionName}.csv'
-
     experimentNum = 0
 
-    frequencyPath = constants.frequencyPath.format(functionName)
-    experimentPath = constants.experimentPath.format(functionName)
+    frequencyPath = constants.frequencyPath.format(functionName, suffix)
+    experimentPath = constants.experimentPath.format(functionName, suffix)
 
     # If the path exists but not the file, or we are overwriting the file, create it
     csvUtils.updateCSV(frequencyPath, headers=constants.frequencyHeaders, overwrite=overwrite)
@@ -106,53 +103,77 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
     
     # Run the experiment many times
     with IncrementalBar('Fraction done: ', max = numBars) as bar:
-        for i in range(numExperiments):
-            # Clearing old write data
-            writeData = []
+        with open(frequencyPath, 'a', newline='') as freqOut:
+            freqWriter = csv.writer(freqOut)
 
-            # Generates and runs simulations on a trap, returning experiment data
-            experimentData = runExperiment(
-                fitnessFunction,
-                threshold,
-                maxGenerations,
-                showLogs=showLogs,
-                numSimulations=numSimulations,
-                printStatistics=False,
-                trialNo=i+1,
-                keepFreqs=True,
-                barData= { 'counter': 0, 'bar': bar, 'maxSteps': maxSteps, 'numBars': numBars }
-            )
+            for i in range(numExperiments):
+                # Clearing old write data
+                writeData = []
 
-            # Writes the experiment data to a CSV
-            for j, [trap, fitness, proportion, stderr, intention] in enumerate(experimentData):
-                trapStr = utils.convertEncodingToString(trap)
+                # Generates and runs simulations on a trap, returning experiment data
+                experimentData = runExperiment(
+                    fitnessFunction,
+                    threshold,
+                    maxGenerations,
+                    showLogs=showLogs,
+                    numSimulations=numSimulations,
+                    printStatistics=False,
+                    trialNo=i+1,
+                    barData={ 'counter': 0, 'bar': bar, 'maxSteps': maxSteps, 'numBars': numBars },
+                    writer=freqWriter
+                )
 
-                writeData = [
-                    (experimentNum + i) * 2 + j,
-                    trapStr,
-                    functionName,
-                    round(fitness, 4),
-                    intention,
-                    round(functions.functionalFitness(trap), 4),
-                    round(functions.coherentFitness(trap), 4),
-                    round(proportion, 4), round(stderr, 4)
-                ]
+                # Writes the experiment data to a CSV (len(experimentData) == 2)
+                for j, [trap, fitness, proportion, stderr, intention] in enumerate(experimentData):
+                    trapStr = utils.convertEncodingToString(trap)
+
+                    writeData.append([
+                        (experimentNum + i) * 2 + j,
+                        trapStr,
+                        functionName,
+                        round(fitness, 4),
+                        int(intention),
+                        round(functions.functionalFitness(trap), 4),
+                        round(functions.coherentFitness(trap), 4),
+                        round(functions.combinedFitness(trap), 4),
+                        round(proportion, 4), round(stderr, 4)
+                    ])
 
                 # Write data to csv
-                with open(experimentPath, 'a') as out:
-                    writer = csv.writer(out)
-                    writer.writerow(writeData)
-                    out.close()
-    
-        bar.finish()
+                csvUtils.updateCSV(experimentPath, writeData)
+
+                # Commit changes to files and flush buffers
+                freqOut.flush()
+                os.fsync(freqOut)
+
+            bar.finish()
         
     print("SIMULATION FINISHED.\n")
 
-    print("WRITING FREQUENCY OF FREQUENCY DATA...")
+def createFoF(func, suffix=''):
+    '''
+    Take in a fitness function (and optional suffix) and create a frequency of
+    frequency dictionary from the frequency file generated
+    '''
+    fof = {}
+    freqs = {}
 
-    fofPath = constants.fofPath.format(functionName)
+    freqPath = constants.frequencyPath.format(func, suffix)
+
+    with open(freqPath, 'r', newline='') as fRead:
+        reader = csv.reader(fRead)
+
+        for i, [_, _, trap, *_] in enumerate(reader):
+            if i == 0:
+                continue
+
+            functions.updateFreqs(trap, freqs, fof)
+
+            if freqs[trap] == 4:
+                bestTrap = trap
+
+    fofPath = constants.fofPath.format(func, suffix)
     fofData = [[key, fof[key]] for key in sorted(fof.keys())]
 
     csvUtils.updateCSV(fofPath, fofData, constants.fofHeaders, True)
-
-    print('DONE.')
+    

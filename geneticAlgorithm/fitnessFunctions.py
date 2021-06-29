@@ -66,7 +66,7 @@ def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]], upd
         return np.random.random()
     
     # Return either a single fitness or a list of fitnesses, depending on argument
-    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
         return calcFitness(encodedInput, updateFreq)
 
     return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
@@ -102,7 +102,7 @@ def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_EN
         return fitness
 
     # Return either a single fitness or a list of fitnesses, depending on argument
-    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
         return calcFitness(encodedInput, updateFreq)
 
     return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
@@ -128,40 +128,48 @@ def coherentFitness(encodedInput, updateFreq=False):
         return fitness
     
     # Return either a single fitness or a list of fitnesses, depending on argument
-    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], np.int64):
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
         return calcFitness(encodedInput, updateFreq)
 
     return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
 
-def combinedFitness(encoding, updateFreq=False):
+def combinedFitness(encodedInput, updateFreq=False):
     """Assigns a fitness based on the coherence AND function of a configuration"""
-    # Convert list to string to reference in dictionary
-    strEncoding = np.array2string(encoding)
+
+    def calcFitness(encoded, updateFreq=False):
+        # Convert list to string to reference in dictionary
+        strEncoding = np.array2string(encoded)
+        
+        if updateFreq:
+            updateFreqs(strEncoding, combinedFreqs, combinedFoF)
+
+        if strEncoding in combinedFitnesses:
+            return combinedFitnesses[strEncoding]
+
+        MAX_DIFF = 0.2
+
+        coherence = coherentFitness(encoded)
+        functionality = functionalFitness(encoded)
+
+        sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
+        evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(2 * np.abs(x - y)))
+        
+        # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
+        fitness = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
+
+        # If the difference is too large, then penalize the fitness
+        if (np.abs(functionality - coherence) > MAX_DIFF):
+            fitness /= 2
+
+        combinedFitnesses[strEncoding] = fitness
+
+        return fitness
     
-    if updateFreq:
-        updateFreqs(strEncoding, combinedFreqs, combinedFoF)
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, (np.int32, np.int64))):
+        return calcFitness(encodedInput, updateFreq)
 
-    if strEncoding in combinedFitnesses:
-        return combinedFitnesses[strEncoding]
-
-    MAX_DIFF = 0.2
-
-    coherence = coherentFitness(encoding)
-    functionality = functionalFitness(encoding)
-
-    sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
-    evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(2 * np.abs(x - y)))
-    
-    # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
-    fitness = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
-
-    # If the difference is too large, then penalize the fitness
-    if (np.abs(functionality - coherence) > MAX_DIFF):
-        fitness /= 2
-
-    combinedFitnesses[strEncoding] = fitness
-
-    return fitness
+    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
 
 def binaryDistanceFitness(configuration, targetTrap):
     """Assigns a fitness based on the binary distance to the target configuration"""

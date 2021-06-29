@@ -66,13 +66,13 @@ def updateCSV(inputPath, data=None, headers = None, overwrite=False):
     Takes in an input path and a 2D list, then adds the contents of the list to the given input file
     '''
     if not os.path.exists(inputPath) or overwrite:
-        with open(inputPath, 'w+') as out:
+        with open(inputPath, 'w+', newline='') as out:
             writer = csv.writer(out)
             writer.writerow(headers)
             out.close()
 
     if data:
-        with open(inputPath, 'a') as out:
+        with open(inputPath, 'a', newline='') as out:
             writer = csv.writer(out)
             writer.writerows(data)
             out.close()
