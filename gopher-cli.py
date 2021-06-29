@@ -58,7 +58,7 @@ geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of 
 geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show-logs', '-l', help='turns on logs for generations', action='store_true')
-geneticExperimentParser.add_argument('--output-suffix', '-suff', help='a suffix to append to the output file name')
+geneticExperimentParser.add_argument('--output-suffix', '-suff', help='a suffix to append to the output file name', default='')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=5000)
 geneticExperimentParser.add_argument('--no-overwrite', '-nw', help='overwrites the experiment csv file', action='store_false')
 
