@@ -1,5 +1,6 @@
-import copy
+import csv
 import numpy as np
+import os
 import time
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions
@@ -45,61 +46,69 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     currMax = np.argmax(fitnesses)
     maxFitness, bestTrap = fitnesses[currMax], population[currMax]
 
-    while generation < maxGenerations:
-        # Write frequency data before we change the population
-        if export and generation % 1000 == 0:
-            csvUtils.updateCSV(freqPath, writeData, headers)
-            writeData = []
+    if not os.path.exists(freqPath):
+        with open(freqPath, 'w+') as out:
+            writer = csv.writer(out)
+            writer.writerow(headers)
 
-        if showLogs and (generation % 50 == 0):
-            print("Generation {}:".format(generation))
-            print("Max fitness\t:", round(max(fitnesses), 3))
-            print("Min fitness\t:", round(min(fitnesses), 3))
-            print("Mean fitness\t:", round(np.mean(fitnesses), 3))
-            print("Median fitness\t:", round(np.median(fitnesses), 3))
-            print("Lap Time\t:", round(time.time() - lastTime, 4))
-            print("Total Time\t:", round(time.time() - startTime, 4))
-            print("------------------------")
-            print()
-            
-            # Set last time
-            lastTime = time.time()
+    with open(freqPath, 'a') as out:
+        writer = csv.writer(out)
 
-        # Creating new population using genetic algorithm
-        newPopulation = []
-        for _ in range(len(population)):
-            parent1, parent2 = lib.selectionFunc(population, fitnesses)
-            child = lib.crossoverFunc(parent1, parent2)
-            childMutated = lib.mutationFunc(constants.CELL_ALPHABET, child)
-            newPopulation.append(childMutated)
+        while generation < maxGenerations:
+            # Write frequency data before we change the population
+            if export and generation % 1000 == 0:
+                writer.writerows(writeData)
+                writeData = []
 
-        # Calculating new fitnesses and updating the optimal solutions
-        fitnesses = fitnessFunc(newPopulation, updateFreq = True)
-        population = newPopulation
+            if showLogs and (generation % 50 == 0):
+                print("Generation {}:".format(generation))
+                print("Max fitness\t:", round(max(fitnesses), 3))
+                print("Min fitness\t:", round(min(fitnesses), 3))
+                print("Mean fitness\t:", round(np.mean(fitnesses), 3))
+                print("Median fitness\t:", round(np.median(fitnesses), 3))
+                print("Lap Time\t:", round(time.time() - lastTime, 4))
+                print("Total Time\t:", round(time.time() - startTime, 4))
+                print("------------------------")
+                print()
+                
+                # Set last time
+                lastTime = time.time()
 
-        currMax = np.argmax(fitnesses)
-        if fitnesses[currMax] > maxFitness:
-            maxFitness = fitnesses[currMax]
-            bestTrap = newPopulation[currMax]
+            # Creating new population using genetic algorithm
+            newPopulation = []
+            for _ in range(len(population)):
+                parent1, parent2 = lib.selectionFunc(population, fitnesses)
+                child = lib.crossoverFunc(parent1, parent2)
+                childMutated = lib.mutationFunc(constants.CELL_ALPHABET, child)
+                newPopulation.append(childMutated)
 
-        generation += 1
+            # Calculating new fitnesses and updating the optimal solutions
+            fitnesses = fitnessFunc(newPopulation, updateFreq = True)
+            population = newPopulation
 
-        # Add new data to the writeData list
-        if export:
-            writeData.extend(getWriteData(population))
+            currMax = np.argmax(fitnesses)
+            if fitnesses[currMax] > maxFitness:
+                maxFitness = fitnesses[currMax]
+                bestTrap = newPopulation[currMax]
 
-        if barData:
-            barData['counter'] += 1
+            generation += 1
 
-            numBars, maxSteps = barData['numBars'], barData['maxSteps']
-            modulo = maxSteps // numBars if numBars <= maxSteps else 1
-            
-            if barData['counter'] % modulo == 0:
-                barData['bar'].next(n=max(1, numBars / maxSteps))
-            
+            # Add new data to the writeData list
+            if export:
+                writeData.extend(getWriteData(population))
 
-    if export and writeData:
-        csvUtils.updateCSV(freqPath, writeData, headers)
+            if barData:
+                barData['counter'] += 1
+
+                numBars, maxSteps = barData['numBars'], barData['maxSteps']
+                modulo = maxSteps // numBars if numBars <= maxSteps else 1
+                
+                if barData['counter'] % modulo == 0:
+                    barData['bar'].next(n=max(1, numBars / maxSteps))
+                
+
+        if export and writeData:
+            writer.writerows(writeData)
 
     if showLogs:
         print("Generation {}:".format(generation - 1))
