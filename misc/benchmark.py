@@ -64,6 +64,6 @@ for i, trap in enumerate(traps):
     print('Time Simulated  (ms)\t:\t{}'.format(round(simulatedTimeMs, 3)))
     print('Factor Difference\t:\t{}\n\n'.format(round(simulatedTimeMs / analyticTimeMs, 3)))
 
-with open('performance.txt', 'w+') as out:
+with open('performance.txt', 'w+', newline='') as out:
     out.writelines(fileLines)
     out.close()

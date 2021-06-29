@@ -19,7 +19,7 @@ def createFreqOfFreqs(fitnessFunction):
     # Maintain a dictionary of counts
     freqOfFreqs = {}
 
-    with open(inputPath, 'r') as out:
+    with open(inputPath, 'r', newline='') as out:
         reader = csv.reader(out)
 
         for row in reader:
@@ -35,7 +35,7 @@ def createFreqOfFreqs(fitnessFunction):
         out.close()
 
     # Write the data to a file
-    with open(outputPath, 'w+') as out:
+    with open(outputPath, 'w+', newline='') as out:
         writer = csv.writer(out)
         writeData = [['Frequency', 'Frequency_of_Frequency']]
         currI = 1
@@ -60,7 +60,7 @@ def loadFoF(fitnessFunc):
     path = './frequencies/{}/{}FreqOfFreqs.csv'.format(fitnessFunc, fitnessFunc)
 
     compiledDict = {}
-    with open(path, 'r') as out:
+    with open(path, 'r', newline='') as out:
         reader = csv.reader(out)
 
         for row in reader:

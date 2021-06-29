@@ -104,7 +104,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
     
     # Run the experiment many times
     with IncrementalBar('Fraction done: ', max = numBars) as bar:
-        with open(frequencyPath, 'a') as freqOut:
+        with open(frequencyPath, 'a', newline='') as freqOut:
             freqWriter = csv.writer(freqOut)
 
             for i in range(numExperiments):
@@ -128,7 +128,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                 for j, [trap, fitness, proportion, stderr, intention] in enumerate(experimentData):
                     trapStr = utils.convertEncodingToString(trap)
 
-                    writeData = [
+                    writeData.append([
                         (experimentNum + i) * 2 + j,
                         trapStr,
                         functionName,
@@ -137,12 +137,10 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                         round(functions.functionalFitness(trap), 4),
                         round(functions.coherentFitness(trap), 4),
                         round(proportion, 4), round(stderr, 4)
-                    ]
+                    ])
 
-                    # Write data to csv
-                    with open(experimentPath, 'a') as expOut:
-                        expWriter = csv.writer(expOut)
-                        expWriter.writerow(writeData)
+                # Write data to csv
+                csvUtils.updateCSV(experimentPath, writeData)
 
                 # Commit changes to files and flush buffers
                 freqOut.flush()

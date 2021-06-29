@@ -16,14 +16,14 @@ def writeTojs(trapList, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
             gopherTerrainCells: list of tuples (each tuple is: [x, y, rotationType]) (state is always alive)
     """
     jsTemplateName = template
-    newFile = open(newjsFileName, "w") # create new file
+    newFile = open(newjsFileName, "w", newline='') # create new file
     newFile.close()
 
     sh.copy(jsTemplateName, newjsFileName) # copy contents of template to new file
 
     gopherState = util.convertEncodingToString(gopherState)
 
-    jsFile = open(newjsFileName, "a") # open the file to append to
+    jsFile = open(newjsFileName, "a", newline='') # open the file to append to
     jsFile.write("function getInput(){\n")
     jsFile.write("\ttrapList = " + str(trapList) + ";\n")
     jsFile.write("\tshowAnimation = {};\n".format(str(not noAnimation).lower()))

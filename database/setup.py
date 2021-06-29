@@ -53,7 +53,7 @@ def loadExperiments(inputFile: str):
     cursor = client.cursor()
 
     currentBatch = []
-    with open(inputFile, 'r') as out:
+    with open(inputFile, 'r', newline='') as out:
         reader = csv.reader(out)
         for i, row in enumerate(reader):
             if i == 0:
@@ -98,7 +98,7 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
     numBars = 1000
 
     # Get the number of lines in the file
-    with open(inputFile) as file:
+    with open(inputFile, 'r', newline='') as file:
         for i, _ in enumerate(file):
             pass
         rowCount = i - 1
@@ -106,7 +106,7 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
 
     with IncrementalBar('Processing {} frequencies:'.format(fitnessFunction.lower()), max = numBars) as bar:
         currentBatch = []
-        with open(inputFile, 'r') as out:
+        with open(inputFile, 'r', newline='') as out:
             reader = csv.reader(out)
 
             for i, row in enumerate(reader):
