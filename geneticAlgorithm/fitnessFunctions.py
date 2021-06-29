@@ -259,4 +259,4 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
     newScores = [scores[i] + boosters[i] for i in range(size)]
     newScores = [newScores[i]/max(newScores) for i in range(size)]
 
-    return np.array(newScores)
+    return np.array(newScores)*combinedFitness(population[np.argmax(newScores)])
