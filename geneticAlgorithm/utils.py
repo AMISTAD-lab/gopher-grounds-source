@@ -15,16 +15,18 @@ def convertStringToEncoding(strEncoding):
     """Takes in an encoding as a string and returns that encoding as a list"""
     strList = strEncoding.strip()[1:-1] # getting the numbers
     digitList = strList.split(',') # splitting number strings by digits
-    return [int(digit.strip()) for digit in digitList]
+    return np.array([int(digit.strip()) for digit in digitList])
 
 def convertEncodingToString(encoding):
     """Takes in an encoding and returns the string version of it"""
     encodingStr = '[ '
+
     for i, elem in enumerate(encoding):            
         encodingStr += '{}'.format(str(elem))
         if i < len(encoding) - 1:
             encodingStr += ', '
     encodingStr += ' ]'
+    
     return encodingStr
 
 def convertStringToDecoding(strEncoding):
