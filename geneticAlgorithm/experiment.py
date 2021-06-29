@@ -1,5 +1,4 @@
 import csv
-from time import sleep
 import numpy as np
 import os
 from progress.bar import IncrementalBar
@@ -133,9 +132,10 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                         trapStr,
                         functionName,
                         round(fitness, 4),
-                        intention,
+                        int(intention),
                         round(functions.functionalFitness(trap), 4),
                         round(functions.coherentFitness(trap), 4),
+                        round(functions.combinedFitness(trap), 4),
                         round(proportion, 4), round(stderr, 4)
                     ])
 
@@ -150,11 +150,30 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
         
     print("SIMULATION FINISHED.\n")
 
-    print("WRITING FREQUENCY OF FREQUENCY DATA...")
+def createFoF(func, suffix=''):
+    '''
+    Take in a fitness function (and optional suffix) and create a frequency of
+    frequency dictionary from the frequency file generated
+    '''
+    fof = {}
+    freqs = {}
 
-    fofPath = constants.fofPath.format(functionName, suffix)
+    freqPath = constants.frequencyPath.format(func, suffix)
+
+    with open(freqPath, 'r', newline='') as fRead:
+        reader = csv.reader(fRead)
+
+        for i, [_, _, trap, *_] in enumerate(reader):
+            if i == 0:
+                continue
+
+            functions.updateFreqs(trap, freqs, fof)
+
+            if freqs[trap] == 4:
+                bestTrap = trap
+
+    fofPath = constants.fofPath.format(func, suffix)
     fofData = [[key, fof[key]] for key in sorted(fof.keys())]
 
     csvUtils.updateCSV(fofPath, fofData, constants.fofHeaders, True)
-
-    print('DONE.')
+    

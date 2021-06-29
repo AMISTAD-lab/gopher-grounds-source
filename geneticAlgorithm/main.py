@@ -19,13 +19,15 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     population = []
 
     # Destructure population into CSV format
-    getWriteData = lambda population : [
+    getWriteData = lambda population, fitnesses : [
             [
                 trial, generation, trap, functionName,
+                round(fitnesses[i]),
                 round(functions.functionalFitness(trap), 4),
-                round(functions.coherentFitness(trap), 4)
+                round(functions.coherentFitness(trap), 4),
+                round(functions.combinedFitness(trap), 4),
             ]
-            for trap in population
+            for i, trap in enumerate(population)
         ]
 
     # Sampling the (encoded) population until we get one non-zero member
@@ -39,7 +41,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     generation = 0
     startTime = lastTime = time.time()
 
-    writeData = getWriteData(population)
+    writeData = getWriteData(population, fitnesses)
 
     currMax = np.argmax(fitnesses)
     maxFitness, bestTrap = fitnesses[currMax], population[currMax]
@@ -85,7 +87,7 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
 
         # Add new data to the writeData list
         if writer:
-            writeData.extend(getWriteData(population))
+            writeData.extend(getWriteData(population, fitnesses))
 
         if barData:
             barData['counter'] += 1
