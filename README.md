@@ -96,7 +96,7 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | --threshold | -t | 0.8 | value of `measure` over which we terminate|
 | --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
 | --show-logs | -l | False | turns on printing of generation data |
-| --ouput-file | -o | x<sup>1</sup> | output file name (`.csv` or `.txt` allowed) |
+| --ouput-suffix | -suff | x<sup>1</sup> | the suffix to append to the end of the file name |
 | --overwrite | -w | False | overwrites the experiment CSV file created with a new one |
 
 <sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.

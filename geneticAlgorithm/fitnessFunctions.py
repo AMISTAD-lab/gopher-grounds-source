@@ -124,7 +124,7 @@ def coherentFitness(encodedInput, updateFreq=False):
         return fitness
     
     # Return either a single fitness or a list of fitnesses, depending on argument
-    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, (np.int32, np.int64))):
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
         return calcFitness(encodedInput, updateFreq)
 
     return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
