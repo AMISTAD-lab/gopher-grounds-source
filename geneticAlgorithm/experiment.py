@@ -144,7 +144,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                         expWriter = csv.writer(expOut)
                         expWriter.writerow(writeData)
 
-                # Commit changes to files
+                # Commit changes to files and flush buffers
                 freqOut.flush()
                 os.fsync(freqOut)
 
