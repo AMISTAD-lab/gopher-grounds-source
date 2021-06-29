@@ -9,7 +9,7 @@ import misc.csvUtils as csvUtils
 
 cellAlphabet = [x for x in range(93)]
 
-def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True, trial = None, export = False, functionName = '', barData={}):
+def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True, trial = None, export = False, functionName = '', barData={}, freqPath=None):
     """
     Finds a near-optimal solution in the search space using the given fitness function
     Returns a 3-tuple of (finalPopulation, bestTrap (encoded), bestFitness)
@@ -39,7 +39,8 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
     generation = 0
     startTime = lastTime = time.time()
 
-    freqPath = constants.frequencyPath.format(functionName)
+    if not freqPath:
+        freqPath = constants.frequencyPath.format(functionName, '')
     headers = constants.frequencyHeaders
     writeData = getWriteData(population)
 

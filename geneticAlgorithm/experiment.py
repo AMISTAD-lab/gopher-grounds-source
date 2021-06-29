@@ -40,7 +40,7 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
 
     return proportion, stderr
 
-def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, keepFreqs=False, barData={}):
+def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, keepFreqs=False, barData={}, freqPath=''):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
@@ -60,7 +60,7 @@ def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, n
         functionName = 'combined'
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxGenerations, showLogs, trial=trialNo, export=keepFreqs, functionName=functionName, barData=barData)
+    _, trap, fitness = geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxGenerations, showLogs, trial=trialNo, export=keepFreqs, functionName=functionName, barData=barData, freqPath=freqPath)
 
     # Run the experiment on the generated (optimized) trap
     retList = []
@@ -70,7 +70,7 @@ def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, n
     
     return retList
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxGenerations=10000, showLogs=False, experimentFile=None, overwrite=False):
+def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxGenerations=10000, showLogs=False, overwrite=False, suffix=''):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
     # Defining the function name for logging purposes
     functionName = ''
@@ -88,14 +88,10 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
         functionName = 'combined'
         fof = functions.combinedFoF
 
-    # If we do not have a file to write to, populate with default value
-    if not experimentFile:
-        experimentFile = f'{functionName}.csv'
-
     experimentNum = 0
 
-    frequencyPath = constants.frequencyPath.format(functionName)
-    experimentPath = constants.experimentPath.format(functionName)
+    frequencyPath = constants.frequencyPath.format(functionName, suffix)
+    experimentPath = constants.experimentPath.format(functionName, suffix)
 
     # If the path exists but not the file, or we are overwriting the file, create it
     csvUtils.updateCSV(frequencyPath, headers=constants.frequencyHeaders, overwrite=overwrite)
@@ -120,7 +116,8 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
                 printStatistics=False,
                 trialNo=i+1,
                 keepFreqs=True,
-                barData= { 'counter': 0, 'bar': bar, 'maxSteps': maxSteps, 'numBars': numBars }
+                barData={ 'counter': 0, 'bar': bar, 'maxSteps': maxSteps, 'numBars': numBars },
+                freqPath=frequencyPath
             )
 
             # Writes the experiment data to a CSV
@@ -150,7 +147,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
 
     print("WRITING FREQUENCY OF FREQUENCY DATA...")
 
-    fofPath = constants.fofPath.format(functionName)
+    fofPath = constants.fofPath.format(functionName, suffix)
     fofData = [[key, fof[key]] for key in sorted(fof.keys())]
 
     csvUtils.updateCSV(fofPath, fofData, constants.fofHeaders, True)
