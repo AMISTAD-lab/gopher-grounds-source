@@ -1,4 +1,5 @@
 import csv
+from progress.bar import IncrementalBar
 import time
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions
@@ -10,20 +11,26 @@ outputFile = f'./{directory}/functional.csv'
 headers = constants.experimentHeaders if directory == 'csv' else constants.frequencyHeaders
 
 def reformatFunctional(file):
-    with open(file, 'r') as fRead:
-        reader = csv.reader(fRead)
-        acc = []
-        for i, row in enumerate(reader):
-            if i == 0:
-                acc.append(constants.frequencyHeaders)
-                continue
+    maxBars = 2600261
+    numBars = 10000
+    with IncrementalBar('Fraction done: ', max = numBars) as bar:
+        with open(file, 'r') as fRead:
+            reader = csv.reader(fRead)
+            acc = []
+            for i, row in enumerate(reader):
+                if i == 0:
+                    acc.append(constants.frequencyHeaders)
+                    continue
 
-            acc.append([
-                *row[0:5],
-                row[4],
-                *row[5:],
-                round(functions.combinedFitness(utils.convertStringToEncoding(row[2], delim=' ')), 4)
-            ])
+                acc.append([
+                    *row[0:5],
+                    row[4],
+                    *row[5:],
+                    round(functions.combinedFitness(utils.convertStringToEncoding(row[2], delim=' ')), 4)
+                ])
+
+                if i % (maxBars // numBars) == 0:
+                    bar.next()
 
     with open(file, 'w+') as fWrite:
         writer = csv.writer(fWrite)
@@ -72,8 +79,3 @@ def createExperimentCSV(inputFiles, outputFile, headers):
                             *row[7:],
                         ])
 
-
-reset()
-start = time.time()
-reformatFunctional('./test.csv')
-print(round(time.time() - start, 4))
