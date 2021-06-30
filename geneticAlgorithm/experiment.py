@@ -165,9 +165,6 @@ def createFoF(func, suffix=''):
 
             functions.updateFreqs(trap, freqs, fof)
 
-            if freqs[trap] == 4:
-                bestTrap = trap
-
     fofPath = constants.fofPath.format(func, suffix)
     fofData = [[key, fof[key]] for key in sorted(fof.keys())]
 
