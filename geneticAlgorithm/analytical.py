@@ -162,7 +162,7 @@ def gopherSurviveProb(arrowData, leaveTime):
     Returns the probability that a gopher survives given the information of a arrow
     """
     time, cell, thickness = arrowData
-    thickSurviveProb = [0.15, 0.3, 0.45]
+    thickKillProb = [0.15, 0.3, 0.45]
 
     # If cell < 0, then arrow does not hit, and gopher survives
     if cell < 0:
@@ -171,7 +171,7 @@ def gopherSurviveProb(arrowData, leaveTime):
     # position as a function of time
     pos = lambda t : min(t, 3) if t <= leaveTime else min(leaveTime, 3) - (t - leaveTime)
     hit = int(pos(time) == cell or (pos(time) > 0 and cell == 4))
-    return 1 - (hit * thickSurviveProb[thickness.value])
+    return 1 - (hit * thickKillProb[thickness.value])
 
 def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
