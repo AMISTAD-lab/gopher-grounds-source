@@ -1,19 +1,12 @@
 from math import *
-from typing import List, Union
+from typing import Callable, List, Union
 import numpy as np
 import pandas as pd
-import random
 import libs.algorithms as alg
 import geneticAlgorithm.analytical as analytical
 import geneticAlgorithm.constants as constants
 from geneticAlgorithm.encoding import singleDecoding, singleEncoding
-from geneticAlgorithm.utils import createTrap
-from geneticAlgorithm.encoding import listDecoding
-
-randomFoF = {}
-functionalFoF = {}
-coherentFoF = {}
-multiobjFoF = {}
+import geneticAlgorithm.utils as utils
 
 randomFitnesses = {}
 functionalFitnesses = {}
@@ -22,12 +15,8 @@ combinedFitnesses = {}
 binaryDistanceFitnesses = {}
 distanceFitneses = {}
 
-randomFreqs = {}
-functionalFreqs = {}
-coherentFreqs = {}
-multiobjFreqs = {}
-binaryDistanceFreqs = {}
-distanceFreqs = {}
+# Global target trap
+targetTrap = np.array([])
 
 def updateFreqs(strEncoding, freqDict, fofDict):
     ''' Increments the strEncoding freq by 1 and updates all frequencies of frequencies '''
@@ -50,14 +39,11 @@ def updateFreqs(strEncoding, freqDict, fofDict):
 
     fofDict[oldFreq + 1] += 1
 
-def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]], updateFreq=False):
+def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]]):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""   
     ## Prevent duplicate code
-    def calcFitness (encoding: List[int], updateFreq = False):
+    def calcFitness (encoding: List[int]):
         strEncoding = np.array2string(encoding)
-
-        if updateFreq:
-            updateFreqs(strEncoding, randomFreqs, randomFoF)
 
         # Returning cached value
         if strEncoding in randomFitnesses:
@@ -67,25 +53,22 @@ def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]], upd
     
     # Return either a single fitness or a list of fitnesses, depending on argument
     if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
-        return calcFitness(encodedInput, updateFreq)
+        return calcFitness(encodedInput)
 
-    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+    return np.array([calcFitness(trap) for trap in encodedInput])
 
-def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER, updateFreq=False):
+def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
     or compute the the given configuration's probability of killing a gopher
     """
     ## Prevent duplicate code
-    def calcFitness(encoding, updateFreq=False):
+    def calcFitness(encoding):
         configuration = singleDecoding(encoding)
 
         # Convert list to string to reference in dictionary
         strEncoding = np.array2string(encoding)
-
-        if updateFreq:
-            updateFreqs(strEncoding, functionalFreqs, functionalFoF)
 
         # Returning cached value if possible
         if strEncoding in functionalFitnesses:
@@ -103,35 +86,32 @@ def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_EN
 
     # Return either a single fitness or a list of fitnesses, depending on argument
     if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
-        return calcFitness(encodedInput, updateFreq)
+        return calcFitness(encodedInput)
 
-    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+    return np.array([calcFitness(trap) for trap in encodedInput])
 
-def coherentFitness(encodedInput, updateFreq=False):
+def coherentFitness(encodedInput):
     """Assigns a fitness based on the coherence of a given configuration"""
     ## Prevent duplicate code
-    def calcFitness(encoding, updateFreq=False):
+    def calcFitness(encoding):
         configuration = singleDecoding(encoding)
 
         # Convert list to string to reference in dictionary
         strEncoding = np.array2string(encoding)
-        
-        if updateFreq:
-            updateFreqs(strEncoding, coherentFreqs, coherentFoF)
 
         if strEncoding in coherentFitnesses:
             return coherentFitnesses[strEncoding]
 
-        fitness = alg.getCoherenceValue(createTrap(configuration))
+        fitness = alg.getCoherenceValue(utils.createTrap(configuration))
         coherentFitnesses[strEncoding] = fitness
 
         return fitness
     
     # Return either a single fitness or a list of fitnesses, depending on argument
     if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
-        return calcFitness(encodedInput, updateFreq)
+        return calcFitness(encodedInput)
 
-    return np.array([calcFitness(trap, updateFreq) for trap in encodedInput])
+    return np.array([calcFitness(trap) for trap in encodedInput])
 
 def combinedFitness(encodedInput):
     """Assigns a fitness based on the coherence AND function of a configuration"""
@@ -168,28 +148,27 @@ def combinedFitness(encodedInput):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def binaryDistanceFitness(configuration, targetTrap):
+def binaryDistanceFitness(encodedInput):
     """Assigns a fitness based on the binary distance to the target configuration"""
-    encodedTarget = singleEncoding(targetTrap)
-    # Convert list to string to reference in dictionary
-    encoding = singleEncoding(configuration)
-    strEncoding = np.array2string(encoding)
+    def calcFitness(encoding):
+        # Convert list to string to reference in dictionary
+        strEncoding = np.array2string(encoding)
 
-    # Maintain frequency dictionary
-    if strEncoding not in binaryDistanceFreqs:
-        binaryDistanceFreqs[strEncoding] = 0
-    
-    binaryDistanceFreqs[strEncoding] += 1
+        if strEncoding in binaryDistanceFitnesses:
+            return binaryDistanceFitnesses[strEncoding]
 
-    if strEncoding in binaryDistanceFitnesses:
-        return binaryDistanceFitnesses[strEncoding]
+        numDiff = 0.0
+        for i in range(len(encoding)):
+            if encoding[i] != targetTrap[i]:
+                numDiff += 1
 
-    numDiff = 0.0
-    for i in range(len(encoding)):
-        if encoding[i] != encodedTarget[i]:
-            numDiff += 1
+        return 1 - (numDiff / (len(encoding) - 3))
 
-    return numDiff/(len(encoding) - 3)
+    # Return either a single fitness or a list of fitnesses, depending on argument
+    if isinstance(encodedInput, np.ndarray) and isinstance(encodedInput[0], (np.int32, np.int64)):
+        return calcFitness(encodedInput)
+
+    return np.array([calcFitness(trap) for trap in encodedInput])
 
 # TODO: Fix this function
 # def distanceFitness(configuration, targetTrap):
@@ -215,7 +194,7 @@ def binaryDistanceFitness(configuration, targetTrap):
 
 #     return distance / (len(encoding) - 3)
 
-def multiobjectiveFitness(population, updateFreq=False, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Given a list of traps, calculate the multiobjective (coherence and functional) fitness for each.
     Returns an 1 x n numpy array [multifitness] * combinedFitness(config_maxScore) in order of population list
@@ -224,10 +203,6 @@ def multiobjectiveFitness(population, updateFreq=False, defaultProbEnter = const
     # Return the combined fitness if one trap is passed in
     if isinstance(population[0], (np.int32, np.int64)):
         return combinedFitness(population)
-    
-    if updateFreq:
-        for trap in population:
-            updateFreqs(np.array2string(trap), multiobjFreqs, multiobjFoF)
     
     # create preliminary variables
     size = len(population)
@@ -275,3 +250,16 @@ def multiobjectiveFitness(population, updateFreq=False, defaultProbEnter = const
     newScores = [newScores[i]/max(newScores) for i in range(size)]
 
     return np.array(newScores) * combinedFitness(population[np.argmax(newScores)])
+
+functionLut = {
+    'random': randomFitness,
+    'functional': functionalFitness,
+    'cohernece': coherentFitness,
+    'multiobjective': multiobjectiveFitness,
+    'binary-distance': binaryDistanceFitness,
+}
+
+def getFunctionFromName(functionName: str) -> Callable:
+    """Takes in a function name, returns the corresponding fitness function"""
+    return functionLut[functionName]
+
