@@ -35,7 +35,6 @@ geneticSubparsers = geneticParser.add_subparsers(help='genetic algorithm subpars
 # generate trap flags
 generateTrap = geneticSubparsers.add_parser('generate', help='generates a trap')
 generateTrap.add_argument('function', help='a choice of {random, coherence, functional, multiobjective}')
-generateTrap.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 generateTrap.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
 generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
@@ -43,8 +42,7 @@ generateTrap.add_argument('--show', '-s', help='show output in browser', action=
 
 # run experiment flags
 geneticExperimentParser = geneticSubparsers.add_parser('runExperiment', help='runs an experiment')
-geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective}')
-geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
+geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective, binary-distance}')
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=5000)
@@ -52,9 +50,8 @@ geneticExperimentParser.add_argument('--no-print-stats', '-np', help='turn off s
 
 # run batch experiments flags
 geneticExperimentParser = geneticSubparsers.add_parser('runBatchExperiments', help='runs an experiment')
-geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective}')
+geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective, binary-distance}')
 geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of experiments to run', type=int, default=10)
-geneticExperimentParser.add_argument('--threshold', '-t', help='the threshold to use for termination in [0, 1]', type=float, default=0.8)
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
 geneticExperimentParser.add_argument('--show-logs', '-l', help='turns on logs for generations', action='store_true')
 geneticExperimentParser.add_argument('--output-suffix', '-suff', help='a suffix to append to the output file name', default='Generated')
@@ -101,37 +98,12 @@ elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
         print('Combined fitness:\t', round(functions.combinedFitness(util.convertStringToEncoding(args.trap)), 3))
 
 elif args.command == 'genetic-algorithm':
-    # Defining the fitness function
-    fitnessFunc = lambda x : 0
-    freqs = {}
-    fof = {}
-    if args.function == 'random':
-        fitnessFunc = functions.randomFitness
-        freqs = functions.randomFreqs
-        fof = functions.randomFoF
-    elif args.function == 'coherence':
-        fitnessFunc = functions.coherentFitness
-        freqs = functions.coherentFreqs
-        fof = functions.coherentFoF
-    elif args.function == 'functional':
-        fitnessFunc = functions.functionalFitness
-        freqs = functions.functionalFreqs
-        fof = functions.functionalFoF
-    elif args.function == 'multiobjective':
-        fitnessFunc = functions.multiobjectiveFitness
-        freqs = functions.multiobjFreqs
-        fof = functions.multiobjFoF
-    else:
-        raise Exception(args.function, ' is not a real fitness function value. Please try again')
-
     if args.genetic == 'generate':
         # Running the simulation
         bestTrap = []
         bestFitness = 0
         finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
-            constants.CELL_ALPHABET,
-            fitnessFunc,
-            args.threshold,
+            args.function,
             args.max_generations,
             args.no_logs,
         )
@@ -141,15 +113,12 @@ elif args.command == 'genetic-algorithm':
         print('Functional fitness:\t', round(functions.functionalFitness(bestTrap), 3))
         print('Combined fitness:\t', round(functions.combinedFitness(bestTrap), 3))
 
-        print('FoF:\t', fof)
-
         if args.show:
             util.simulateTrapInBrowser(bestTrap)
     
     elif args.genetic == 'runExperiment':
         trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
-            fitnessFunc, 
-            args.threshold,
+            args.function,
             maxGenerations=args.max_generations,
             showLogs=args.no_logs,
             numSimulations=args.num_simulations,
@@ -166,11 +135,11 @@ elif args.command == 'genetic-algorithm':
     elif args.genetic == 'runBatchExperiments':
         geneticExperiment.runBatchExperiments(
             numExperiments=args.num_experiments,
-            fitnessFunction=fitnessFunc,
-            threshold=args.threshold,
+            functionName=args.function,
             numSimulations=args.num_simulations,
             maxGenerations=args.max_generations,
             showLogs=args.show_logs,
             overwrite=args.no_overwrite,
             suffix=args.output_suffix,
         )
+

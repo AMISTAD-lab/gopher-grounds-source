@@ -186,6 +186,6 @@ def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER
     for i, dist in enumerate(timeDist):
         leaveTime = getLeaveTime(leftData[0], rightData[0], i + 1)
         deathProb = 1 - gopherSurviveProb(leftData, leaveTime) * gopherSurviveProb(rightData, leaveTime)
-        sumProb += deathProb * dist
+        sumProb += (deathProb * dist)
 
     return sumProb * defaultProbEnter
