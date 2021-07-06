@@ -3,7 +3,6 @@ import os
 import webbrowser
 import classes.Trap as TrapClass
 import geneticAlgorithm.encoding as encoding
-from geneticAlgorithm.main import geneticAlgorithm
 import libs.simulation as sim
 import libs.visualize as vis
 

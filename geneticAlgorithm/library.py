@@ -1,19 +1,36 @@
 import numpy as np
 import random
 import geneticAlgorithm.encoding as encoding
+import geneticAlgorithm.constants as constants
 
 """
 A library of all essential functions for the genetic algorithm
 """
+def generateTrap():
+    member = []
+    for i in range(12):
+        cellCode = random.randrange(2, len(constants.CELL_ALPHABET), 1)
+        
+        # Ensuring the board is valid
+        if i == 4:
+            cellCode = 1 # Food
+        elif i == 7:
+            cellCode = 2 # Floor
+        elif i == 10:
+            cellCode = 0 # Door
 
-def initializePopulation(cellAlphabet, populationSize = 20):
+        member.append(cellCode)
+    return np.array(member)
+
+
+def initializePopulation(populationSize = 20):
     """ Initializes the population by sampling from the search space """
     population = []
     for _ in range(populationSize):
         # Temporary variable to store configuration as it is generated
         member = []
         for i in range(12):
-            cellCode = random.randrange(2, len(cellAlphabet), 1)
+            cellCode = random.randrange(2, len(constants.CELL_ALPHABET), 1)
             
             # Ensuring the board is valid
             if i == 4:
@@ -75,7 +92,7 @@ def crossoverFunc(member1, member2):
     # Calculate the left and right ends of the new members
     return np.append(member1[:index], member2[index:])
 
-def mutationFunc(cellAlphabet, member):
+def mutationFunc(member):
     """Performs one a single point mutation on the insertee of the new population"""
     # Get the index of the member in the encoded population and the index of the cell to mutate
     index = random.randrange(0, len(member), 1)
@@ -85,6 +102,6 @@ def mutationFunc(cellAlphabet, member):
         index = random.randrange(0, len(member), 1)
 
     # Change the member of the encoded population and the generated index (not door or food)
-    member[index] = cellAlphabet[random.randrange(2, len(cellAlphabet), 1)]
+    member[index] = constants.CELL_ALPHABET[random.randrange(2, len(constants.CELL_ALPHABET), 1)]
 
     return np.array(member)
