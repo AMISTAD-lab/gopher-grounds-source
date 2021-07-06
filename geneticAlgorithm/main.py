@@ -1,22 +1,18 @@
-import csv
 import numpy as np
-import os
 import time
-import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.library as lib
-import misc.csvUtils as csvUtils
 
-cellAlphabet = [x for x in range(93)]
-
-def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 10000, showLogs = True, trial = None, functionName = '', barData={}, writer=None):
+def geneticAlgorithm(functionName, maxGenerations = 10000, showLogs = True, trial = None, barData={}, writer=None):
     """
     Finds a near-optimal solution in the search space using the given fitness function
     Returns a 3-tuple of (finalPopulation, bestTrap (encoded), bestFitness)
     """
+    fitnessFunc = functions.getFunctionFromName(functionName)
     fitnesses = np.array([0 for _ in range(15)])
-
-    population = []
+    population = np.array([])
+    if functionName == 'binary-distance':
+        functions.targetTrap = lib.generateTrap()
 
     # Destructure population into CSV format
     getWriteData = lambda population, fitnesses : [
@@ -32,11 +28,11 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
 
     # Sampling the (encoded) population until we get one non-zero member
     while(np.count_nonzero(fitnesses) == 0):
-        population = lib.initializePopulation(cellAlphabet)
+        population = lib.initializePopulation()
         fitnesses = fitnessFunc(population)
     
     # Recalculate frequencies
-    fitnesses = fitnessFunc(population, updateFreq=True)
+    fitnesses = fitnessFunc(population)
 
     generation = 0
     startTime = lastTime = time.time()
@@ -71,11 +67,11 @@ def geneticAlgorithm(cellAlphabet, fitnessFunc, threshold, maxGenerations = 1000
         for _ in range(len(population)):
             parent1, parent2 = lib.selectionFunc(population, fitnesses)
             child = lib.crossoverFunc(parent1, parent2)
-            childMutated = lib.mutationFunc(constants.CELL_ALPHABET, child)
+            childMutated = lib.mutationFunc(child)
             newPopulation.append(childMutated)
 
         # Calculating new fitnesses and updating the optimal solutions
-        fitnesses = fitnessFunc(newPopulation, updateFreq = True)
+        fitnesses = fitnessFunc(newPopulation)
         population = newPopulation
 
         currMax = np.argmax(fitnesses)

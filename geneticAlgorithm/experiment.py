@@ -41,7 +41,7 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
 
     return proportion, stderr
 
-def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, barData={}, writer=None):
+def runExperiment(functionName, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, barData={}, writer=None):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
@@ -49,19 +49,9 @@ def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, n
     Returns a list of 2 5-tuples of (trap (encoded), fitness, proportion, stderr, intention), where intention
     is varied between True and False
     '''
-    # Defining the function name for logging purposes
-    functionName = ''
-    if fitnessFunc == functions.randomFitness:
-        functionName = 'random'
-    elif fitnessFunc == functions.coherentFitness:
-        functionName = 'coherence'
-    elif fitnessFunc == functions.functionalFitness:
-        functionName = 'functional'
-    elif fitnessFunc == functions.multiobjectiveFitness:
-        functionName = 'multiobjective'
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = geneticAlgorithm(constants.CELL_ALPHABET, fitnessFunc, threshold, maxGenerations, showLogs, trial=trialNo, functionName=functionName, barData=barData, writer=writer)
+    _, trap, fitness = geneticAlgorithm(functionName, maxGenerations, showLogs, trial=trialNo, barData=barData, writer=writer)
 
     # Run the experiment on the generated (optimized) trap
     retList = []
@@ -69,21 +59,13 @@ def runExperiment(fitnessFunc, threshold, maxGenerations=10000, showLogs=True, n
         proportion, stderr = runSimulations(trap, numSimulations=numSimulations, intention=intention, printStatistics=printStatistics)
         retList.append([trap, fitness, proportion, stderr, intention])
     
+    print(functions.targetTrap)
     return retList
 
-def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulations = 5000, maxGenerations=10000, showLogs=False, overwrite=False, suffix=''):
+def runBatchExperiments(numExperiments, functionName, numSimulations = 5000, maxGenerations=10000, showLogs=False, overwrite=False, suffix=''):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
     # Defining the function name for logging purposes
-    functionName = ''
-    fof = {}
-    if fitnessFunction == functions.randomFitness:
-        functionName = 'random'
-    elif fitnessFunction == functions.coherentFitness:
-        functionName = 'coherence'
-    elif fitnessFunction == functions.functionalFitness:
-        functionName = 'functional'
-    elif fitnessFunction == functions.multiobjectiveFitness:
-        functionName = 'multiobjective'
+    fitnessFunction = functions.getFunctionFromName(functionName)
 
     experimentNum = 0
 
@@ -108,8 +90,7 @@ def runBatchExperiments(numExperiments, fitnessFunction, threshold, numSimulatio
 
                 # Generates and runs simulations on a trap, returning experiment data
                 experimentData = runExperiment(
-                    fitnessFunction,
-                    threshold,
+                    functionName,
                     maxGenerations,
                     showLogs=showLogs,
                     numSimulations=numSimulations,
