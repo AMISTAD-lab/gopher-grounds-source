@@ -38,7 +38,7 @@ FREQ_SCHEMA = 'CREATE TABLE {} (\
 );'.format(FREQ_TABLE)
 
 FUNC_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} ([function], [trap]);'.format(FUNC_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} ([function], [trap], [frequency]);'.format(FUNC_INDEX, FREQ_TABLE)
 
 LETH_COHER_INDEX_SCHEMA = \
     'CREATE INDEX {} ON {} ([function], [lethality], [coherence]);'.format(LETH_COHER_INDEX, FREQ_TABLE)

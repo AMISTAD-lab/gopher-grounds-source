@@ -5,12 +5,12 @@ from database.client import client
 from database.constants import *
 import geneticAlgorithm.constants as constants
 
-def getTrapFreq(trap: Union[str, List[int], np.ndarray], function: str = None) -> int:
+def getTrapFreq(trap: Union[str, List[int], np.ndarray], func: str = None) -> int:
     ''' Takes in a trap and returns the frequency of that trap with the fitness function '''
     # Open a cursor
     cursor = client.cursor()
 
-    if not function:
+    if not func:
         raise Exception('Need to provide a fitness function to search by')
     
     # Standardizing input type
@@ -23,7 +23,7 @@ def getTrapFreq(trap: Union[str, List[int], np.ndarray], function: str = None) -
     frequency = cursor.execute(f' \
         SELECT SUM([frequency]) FROM {FREQ_TABLE} \
         WHERE [function] = :function AND [trap] = :trap;',
-        { 'function': function, 'trap': trap }
+        { 'function': func, 'trap': trap }
     ).fetchone()
 
     if not frequency:
