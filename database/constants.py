@@ -38,16 +38,16 @@ FREQ_SCHEMA = 'CREATE TABLE {} (\
 );'.format(FREQ_TABLE)
 
 FUNC_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (function, trap);'.format(FUNC_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} ([function], [trap]);'.format(FUNC_INDEX, FREQ_TABLE)
 
 LETH_COHER_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (function, lethality, coherence);'.format(LETH_COHER_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} ([function], [lethality], [coherence]);'.format(LETH_COHER_INDEX, FREQ_TABLE)
 
 COHER_LETH_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (function, coherence, lethality);'.format(COHER_LETH_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} ([function], [coherence], [lethality]);'.format(COHER_LETH_INDEX, FREQ_TABLE)
 
 GENER_LETH_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (function, generation, lethality);'.format(GENER_LETH_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} ([function], [generation], [coherence], [lethality]);'.format(GENER_LETH_INDEX, FREQ_TABLE)
 
 GENER_COHER_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} (function, generation, coherence);'.format(GENER_COHER_INDEX, FREQ_TABLE)
+    'CREATE INDEX {} ON {} ([function], [generation], [coherence], [lethality]);'.format(GENER_COHER_INDEX, FREQ_TABLE)

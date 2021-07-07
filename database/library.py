@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import Callable, List, Union
+from typing import List, Union
 from database.client import client
 from database.constants import *
 import geneticAlgorithm.constants as constants
@@ -20,10 +20,9 @@ def getTrapFreq(trap: Union[str, List[int], np.ndarray], function: str = None) -
         
         trap = np.array2string(trap)
 
-    frequency = cursor.execute(' \
-        SELECT SUM(frequency) FROM frequencies \
-        WHERE function = :function AND trap = :trap; \
-        '.format(FREQ_TABLE),
+    frequency = cursor.execute(f' \
+        SELECT SUM([frequency]) FROM {FREQ_TABLE} \
+        WHERE [function] = :function AND [trap] = :trap;',
         { 'function': function, 'trap': trap }
     ).fetchone()
 
@@ -35,17 +34,17 @@ def getTrapFreq(trap: Union[str, List[int], np.ndarray], function: str = None) -
 
     return frequency[0]
 
-def getLethalityCount(fitness: str, limit = 0):
+def getSingleLethalityCount(fitness: str) -> pd.DataFrame:
     '''
     Returns a list of pairs (count, lethality), which represents the number of traps with a given lethality.
     The fitness function to filter by must be passed in as well.
     '''
     cursor = client.cursor()
 
-    cursor.execute(' \
-        SELECT lethality, SUM(frequency) FROM {} \
-        WHERE function = :function \
-        GROUP BY lethality;'.format(FREQ_TABLE, f' LIMIT {limit}' if limit else ''),
+    cursor.execute(f' \
+        SELECT [lethality], SUM([frequency]) FROM {FREQ_TABLE} \
+        WHERE [function] = :function \
+        GROUP BY [lethality];',
         { 'function': fitness }
     )
 
@@ -60,19 +59,24 @@ def getLethalityCount(fitness: str, limit = 0):
 
     cursor.close()
 
-    return pd.DataFrame.from_dict(lethPoints, orient='index', columns=['Frequency']).rename_axis('Lethality')
+    # Creating proportions instead of frequencies
+    ser = pd.Series(lethPoints, name=fitness)
+    if ser.to_numpy().sum():
+        ser /= ser.to_numpy().sum()
 
-def getCoherenceCount(fitness: str, limit = 0) -> List[dict]:
+    return ser
+
+def getSingleCoherenceCount(fitness: str) -> pd.DataFrame:
     '''
     Returns a list of pairs (count, coherence), which represents the number of traps with a given lethality.
     The fitness function to filter by must be passed in as well.
     '''
     cursor = client.cursor()
 
-    cursor.execute(' \
-        SELECT coherence, SUM(frequency) FROM {} \
-        WHERE function = :function \
-        GROUP BY coherence;'.format(FREQ_TABLE, f' LIMIT {limit}' if limit else ''),
+    cursor.execute(f' \
+        SELECT [coherence], SUM([frequency]) FROM {FREQ_TABLE} \
+        WHERE [function] = :function \
+        GROUP BY [coherence];',
         { 'function': fitness }
     )
 
@@ -87,7 +91,56 @@ def getCoherenceCount(fitness: str, limit = 0) -> List[dict]:
 
     cursor.close()
 
-    return pd.DataFrame.from_dict(cohPoints, orient='index', columns=['Frequency']).rename_axis('Coherence')
+    # Creating proportions instead of frequencies
+    ser = pd.Series(cohPoints, name=fitness)
+    if ser.to_numpy().sum():
+        ser /= ser.to_numpy().sum()
+
+    return ser
+
+def getTotalLethalityCounts() -> pd.DataFrame:
+    '''
+    Returns a data frame where the columns correspond to different fitness functions, and each cell 
+    represents the number of traps with a given lethality.
+    '''
+    # Create a list of series for each of the coherence counts per function
+    serList = [getSingleLethalityCount(func) for func in (*constants.FUNCTIONS, 'designed')]
+    
+    df = pd.concat(serList, axis=1)
+    df.fillna(0, inplace=True)
+    
+    df.rename(
+        index={ ind: '%.3f' % ind for ind in df.index },
+        columns={
+            'multiobjective': 'multiobj',
+            'binary-distance': 'hamming',
+        },
+        inplace=True
+    )
+
+    return df
+
+def getTotalCoherenceCounts() -> pd.DataFrame:
+    '''
+    Returns a data frame where the columns correspond to different fitness functions, and each cell 
+    represents the number of traps with a given lethality.
+    '''
+    # Create a list of series for each of the coherence counts per function
+    serList = [getSingleCoherenceCount(func) for func in (*constants.FUNCTIONS, 'designed')]
+    
+    df = pd.concat(serList, axis=1)
+    df.fillna(0, inplace=True)
+    
+    df.rename(
+        index={ ind: '%.3f' % ind for ind in df.index },
+        columns={
+            'multiobjective': 'multiobj',
+            'binary-distance': 'hamming',
+        },
+        inplace=True
+    )
+
+    return df
 
 def getLethalityData(fitness: str) -> pd.DataFrame:
     '''
@@ -97,10 +150,10 @@ def getLethalityData(fitness: str) -> pd.DataFrame:
     '''
     cursor = client.cursor()
 
-    cursor.execute(' \
-        SELECT SUM(frequency), lethality, coherence FROM {} \
-        WHERE function = :function \
-        GROUP BY lethality, coherence;'.format(FREQ_TABLE),
+    cursor.execute(f' \
+        SELECT SUM([frequency]), [lethality], [coherence] FROM {FREQ_TABLE} \
+        WHERE [function] = :function \
+        GROUP BY [lethality], [coherence];',
         { 'function': fitness }
     )
 
@@ -124,9 +177,19 @@ def getLethalityData(fitness: str) -> pd.DataFrame:
             if coherence not in lethPoints[lethality]:
                 lethPoints[lethality][coherence] = 0
 
-    return pd.DataFrame(lethPoints)
+    df = pd.DataFrame(lethPoints)
 
-def getCoherenceData(fitness: str) -> List[dict]:
+    # Rename dataframe to have column/index names w/ standardized number of digits
+    df.rename(columns={ leth: '%.3f' % leth for leth in constants.lethalities }, inplace=True)
+    df.rename(index={ coher: '%.3f' % coher for coher in constants.coherences }, inplace=True)
+
+    ## Get proportions
+    if df.to_numpy().sum():
+        df /= df.to_numpy().sum()
+
+    return df
+
+def getCoherenceData(fitness: str) -> pd.DataFrame:
     '''
     Returns a list of dictionaries of threshold -> List pairs, where each value contains a list
     of all the data points whose coherence values are contained in the given interval [low, high].
@@ -134,10 +197,10 @@ def getCoherenceData(fitness: str) -> List[dict]:
     '''
     cursor = client.cursor()
 
-    cursor.execute(' \
-        SELECT SUM(frequency), coherence, lethality FROM {} \
-        WHERE function = :function \
-        GROUP BY coherence, lethality;'.format(FREQ_TABLE),
+    cursor.execute(f' \
+        SELECT SUM([frequency]), [coherence], [lethality] FROM {FREQ_TABLE} \
+        WHERE [function] = :function \
+        GROUP BY [coherence], [lethality];',
         { 'function': fitness }
     )
 
@@ -161,11 +224,54 @@ def getCoherenceData(fitness: str) -> List[dict]:
             if lethality not in cohPoints[coherence]:
                 cohPoints[coherence][lethality] = 0
 
-    return pd.DataFrame(cohPoints)
+    df = pd.DataFrame(cohPoints)
 
-def getGenerationData(func: str, filter: str) -> pd.DataFrame:
+    # Rename dataframe to have column/index names w/ standardized number of digits
+    df.rename(columns={ coher: '%.3f' % coher for coher in constants.coherences }, inplace=True)
+    df.rename(index={ leth: '%.3f' % leth for leth in constants.lethalities }, inplace=True)
+
+    ## Get proportions
+    if df.to_numpy().sum():
+        df /= df.to_numpy().sum()
+
+    return df
+
+def getGenerationData(func: str) -> np.ndarray:
     '''
-    Returns a dataframe of generation data vs filter (either coherence or lethality) data,
-    where the coherence/lethality value counts are tabulated per 1000 generations
+    Returns a 3 x n np array of [coherence, lethality, genRange] vals which holds 
+    all the coherence and lethality data split into 10 generation ranges (as enumerated
+    in constants.generations)
     '''
-    pass
+    cursor = client.cursor()
+
+    cursor.execute(f' \
+        SELECT [coherence], [lethality], generation, SUM([frequency]) \
+        FROM {FREQ_TABLE} WHERE [function] = :function \
+        GROUP BY generation, [coherence], [lethality] \
+        ORDER BY generation DESC; \
+    ', { 'function': func })
+
+    coherenceArr = []
+    lethalitiesArr = []
+    genRangeArr = []
+
+    for (coh, leth, genRange, freq) in cursor.fetchall():
+        for _ in range(freq):
+            coherenceArr.append(coh)
+            lethalitiesArr.append(leth)
+            genRangeArr.append(genRange)
+
+    return np.array([coherenceArr, lethalitiesArr, genRangeArr])
+
+    # coherence = []
+    # lethalities = []
+    # generations = []
+    # frequencies = []
+
+    # for (coh, leth, gen, freq) in cursor.fetchall():
+    #     coherence.append(coh)
+    #     lethalities.append(leth)
+    #     generations.append(gen)
+    #     frequencies.append(freq)
+
+    # return np.array([coherence, lethalities, generations, frequencies])

@@ -35,7 +35,7 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
     )
 
     if printStatistics:
-        print('Proportion: ', proportion)
+        print('Proportion Dead: ', round(proportion, 3))
         print('Std Error: ', round(stderr, 3))
         print('CI: [', round(conf_interval[0], 3), ', ', round(conf_interval[1], 3), ']')
 

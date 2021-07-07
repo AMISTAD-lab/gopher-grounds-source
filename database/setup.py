@@ -106,6 +106,7 @@ def loadFrequencies(inputFile: str):
     print('Starting to load frequencies from {}.'.format(inputFile.split('/')[-1]))
     rowCount = 0
     numBars = 1000
+    barSkip = 1
 
     # Get the number of lines in the file
     with open(inputFile, 'r', newline='') as file:
@@ -113,6 +114,11 @@ def loadFrequencies(inputFile: str):
             pass
         rowCount = i - 1
         file.close()
+
+    modulo = rowCount // numBars
+    if not modulo:
+        modulo = 1
+        barSkip = numBars // rowCount
 
     with IncrementalBar('Processing:', max = numBars) as bar:
         currentBatch = []
@@ -125,7 +131,11 @@ def loadFrequencies(inputFile: str):
 
                 # Cast data types
                 row[0] = int(row[0])
+
+                # Making generation an enum to speed up query
                 row[1] = int(row[1])
+                row[1] = row[1] // 1000 if row[1] < 1e4 else 9
+
                 row[4] = float(row[4])
                 row[5] = float(row[5])
                 row[6] = float(row[6])
@@ -143,8 +153,8 @@ def loadFrequencies(inputFile: str):
                     currentBatch = []
                 
                 # Increment the bar 
-                if i % (rowCount // numBars) == 0:
-                    bar.next()
+                if i % modulo == 0:
+                    bar.next(n=barSkip)
             
             # Committing the remainder of the rows that may have not been added
             if currentBatch:
@@ -166,7 +176,7 @@ def loadFrequencies(inputFile: str):
     cursor.close()
 
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective')):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'designed')):
     ''' Inserts all of the compiled csv files into the database '''
     experimentPath = constants.experimentPath
     frequencyPath = constants.frequencyPath
