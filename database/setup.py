@@ -3,6 +3,7 @@ import os
 from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
+import geneticAlgorithm.constants as constants
 
 def exists(tableName: str, type: str):
     ''' Returns true if a table with the given tableName exists '''
@@ -31,8 +32,8 @@ def setupTables(overwrite = False):
     tables = [(EXP_TABLE, EXP_SCHEMA), (FREQ_TABLE, FREQ_SCHEMA)]
     indexes = [
         (FUNC_INDEX, FUNC_INDEX_SCHEMA),
-        (LETH_INDEX, LETH_INDEX_SCHEMA),
-        (COHER_INDEX, COHER_INDEX_SCHEMA)
+        (LETH_COHER_INDEX, LETH_COHER_INDEX_SCHEMA),
+        (COHER_LETH_INDEX, COHER_LETH_INDEX_SCHEMA)
     ]
 
     if overwrite:
@@ -71,22 +72,22 @@ def loadExperiments(inputFile: str):
             if i == 0:
                 continue
 
-            # Get the row
-            parsedRow = row[1:]
-
             # Cast data types
-            parsedRow[1] = float(parsedRow[1])
-            parsedRow[3] = float(parsedRow[3])
-            parsedRow[4] = float(parsedRow[4])
-            parsedRow[6] = 1 if parsedRow[6] == 'True' else 0
-            parsedRow[7] = float(parsedRow[7])
+            row[0] = int(row[0])
+            row[3] = float(row[3])
+            row[4] = int(row[4])
+            row[5] = float(row[5])
+            row[6] = float(row[6])
+            row[7] = float(row[7])
+            row[8] = float(row[8])
+            row[9] = float(row[9])
 
-            currentBatch.append(parsedRow)
+            currentBatch.append(row)
 
             # Commit every 1000 elements and reset batch
             if i % 1000 == 0:
                 cursor.executemany(
-                    'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?);'.format(EXP_TABLE),
+                    'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'.format(EXP_TABLE),
                     currentBatch
                 )
                 currentBatch = []
@@ -97,17 +98,15 @@ def loadExperiments(inputFile: str):
     # Close cursor
     cursor.close()
 
-def loadFrequencies(inputFile: str, fitnessFunction: str):
+def loadFrequencies(inputFile: str):
     ''' Takes in a frequency csv file as input and loads the data into the database '''
-    if not fitnessFunction:
-        raise Exception('Need to include the fitness function to insert into {}.'.format(FREQ_TABLE))
-
     # Open a cursor
     cursor = client.cursor()
 
-    print('Starting to load {} frequencies'.format(fitnessFunction))
+    print('Starting to load frequencies from {}.'.format(inputFile.split('/')[-1]))
     rowCount = 0
     numBars = 1000
+    barSkip = 1
 
     # Get the number of lines in the file
     with open(inputFile, 'r', newline='') as file:
@@ -116,7 +115,12 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
         rowCount = i - 1
         file.close()
 
-    with IncrementalBar('Processing {} frequencies:'.format(fitnessFunction.lower()), max = numBars) as bar:
+    modulo = rowCount // numBars
+    if not modulo:
+        modulo = 1
+        barSkip = numBars // rowCount
+
+    with IncrementalBar('Processing:', max = numBars) as bar:
         currentBatch = []
         with open(inputFile, 'r', newline='') as out:
             reader = csv.reader(out)
@@ -125,31 +129,38 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
                 if i == 0:
                     continue
 
-                # Get the row
-                parsedRow = row
-
                 # Cast data types
-                parsedRow[1] = int(parsedRow[1])
-                parsedRow.append(fitnessFunction)
+                row[0] = int(row[0])
 
-                currentBatch.append(parsedRow)
+                # Making generation an enum to speed up query
+                row[1] = int(row[1])
+                row[1] = row[1] // 1000 if row[1] < 1e4 else 9
+
+                row[4] = float(row[4])
+                row[5] = float(row[5])
+                row[6] = float(row[6])
+                row[7] = float(row[7])
+
+                currentBatch.append(row)
 
                 # Commit every 1000 elements and reset batch to limit memory usage
                 if i % 1000 == 0:
                     cursor.executemany(
-                        'INSERT INTO {} VALUES (?, ?, ?);'.format(FREQ_TABLE),
+                        'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1) \
+                        ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
                         currentBatch
                     )
                     currentBatch = []
                 
                 # Increment the bar 
-                if i % (rowCount // numBars) == 0:
-                    bar.next()
+                if i % modulo == 0:
+                    bar.next(n=barSkip)
             
             # Committing the remainder of the rows that may have not been added
             if currentBatch:
                 cursor.executemany(
-                    'INSERT INTO {} VALUES (?, ?, ?);'.format(FREQ_TABLE),
+                    'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1) \
+                    ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
                     currentBatch
                 )
 
@@ -165,18 +176,14 @@ def loadFrequencies(inputFile: str, fitnessFunction: str):
     cursor.close()
 
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective')):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'designed')):
     ''' Inserts all of the compiled csv files into the database '''
-    experimentPath = './csv/{}/{}ExperimentData.csv'
+    experimentPath = constants.experimentPath
+    frequencyPath = constants.frequencyPath
 
     for fitness in fitnesses:
-        thresholds = [0.2, 0.4, 0.6, 0.8]
-
-        if fitness == 'functional':
-            thresholds.append(1.0)
-
-        loadExperiments(experimentPath.format(fitness, fitness))
-        loadFrequencies(thresholds, fitness)
+        loadExperiments(experimentPath.format(fitness))
+        loadFrequencies(frequencyPath.format(fitness))
     
     print('Done.')
 

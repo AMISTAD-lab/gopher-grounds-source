@@ -93,9 +93,9 @@ elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
-        print('Coherence fitness:\t', round(functions.coherentFitness(util.convertStringToEncoding(args.trap)), 3))
-        print('Functional fitness:\t', round(functions.functionalFitness(util.convertStringToEncoding(args.trap)), 3))
-        print('Combined fitness:\t', round(functions.combinedFitness(util.convertStringToEncoding(args.trap)), 3))
+    print('Coherence fitness:\t', round(functions.coherentFitness(util.convertStringToEncoding(args.trap)), 3))
+    print('Functional fitness:\t', round(functions.functionalFitness(util.convertStringToEncoding(args.trap)), 3))
+    print('Combined fitness:\t', round(functions.combinedFitness(util.convertStringToEncoding(args.trap)), 3))
 
 elif args.command == 'genetic-algorithm':
     if args.genetic == 'generate':
