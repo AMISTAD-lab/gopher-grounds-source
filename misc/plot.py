@@ -1,45 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import database.library as dbLib
-import geneticAlgorithm.fitnessFunctions as functions
-import geneticAlgorithm.utils as util
+import seaborn as sns
+
+from matplotlib.colors import LogNorm, Normalize
 
 ## Library functions
-
-def createDataframe(inputFileNames) -> pd.DataFrame:
-    """
-    Takes in several files of experiment output and produces one pandas dataframe
-    with all files appended together
-    """
-    dfs = []
-
-    dtypes = {
-        'Experiment': 'int',
-        'Trap': 'string',
-        'Prop_Dead': 'float',
-        'Stand_Err': 'float',
-        'Conf_Interval': 'string',
-        'Intention?': 'bool',
-        'Threshold': 'float'
-    }
-
-    for inputFile in inputFileNames:
-        df: pd.DataFrame = pd.read_csv(inputFile, dtype=dtypes)
-        dfs.append(df.drop(columns=['Experiment']))
-
-    df: pd.DataFrame
-    for i, frame in enumerate(dfs):
-        if (i == 0):
-            df = frame
-            continue
-
-        df = df.append(frame)
-
-    df.reset_index(drop=True, inplace=True)
-
-    return df
-
 def addJitter(arr) -> np.ndarray:
     """
     Takes in an array and introduces jitter into the data points
@@ -72,138 +38,25 @@ def createScatterplot(df: pd.DataFrame, x='Fitness', y='Prop_Dead', jitter=True,
     plt.title(title)
     plt.show()
 
-inputFiles = ['./csv/functional/functionalExperimentData.csv']
-
 ## Plotting functions
-def coherenceLethalityVsCoherence():
-    """
-    Creates a plot of lethality vs coherence for coherently optimized traps
-    """
-    inputFile = './csv/coherence/coherenceExperimentData.csv'
+def create2DHeatmap(df: pd.DataFrame, title='', x_lab='', y_lab='', label_size=12, logScale=True, figIndex=1, figSize=(6,6)):
+    ''' Takes in a data frame and optional graph options and creates a heat map from the given data '''
+    plt.figure(figIndex, figSize)
+    ax = sns.heatmap(df, linewidths=0.5, norm=(LogNorm() if logScale else Normalize()), cmap=sns.cm.rocket_r)
+    ax.invert_yaxis()
+    ax.set_title(title)
+    ax.set_xlabel(x_lab, fontsize=label_size)
+    ax.set_ylabel(y_lab, fontsize=label_size)
 
-    df = createDataframe([inputFile])
-    createScatterplot(
-        df,
-        jitter = True,
-        xlabel = 'Coherence',
-        ylabel = 'Lethality (Proportion of Gophers Dead)',
-        title = 'Lethality vs. Coherence for Coherently Optimized Traps'
-    )
+    return ax
 
-def functionalCoherenceVsLethality():
-    """
-    Creates a plot of coherence vs lethality for functionally optimized traps
-    """
-    inputFile = './csv/functional/functionalExperimentData.csv'
+def create1DHeatmap(df: pd.DataFrame, title='', x_lab='', y_lab='Frequency', label_size=12, logScale=True, figIndex=1, figSize=(3,6)):
+    ''' Takes in a data frame and optional graph options and creates a one-column vector map from the given data '''
+    plt.figure(figIndex, figSize)
+    ax = sns.heatmap(df, linewidths=0.5, norm=(LogNorm() if logScale else Normalize()), cmap=sns.cm.rocket_r, square=True)
+    ax.invert_yaxis()
+    ax.set_title(title)
+    ax.set_xlabel(x_lab, fontsize=label_size, labelpad=10)
+    ax.set_ylabel(y_lab, fontsize=label_size, labelpad=10)
 
-    getCoherenceFromString = \
-        lambda strEncoding : functions.coherentFitness(util.convertStringToDecoding(strEncoding))
-
-    df = createDataframe([inputFile])
-    
-    # Adding the coherence to the dataframe
-    df['Coherence'] = df.apply(
-        lambda row : getCoherenceFromString(row['Trap']),
-        axis = 1
-    )
-
-    createScatterplot(
-        df,
-        x = 'Prop_Dead',
-        y = 'Coherence',
-        ylabel = 'Coherence',
-        xlabel = 'Lethality (Proportion of Gophers Dead)',
-        title = 'Coherence vs. Lethality for Functionally Optimized Traps',
-        labelLoc = 'upper left'
-    )
-
-def lethalityDist(fitness: str, numBins = 10):
-    """ Creates plot of trap distributions for lethality """
-    fig, axes = plt.subplots(1, 5 if fitness == 'functional' else 4, sharey='row')
-    plt.subplots_adjust(wspace=0.6)
-
-    histData = dbLib.getLethalityData(fitness)
-
-    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
-
-    for i, key in enumerate(keys):
-        if key not in histData or not any(histData[key]):
-            continue
-        axes[i].set_title(f'Threshold {key}')
-        axes[i].set_xlabel('Lethality value')
-        axes[i].hist(histData[key], numBins)
-
-    if fitness == 'functional':
-        optimized = 'Functionally'
-    elif fitness == 'coherence':
-        optimized = 'Coherently'
-    elif fitness == 'random':
-        optimized = 'randomly'
-    elif fitness == 'multiobjective':
-        optimized = 'Both Functionally and Coherently'
-    
-    fig.suptitle(f'Lethality Distribution for {optimized} Optimized Traps')
-    plt.show()
-
-def coherenceDist(fitness: str, numBins = 10):
-    fig, axes = plt.subplots(1, 5 if fitness == 'functional' else 4, sharey='none', sharex='all')
-    plt.subplots_adjust(wspace=0.6)
-
-    histData = dbLib.getCoherenceData(fitness)
-
-    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
-
-    for i, key in enumerate(keys):
-        if key not in histData or not any(histData[key]):
-            continue
-        axes[i].set_title(f'Threshold {key}')
-        axes[i].set_xlabel('Coherence value')
-        axes[i].hist(histData[key], numBins)
-
-    if fitness == 'functional':
-        optimized = 'Functionally'
-    elif fitness == 'coherence':
-        optimized = 'Coherently'
-    elif fitness == 'random':
-        optimized = 'randomly'
-    elif fitness == 'multiObj':
-        optimized = 'Both Functionally and Coherently'
-    
-    fig.suptitle(f'Coherence Distribution for {optimized} Optimized Traps')
-    plt.show()
-
-def lethalityDistSeparate(fitness: str, numBins = 10):
-    """ Creates plot of trap distributions for lethality """
-    histData = dbLib.getLethalityData(fitness)
-
-    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
-
-    for i, key in enumerate(keys):
-        if key not in histData or not any(histData[key]):
-            axes = np.delete(axes, i)
-            continue
-        plt.figure(i)
-        
-        plt.title(f'Threshold {key}')
-        plt.xlabel('Lethality value')
-        plt.hist(histData[key], numBins)
-    
-    plt.show()
-
-def coherenceDistSeparate(fitness: str, numBins = 10):
-    """ Creates plot of trap distributions for lethality """
-    histData = dbLib.getCoherenceData(fitness)
-
-    keys = (0.2, 0.4, 0.6, 0.8, 1.0)
-
-    for i, key in enumerate(keys):
-        if key not in histData or not any(histData[key]):
-            axes = np.delete(axes, i)
-            continue
-        plt.figure(i)
-        
-        plt.title(f'Threshold {key}')
-        plt.xlabel('Coherence value')
-        plt.hist(histData[key], numBins)
-    
-    plt.show()
+    pass

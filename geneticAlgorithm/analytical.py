@@ -23,8 +23,8 @@ def getProbabilityDistribution(probEnter = 0.8):
                 initialProbs[3] = 0.2
                 initialProbs[2] = 0.1
             else:
-                initialProbs[i+1] = 0.15
-                initialProbs[i-1] = 0.15
+                initialProbs[i + 1] = 0.15
+                initialProbs[i - 1] = 0.15
 
     return initialProbs
 

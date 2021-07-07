@@ -10,10 +10,14 @@ def createTrap(configuration):
     """Takes in a board configuration and wraps that configuration in a trap class"""
     return TrapClass.Trap(len(configuration[0]), len(configuration), False, chosenBoard = configuration)
 
-def convertStringToEncoding(strEncoding, delim=','):
+def convertStringToEncoding(strEncoding, delimiter=','):
     """Takes in an encoding as a string and returns that encoding as a list"""
+    if delimiter not in strEncoding:
+        delimiter = ' '
+
     strList = strEncoding.strip()[1:-1] # getting the numbers
-    digitList = strList.split(delim) # splitting number strings by digits
+    digitList = strList.split(delimiter) # splitting number strings by digits
+
     return np.array([int(digit.strip()) for digit in digitList if digit])
 
 def convertEncodingToString(encoding):
