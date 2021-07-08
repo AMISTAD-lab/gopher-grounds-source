@@ -135,20 +135,21 @@ f_g = {
     (10.0, 9.0) : 3 / TOTAL,
 }
 
-def functional_specified_complexity(connectionTuple):
+def functional_specified_complexity(connectionTuple, prob):
     """returns the fsc (surprisal) of a given traps' connection tuple
     connection tuple: (numerator, denominator) of the simplified fraction for valid connections / wire and arrow pieces"""
     global r
-    global p
     v = 1 / f_g[connectionTuple]
-    k = r * p / v
+    k = r * prob / v
     fsc = -m.log(k, 2)
     return fsc
 
 def isTrap(trap, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed"""
+    global p
     connectionTuple = connectionsPerPiece(trap)
-    return functional_specified_complexity(connectionTuple) >= sigVal
+    return functional_specified_complexity(connectionTuple, p) >= sigVal
+
 
 def getCoherenceValue(trap):
     """given a trap, determines the coherence value of the trap"""

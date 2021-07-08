@@ -7,6 +7,7 @@ import numpy as np
 import pprint
 import database.library as dbLibrary
 import geneticAlgorithm.constants as constants
+import geneticAlgorithm.utils as utils
 
 def loadFoF(fitnessFunc):
     """
@@ -92,6 +93,10 @@ def getProbDict(fofDict, confidenceLevel=1.65):
     for r in sortedFreq:
         sgtProb[r] = (1 - p0) * (r_smoothed[r] / unnormTotal)
 
+    # # Test total = 1
+    # testTotal = sum([sgtProb[freq] * fofDict[freq] for freq in sortedFreq]) + p0
+    # print('test total = ', testTotal)
+
     return sgtProb
 
 def computeZ(fofDict, sortedFreq):
@@ -133,8 +138,11 @@ def getSmoothedProb(configuration, fitnessFunc):
     Returns the SGT-smoothed probability of a given configuration
     """
     probDict = getProbDict(loadFoF(fitnessFunc))
-    r = 0 if dbLibrary.getTrapFreq(configuration, fitnessFunc) == None else dbLibrary.getTrapFreq(configuration, fitnessFunc)
-    print("frequency=", r)
+
+    # Standardize the trap string
+    trapStr = np.array2string(np.array(configuration))
+
+    r = 0 if dbLibrary.getTrapFreq(trapStr, fitnessFunc) == None else dbLibrary.getTrapFreq(trapStr, fitnessFunc)
     return probDict[r]
 
 def testSGT(configuration, function = 'coherence'):
@@ -153,4 +161,4 @@ def testSGT(configuration, function = 'coherence'):
     print("This is the probability of a certain trap:")
     print(getSmoothedProb(configuration, function))
 
-testSGT('[67  3  8 50  1 31 20  2 68 22  0 83]', 'functional')
+testSGT('[ 11, 8, 26, 89, 1, 81, 5, 2, 3, 29, 0, 15 ]', 'coherence')
