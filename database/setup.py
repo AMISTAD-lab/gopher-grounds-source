@@ -182,8 +182,8 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
     frequencyPath = constants.frequencyPath
 
     for fitness in fitnesses:
-        loadExperiments(experimentPath.format(fitness))
-        loadFrequencies(frequencyPath.format(fitness))
+        loadExperiments(experimentPath.format(fitness,''))
+        loadFrequencies(frequencyPath.format(fitness,''))
     
     print('Done.')
 
