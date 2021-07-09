@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import argparse
-import geneticAlgorithm.constants as constants
 import geneticAlgorithm.fitnessFunctions as functions 
 import geneticAlgorithm.experiment as geneticExperiment
 from geneticAlgorithm.main import geneticAlgorithm
 import geneticAlgorithm.utils as util
 import legacy.experiment as experiment
+import misc.visualization as vis
 
 parser = argparse.ArgumentParser(description="Commands to run the experiment")
 subparsers = parser.add_subparsers(help='sub-command help', dest='command')
@@ -67,6 +67,13 @@ simulateTrap.add_argument('--no-animation', '-na', help='turns off animation', a
 simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[-1, -1, 0, 1]')
 simulateTrap.add_argument('--frame', '-f', help='the frame of the grid to print', type=int, default=0)
 
+showTrap = geneticSubparsers.add_parser('show-trap', help='shows (and, optionally, saves) a trap given an input string')
+showTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
+showTrap.add_argument('--save', '-s', help='whether or not to save the trap created', action='store_true')
+showTrap.add_argument('--output', '-o', help='the name of the file (no extensions) to be saved', default='generatedTrap')
+showTrap.add_argument('--no-pdf', '-np', help='do not show PDF', action='store_false')
+showTrap.add_argument('--no-gopher', '-ng', help='do not show the gopher', action='store_false')
+
 # get fitness trap flags
 fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
 fitnessParser.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
@@ -90,12 +97,15 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     gopherState = util.convertStringToEncoding(args.gopher_state)
-    util.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
+    vis.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
+
+elif args.command == 'genetic-algorithm' and args.genetic == 'show-trap':
+    vis.convertTrapToImage(args.trap, args.output, args.no_gopher, args.no_pdf)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
-    print('Coherence fitness:\t', round(functions.coherentFitness(util.convertStringToEncoding(args.trap)), 3))
-    print('Functional fitness:\t', round(functions.functionalFitness(util.convertStringToEncoding(args.trap)), 3))
-    print('Combined fitness:\t', round(functions.combinedFitness(util.convertStringToEncoding(args.trap)), 3))
+    print('Coherence fitness:\t', round(functions.getCoherence(util.convertStringToEncoding(args.trap)), 3))
+    print('Functional fitness:\t', round(functions.getLethality(util.convertStringToEncoding(args.trap)), 3))
+    print('Combined fitness:\t', round(functions.getCombined(util.convertStringToEncoding(args.trap)), 3))
 
 elif args.command == 'genetic-algorithm':
     if args.genetic == 'generate':
@@ -109,12 +119,12 @@ elif args.command == 'genetic-algorithm':
         )
 
         print('Trap (encoded):\t\t', bestTrap)
-        print('Coherence fitness:\t', round(functions.coherentFitness(bestTrap), 3))
-        print('Functional fitness:\t', round(functions.functionalFitness(bestTrap), 3))
-        print('Combined fitness:\t', round(functions.combinedFitness(bestTrap), 3))
+        print('Coherence fitness:\t', round(functions.getCoherence(bestTrap), 3))
+        print('Functional fitness:\t', round(functions.getLethality(bestTrap), 3))
+        print('Combined fitness:\t', round(functions.getCombined(bestTrap), 3))
 
         if args.show:
-            util.simulateTrapInBrowser(bestTrap)
+            vis.simulateTrapInBrowser(bestTrap)
     
     elif args.genetic == 'runExperiment':
         trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(

@@ -19,9 +19,9 @@ def geneticAlgorithm(functionName, maxGenerations = 10000, showLogs = True, tria
             [
                 trial, generation, trap, functionName,
                 round(fitnesses[i], 4),
-                round(functions.functionalFitness(trap), 4),
-                round(functions.coherentFitness(trap), 4),
-                round(functions.combinedFitness(trap), 4),
+                round(functions.getLethality(trap), 4),
+                round(functions.getCoherence(trap), 4),
+                round(functions.getCombined(trap), 4),
             ]
             for i, trap in enumerate(population)
         ]

@@ -110,9 +110,9 @@ def runBatchExperiments(numExperiments, functionName, numSimulations = 5000, max
                         functionName,
                         round(fitness, 4),
                         int(intention),
-                        round(functions.functionalFitness(trap), 4),
-                        round(functions.coherentFitness(trap), 4),
-                        round(functions.combinedFitness(trap), 4),
+                        round(functions.getLethality(trap), 4),
+                        round(functions.getCoherence(trap), 4),
+                        round(functions.getCombined(trap), 4),
                         round(proportion, 4), round(stderr, 4)
                     ])
 
