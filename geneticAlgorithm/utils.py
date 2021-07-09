@@ -1,10 +1,6 @@
 import numpy as np
-import os
-import webbrowser
 import classes.Trap as TrapClass
 import geneticAlgorithm.encoding as encoding
-import libs.simulation as sim
-import libs.visualize as vis
 
 def createTrap(configuration):
     """Takes in a board configuration and wraps that configuration in a trap class"""
@@ -36,11 +32,3 @@ def convertStringToDecoding(strEncoding):
     """ Takes in a string encoding and returns the decoded trap """
     return encoding.singleDecoding(convertStringToEncoding(strEncoding))
 
-def simulateTrapInBrowser(listEncoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
-    """Takes in a list encoding and simulates the trap in the browser"""
-    decodedList = encoding.singleDecoding(listEncoding)
-    simulationInfo = sim.simulateTrap(createTrap(decodedList), intention, hunger=hunger, forceEnter=True)[:3]
-    vis.writeTojs([simulationInfo], noAnimation, gopherState, frame)
-
-    # opens the animation in the web browser
-    webbrowser.open_new_tab("file://" + os.path.realpath("./animation/animation.html"))
