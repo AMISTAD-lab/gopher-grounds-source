@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import statistics as stats
 import math as m
+import geneticAlgorithm.constants as constants
 
 paramLabels = {
         "defaultProbEnter":r"Default Probability of Entering Trap",
@@ -69,7 +70,7 @@ def percentThoughtReal(filename, param):
         print()
 
 
-def linearRunGraph(filename, param):
+def linearRunGraph(filename, param, fitnessFunc):
     """Saves a graph displaying information about the given parameter from the data in the given file"""
 
     labelsize = 18
@@ -80,22 +81,22 @@ def linearRunGraph(filename, param):
 
     data = pd.read_csv(filename)
     plt.style.use('ggplot')
-    plt.rc('text', usetex=True)
+    # plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
         
-    df0 = filterDataFrame(data, [["intention", True], ["cautious", False]])
-    df1 = filterDataFrame(data, [["intention", False]])
-    df3 = filterDataFrame(data, [["intention", True], ["cautious", True]])
+    df0 = filterDataFrame(data, [["intention", 0]])
+    df1 = filterDataFrame(data, [["intention", 1]])
+    df3 = filterDataFrame(data, [["intention", 2]])
 
     dfs = [df0, df1, df3]
-    modes = [r"With Intention", r"Without Intention", r"Cautious"]
+    modes = [r"Without Intention", r"With Old Intention", r"With New Intention"]
 
     colorIter = iter(['#4FADAC', '#2F5373', '#C59CE6'])
     
     fig, axes = plt.subplots(1,3, figsize=(18,6.5))
     life_ax, food_ax, n_food_ax = axes.flat
 
-    for i in range(2): # change to 3 if including cautious (for pr graph)
+    for i in range(3): # change to 3 if including cautious (for pr graph)
         df = dfs[i]
         paramValues = []
 
@@ -150,29 +151,29 @@ def linearRunGraph(filename, param):
         n_food_ax.plot(paramValues, n_food_vals, label=modes[i], color=color, linewidth=linewidth)
         n_food_ax.fill_between(paramValues, n_f_low_ci, n_f_up_ci, color=color, alpha=.15) 
     
-    life_ax.set(ylim=(0, 50))
+    life_ax.set(ylim=(0, 10))
     life_ax.set_ylabel(r"Gopher Lifespan (number of traps)", fontsize=labelsize, fontweight='bold')
     life_ax.set_xlabel(paramLabels[param], fontsize=labelsize, fontweight='bold')
     life_ax.tick_params(axis='both', which='major', labelsize=ticksize, direction='in')
-    life_ax.set_title(r"Gopher Lifespan" + "\n" + r"vs" + "\n" + paramLabels[param], fontsize=titlesize, fontweight='bold')
+    life_ax.set_title(r"Gopher Lifespan" + "\n" + r"vs" + "\n" + paramLabels[param] + "\n" + "(" + fitnessFunc + ")", fontsize=titlesize, fontweight='bold')
     life_ax.legend(prop={"size":legendsize})
 
-    food_ax.set(ylim=(0, 50))
+    food_ax.set(ylim=(0, 5))
     food_ax.set_ylabel(r"Amount of Food Consumed", fontsize=labelsize, fontweight='bold')
     food_ax.set_xlabel(paramLabels[param], fontsize=labelsize, fontweight='bold')
     food_ax.tick_params(axis='both', which='major', labelsize=ticksize, direction='in')
-    food_ax.set_title(r"Food Consumption" + "\n" + r"vs" + "\n" + paramLabels[param], fontsize=titlesize, fontweight='bold')
+    food_ax.set_title(r"Food Consumption" + "\n" + r"vs" + "\n" + paramLabels[param] + "\n" + "(" + fitnessFunc + ")", fontsize=titlesize, fontweight='bold')
     food_ax.legend(prop={"size":legendsize})
 
-    n_food_ax.set(ylim=(0, 1))
+    n_food_ax.set(ylim=(0, 0.2))
     n_food_ax.set_ylabel(r"Food Consumed Per Trap Survived", fontsize=labelsize, fontweight='bold')
     n_food_ax.set_xlabel(paramLabels[param], fontsize=labelsize, fontweight='bold')
     n_food_ax.tick_params(axis='both', which='major', labelsize=ticksize, direction='in')
-    n_food_ax.set_title(r"Normalized Food Consumption" + "\n" + r"vs" + "\n" + paramLabels[param], fontsize=titlesize, fontweight='bold')
+    n_food_ax.set_title(r"Normalized Food Consumption" + "\n" + r"vs" + "\n" + paramLabels[param]  + "\n" + "(" + fitnessFunc + ")", fontsize=titlesize, fontweight='bold')
     n_food_ax.legend(prop={"size":legendsize})
 
     fig.tight_layout()
-    fig.savefig(param + '.pdf', bbox_inches='tight', pad_inches=0)
+    fig.savefig(constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'pdf'), bbox_inches='tight', pad_inches=0)
     plt.close('all')
 
 

@@ -30,7 +30,7 @@ def differenceExperiment(fitnessFunc):
                     countTotal += 1
                     if countTotal % 2 == 0:
                         continue
-                    encodedTrap = ast.literal_eval(row[1])
+                    encodedTrap = utils.convertStringToEncoding(row[1])
                     decodedTrap = encode.singleDecoding(encodedTrap)
                     trap = utils.createTrap(decodedTrap)
                     old_is_trap = algo.isTrap(trap)
@@ -42,40 +42,46 @@ def differenceExperiment(fitnessFunc):
     
     print("{} Proprotion Different: {}".format(fitnessFunc, countDiff / (countTotal/2)))
 
-# def freqDifferenceExperiment(fitnessFunc):
+def freqDifferenceExperiment(fitnessFunc):
 
-#     inputPath = constants.frequencyPath.format(fitnessFunc, '')
-#     outputPath = constants.frequencyPath.format(fitnessFunc, 'SCexperiment')
-#     countTotal = 0
-#     countDiff = 0
+    inputPath = constants.frequencyPath.format(fitnessFunc, '')
+    outputPath = constants.frequencyPath.format(fitnessFunc, 'SCexperiment')
+    countTotal = 0
+    countDiff = 0
+    trialNum = 0
 
-#     with open(inputPath, 'r') as incsv:
-#         with open(outputPath, 'w') as outcsv:
-#             writer = csv.writer(outcsv)
+    with open(inputPath, 'r', newline='') as incsv:
+        with open(outputPath, 'w', newline='') as outcsv:
+            writer = csv.writer(outcsv)
 
-#             for row in csv.reader(incsv):
-#                 if row[0] == "Trial":
-#                     writer.writerow(row + ["Old_Is_Trap?", "New_Is_Trap?"])
-#                 else:
-#                     countTotal += 1
-#                     row2 = row[2][1:-1]
-#                     print(row2)
-#                     encodedTrap = row2.split()
-#                     print(encodedTrap)
-#                     decodedTrap = encode.singleDecoding(encodedTrap)
-#                     trap = utils.createTrap(decodedTrap)
-#                     old_is_trap = algo.isTrap(trap)
-#                     new_is_trap = algo.newIsTrap(encodedTrap, trap, fitnessFunc)
-#                     if old_is_trap != new_is_trap:
-#                         countDiff += 1
-#                     writer.writerow(row+[old_is_trap, new_is_trap])
-#             outcsv.close()
+            for row in csv.reader(incsv):
+                if row[0] == "Trial":
+                    writer.writerow(row + ["Old_Is_Trap?", "New_Is_Trap?"])
+                else:
+                    countTotal += 1
+                    if row[0] != trialNum:
+                        trialNum = row[0]
+                        print(trialNum)
+                    encodedTrap = utils.convertStringToEncoding(row[2])
+                    decodedTrap = encode.singleDecoding(encodedTrap)
+                    trap = utils.createTrap(decodedTrap)
+                    old_is_trap = algo.isTrap(trap)
+                    new_is_trap = newIsTrap(encodedTrap, trap, fitnessFunc)
+                    if old_is_trap != new_is_trap:
+                        countDiff += 1
+                    writer.writerow(row+[old_is_trap, new_is_trap])
+            outcsv.close()
     
-#     print("Finished.")
-#     print("{} Proprotion Different: {}".format(fitnessFunc, countDiff / countTotal))
+    print("{} Proprotion Different: {}".format(fitnessFunc, countDiff / (countTotal)))
 
-differenceExperiment("random")
-differenceExperiment("coherence")
-differenceExperiment("functional")
-differenceExperiment("multiobjective")
-differenceExperiment("binary-distance")
+# freqDifferenceExperiment("multiobjective")
+# freqDifferenceExperiment("functional")
+# freqDifferenceExperiment("binary-distance")
+# freqDifferenceExperiment("random")
+
+
+# differenceExperiment("random")
+# differenceExperiment("coherence")
+# differenceExperiment("functional")
+# differenceExperiment("multiobjective")
+# differenceExperiment("binary-distance")

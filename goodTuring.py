@@ -161,4 +161,4 @@ def testSGT(configuration, function = 'coherence'):
     print("This is the probability of a certain trap:")
     print(getSmoothedProb(configuration, function))
 
-testSGT('[ 11, 8, 26, 89, 1, 81, 5, 2, 3, 29, 0, 15 ]', 'coherence')
+# testSGT('[ 11, 8, 26, 89, 1, 81, 5, 2, 3, 29, 0, 15 ]', 'coherence')
