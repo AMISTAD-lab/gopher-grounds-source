@@ -1,6 +1,7 @@
-from typing import List
+import numpy as np
 import os
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+from typing import List
 import webbrowser
 from classes.Trap import Trap
 import geneticAlgorithm.utils as utils
@@ -75,16 +76,118 @@ def createImage(images: List[Image.Image], showGopher=True) -> Image.Image:
     
     return fullImage
 
-def convertTrapToImage(strEncoding: List[str], imageName: str, showGopher=True, showPDF=False):
+def convertTrapToImage(strEncoding: List[str], imageName: str, save=False, showGopher=True, show=False, ext='pdf', tag=None, fitness=None):
     ''' Takes in the string encoding of a trap and converts it to an image '''
     cells = getCellsFromStr(strEncoding)
     images = getImages(cells, 12 * [0])
     finalImage = createImage(images, showGopher)
+    width, height = images[0].width, images[0].height
 
-    finalImage.save(f'./images/traps/{imageName}.pdf')
+    if showGopher: 
+        gopherImage = Image.open('./animation/gopher/gopheralive.png')
+        finalImage.paste(gopherImage, (width, 4 * height), gopherImage)
 
-    if showPDF:
+    # Add tag to the visual
+    if tag:
+        scale = 0.4
+        print(int(tag))
+        if 10 <= int(tag) < 100:
+            scale = 0.3
+        elif 100 <= int(tag) < 1000:
+            scale = 0.2
+
+        xText, yText = width * 0.05, height * 4.05
+        xNum, yNum = width * scale, height * 4.3
+
+        textFont = ImageFont.truetype(font='~/Library/Fonts/Arial Unicode.ttf', size=180)
+        numFont = ImageFont.truetype(font='~/Library/Fonts/Arial Unicode.ttf', size=375)
+
+        ImageDraw.Draw(finalImage).text((xText, yText), 'Generation:', (255, 255, 255), font=textFont)
+        ImageDraw.Draw(finalImage).text((xNum, yNum), tag, (255, 255, 255), font=numFont)
+
+    # Add fitness to the visual
+    if fitness is not None:
+        scale = 2.05
+        if len(fitness) == 3:
+            scale = 2.2
+        xText, yText = width * 2.05, height * 4.05
+        xNum, yNum = width * scale, height * 4.3
+
+        textFont = ImageFont.truetype(font='~/Library/Fonts/Arial Unicode.ttf', size=180)
+        numFont = ImageFont.truetype(font='~/Library/Fonts/Arial Unicode.ttf', size=375)
+
+        ImageDraw.Draw(finalImage).text((xText, yText), 'Fitness:', (255, 255, 255), font=textFont)
+        ImageDraw.Draw(finalImage).text((xNum, yNum), fitness, (255, 255, 255), font=numFont)
+
+    if save:
+        finalImage.save(f'./images/traps/{imageName}.{ext}')
+
+    if show:
         finalImage.show(title=f'{imageName}.png')
+
+def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 'MULTIOBJECTIVE'], save=False, show=False) -> Image.Image:
+    ''' Takes 3 images and combines them into one (side by side). Can optionally add labels to the top. '''
+    # Define image constants
+    images = [Image.open(imgPath) for imgPath in imgPaths]
+    width, height = images[0].width, images[0].height
+    offset = 0
+
+    # Define border/text constants
+    lineWidth = 20; lineColor = 'black'
+    textColor = 'white'
+
+    # Allocate space for labels
+    if labels:
+        height += 400
+        offset = 400
+
+    # Create final image with relative dimensions
+    finalImage = Image.new('RGB', (width * 3, height), color=(181,181,181))
+    imgDraw = ImageDraw.Draw(finalImage)
+
+    if labels:
+        # Paste a dirt background behind the labels
+        dirt = Image.open('./animation/dirt/dirtinactive.png')
+        for i in range(3):
+            for j in range(3):
+                finalImage.paste(dirt, (width * i + j * width // 3, 0))
+
+    # Paste each set of 3 images into the new image and draw a line between them
+    for i, img in enumerate(images):
+        finalImage.paste(img, (width * i, offset))
+        imgDraw.line((width * i, 0, width * i, height), fill=lineColor, width=lineWidth)
+    
+    if labels:
+        # Draw a line below the text and create the text font
+        imgDraw.line((0, offset, 3 * width, offset), fill=lineColor, width=lineWidth)
+        textFont = ImageFont.truetype(font='~/Library/Fonts/HP-Impact', size=300)
+
+        # Write each label and center them inside their relative boxed
+        for i, label in enumerate(labels):
+            xCoord = width * (i + (1 - len(label) / width) / 4)
+            textWidth, textHeight = imgDraw.textsize(label, font=textFont)
+
+            xCoord = width * i + (width - textWidth) / 2
+            yCoord = (offset - textHeight) / 2
+
+            imgDraw.text((xCoord, yCoord), label, fill=textColor, font=textFont)
+
+    if save:
+        if not os.path.exists('./images/traps/blogCombined/'):
+            os.mkdir('./images/traps/blogCombined/')
+        
+        finalImage.save(f'./images/traps/blogCombined/{outputName}.png')
+
+    if show:
+        finalImage.show(title=f'{outputName}.png')
+    
+    return finalImage
+
+def createGIF(directory: str, duration=37):
+    ''' Takes in a directory that contains all images and makes a GIF from those images. '''
+    img, *imgs = [Image.open(f'{directory}/trap{i}Combined.png') for i in range(1, 101)]
+
+    img.save(f'{directory}/gopher.gif', ext='GIF', save_all=True, optimize=True, append_images=imgs, duration=duration, loop=0)
 
 def simulateTrapInBrowser(trapEncoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
     """Takes in a list encoding and simulates the trap in the browser"""

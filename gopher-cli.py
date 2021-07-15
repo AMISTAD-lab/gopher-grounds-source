@@ -100,7 +100,7 @@ elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     vis.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'show-trap':
-    vis.convertTrapToImage(args.trap, args.output, args.no_gopher, args.no_pdf)
+    vis.convertTrapToImage(args.trap, args.output, save=args.save, showGopher=args.no_gopher, show=args.no_pdf)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
     print('Coherence fitness:\t', round(functions.getCoherence(util.convertStringToEncoding(args.trap)), 3))
