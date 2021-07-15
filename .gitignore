@@ -136,6 +136,9 @@ dmypy.json
 **.csv
 **.zip
 **.pdf
+**.png
+**.gif
+**.mp4
 
 # Whitelist these .txt files
 !quick-instructions.txt
