@@ -5,6 +5,61 @@ from database.client import client
 from database.constants import *
 import geneticAlgorithm.constants as constants
 
+##############################
+##     Helper Functions     ##
+##############################
+def getAverageFitnesses(genList, fitList, start=0, end=10000, step=1, debug=False):
+    '''
+    Takes in a lists of lists of generations and fitnesses, where each index corresponds to the 
+    generation that the fitness was found and the new optimal fitness.
+    Aggregates the average best fitness for each generation (determined by start, end, step,
+    inclusive) and returns an array of generations and average best fitnesses.
+    Ex: getAverageFitnesses([[0, 2, 3, 5]], [[1, 3, 5, 7]], 0, 7, 1) = 
+        [1, 2, 3, 4, 5, 6, 7], [1, 1, 1.67, 2.5, 3, 3.67, 4.14, ]
+    '''
+    if debug:
+        print('trial, generation, index, genMarker, fitMarker, genList, fitList')
+
+    # Adding lists to keep track of generation fitness changes
+    numTrials = len(genList); indexes = numTrials * [0]
+    generations = []; avgFitnesses = []
+    totalSum = 0
+    for generation in range(start, end + 1):
+        # Calculate the average fitness for the current generation
+        currTrial = 0; currAvg = 0
+        while currTrial < numTrials:
+            # Get all relevant information
+            currGenList, currFitList, currInd = genList[currTrial], fitList[currTrial], indexes[currTrial]
+
+            # If the current pointer is not at the end and if the current generation is greater than or equal to
+            # the next optimal generation, increase the index until we are at the next optimal generation
+            if currInd < (len(currGenList) - 1) and generation >= currGenList[currInd + 1]:
+                indexes[currTrial] += 1
+                continue
+            
+            if debug:
+                print(f'({currTrial}, {generation}), ({currInd}, {currGenList[currInd]}, {currFitList[currInd]}), {currGenList}, {currFitList}')
+
+            # Add the current fitness to the current average
+            currAvg += currFitList[currInd]
+            currTrial += 1
+        
+        # Add the average to the total sum of averages
+        totalSum += currAvg / numTrials
+
+        if generation % step == 0:
+            # Add the current generation to the list of generations
+            generations.append(generation)
+            
+            # Take the average of averages and append it
+            avgFitnesses.append(totalSum / (generation + 1))
+    
+    return np.array(generations), np.array(avgFitnesses)
+        
+##############################
+##    Library Functions     ##
+##############################
+
 def getTrapFreq(trap: Union[str, List[int], np.ndarray], func: str = None) -> int:
     ''' Takes in a trap and returns the frequency of that trap with the fitness function '''
     # Open a cursor
@@ -104,17 +159,14 @@ def getTotalLethalityCounts() -> pd.DataFrame:
     represents the number of traps with a given lethality.
     '''
     # Create a list of series for each of the coherence counts per function
-    serList = [getSingleLethalityCount(func) for func in (*constants.FUNCTIONS, 'designed')]
+    serList = [getSingleLethalityCount(func) for func in FUNC_VALUES]
     
     df = pd.concat(serList, axis=1)
     df.fillna(0, inplace=True)
     
     df.rename(
         index={ ind: '%.3f' % ind for ind in df.index },
-        columns={
-            'multiobjective': 'multiobj',
-            'binary-distance': 'hamming',
-        },
+        columns=FUNC_MAPPINGS,
         inplace=True
     )
 
@@ -126,17 +178,14 @@ def getTotalCoherenceCounts() -> pd.DataFrame:
     represents the number of traps with a given lethality.
     '''
     # Create a list of series for each of the coherence counts per function
-    serList = [getSingleCoherenceCount(func) for func in (*constants.FUNCTIONS, 'designed')]
+    serList = [getSingleCoherenceCount(func) for func in FUNC_VALUES]
     
     df = pd.concat(serList, axis=1)
     df.fillna(0, inplace=True)
     
     df.rename(
         index={ ind: '%.3f' % ind for ind in df.index },
-        columns={
-            'multiobjective': 'multiobj',
-            'binary-distance': 'hamming',
-        },
+        columns=FUNC_MAPPINGS,
         inplace=True
     )
 
@@ -177,101 +226,153 @@ def getLethalityData(fitness: str) -> pd.DataFrame:
             if coherence not in lethPoints[lethality]:
                 lethPoints[lethality][coherence] = 0
 
-    df = pd.DataFrame(lethPoints)
+    df = pd.DataFrame(lethPoints).sort_index(axis=1).sort_index(axis=0)
 
     # Rename dataframe to have column/index names w/ standardized number of digits
-    df.rename(columns={ leth: '%.3f' % leth for leth in constants.lethalities }, inplace=True)
-    df.rename(index={ coher: '%.3f' % coher for coher in constants.coherences }, inplace=True)
+    df.rename(columns={ leth: '%.3f' % leth for leth in df.columns }, inplace=True)
+    df.rename(index={ coher: '%.3f' % coher for coher in df.index }, inplace=True)
 
     ## Get proportions
     if df.to_numpy().sum():
         df /= df.to_numpy().sum()
 
+    cursor.close()
+
     return df
 
-def getCoherenceData(fitness: str) -> pd.DataFrame:
+def getOptimalGenerations(func: str, returnFitnesses=False):
     '''
-    Returns a list of dictionaries of threshold -> List pairs, where each value contains a list
-    of all the data points whose coherence values are contained in the given interval [low, high].
-    The list is split into two dictionaries [intention, noIntention]
+    Returns the generation in which the optimal solution was found for all experiments as
+    a list of points ()
     '''
     cursor = client.cursor()
 
+    if func == 'functional':
+        filt = 'lethality'
+    elif func == 'coherence':
+        filt = 'coherence'
+    elif func == 'multiobjective':
+        filt = 'combined'
+    else:
+        raise Exception(f'{func} is not a valid function')
+
     cursor.execute(f' \
-        SELECT SUM([frequency]), [coherence], [lethality] FROM {FREQ_TABLE} \
-        WHERE [function] = :function \
-        GROUP BY [coherence], [lethality];',
-        { 'function': fitness }
+        SELECT MIN(tempFreqs.generation) as tempGen, tempFreqs.{filt} \
+        FROM ( \
+            SELECT trap, generation, trial, {filt} \
+            FROM frequencies \
+            WHERE [function]=:function \
+        ) AS tempFreqs \
+        INNER JOIN ( \
+            SELECT trap, trial \
+            FROM experiments \
+            WHERE [function]=:function \
+            GROUP BY trap, trial \
+        ) AS tempExperiments \
+        ON tempExperiments.trap=tempFreqs.trap AND tempExperiments.trial=tempFreqs.trial \
+        GROUP BY tempFreqs.trial \
+        ORDER BY tempFreqs.trial; \
+        ', { 'function': func }
     )
 
-    cohPoints = {}
-    # Getting data from the database and putting the data in a temporary nested dictionary
-    for (frequency, coherence, lethality) in cursor.fetchall():
-        if coherence not in cohPoints:
-            cohPoints[coherence] = {}
-        
-        cohPoints[coherence][lethality] = frequency
+    genList = []
+    fitList = []
+    for (generation, fitness) in cursor.fetchall():
+        genList.append(generation)
+        fitList.append(fitness)
 
-    # Filling all non-present lethality values with empty dictionaries
-    for coherence in constants.coherences:
-        if coherence not in cohPoints:
-            cohPoints[coherence] = {}
+    cursor.close()
+
+    if returnFitnesses:
+        return np.array(genList), np.array(fitList)
     
-    # Converting each nested dictionary to an array, where each index corresponds to the
-    # count for the coherence in constants.coherences
-    for coherence in cohPoints:
-        for lethality in constants.lethalities:
-            if lethality not in cohPoints[coherence]:
-                cohPoints[coherence][lethality] = 0
+    return np.array(genList)
 
-    df = pd.DataFrame(cohPoints)
+def getAverageOptimalFitness(func: str, start=0, end=10000, step=1000):
+    ''' Returns a numpy array that contains a vector of generations and average optimal fitnesses '''
+    
+    if func == 'functional':
+        filt = 'lethality'
+    elif func == 'coherence':
+        filt = 'coherence'
+    elif func == 'multiobjective':
+        filt = 'combined'
+    else:
+        raise Exception(f'{func} is not a valid function')
 
-    # Rename dataframe to have column/index names w/ standardized number of digits
-    df.rename(columns={ coher: '%.3f' % coher for coher in constants.coherences }, inplace=True)
-    df.rename(index={ leth: '%.3f' % leth for leth in constants.lethalities }, inplace=True)
+    cursor = client.cursor()
+    
+    # A list of the generations in which the optimal traps are reached
+    numTrials, = cursor.execute(' \
+        SELECT MAX([trial]) FROM frequencies WHERE [function]=:function; \
+        ', { 'function': func }
+    ).fetchone()
 
-    ## Get proportions
-    if df.to_numpy().sum():
-        df /= df.to_numpy().sum()
+    genList = []; fitList = []
+    for i in range(numTrials):
+        # Get the best trap in the starting generation
+        currGen, currFitness = cursor.execute(f' \
+            SELECT generation, MAX([{filt}]) FROM frequencies \
+            WHERE [function]=:function AND [trial]=:trial AND [generation]=0; \
+            ', { 'function': func, 'trial': i + 1 }
+        ).fetchone()
 
-    return df
+        # Lists keeping track of the maximum fitness and its corresponding generation
+        currGenList = []
+        currFitList = []
 
-def getGenerationData(func: str) -> np.ndarray:
+        # Get a list of all optimal generations and fitnesses
+        while currFitness:
+            currGenList.append(currGen)
+            currFitList.append(currFitness)
+
+            generation, fitness = cursor.execute(f' \
+                SELECT MIN([generation]), MIN([{filt}]) FROM frequencies \
+                WHERE [function]=:function AND [trial]=:trial AND [{filt}] > :fitness AND [generation] > :gen; \
+                ', { 'function': func, 'fitness': currFitness, 'trial' : i + 1, 'gen': currGen }
+            ).fetchone()
+
+            currGen = generation
+            currFitness = fitness
+    
+        genList.append(currGenList)
+        fitList.append(currFitList)
+
+    generations, avgFitnesses = getAverageFitnesses(genList, fitList, start, end, step)
+
+    cursor.close()
+
+    return generations, avgFitnesses
+
+def getCumulativeAverage(func: str, start=100, end=10000, stepSize=100):
     '''
-    Returns a 3 x n np array of [coherence, lethality, genRange] vals which holds 
-    all the coherence and lethality data split into 10 generation ranges (as enumerated
-    in constants.generations)
+    Returns two numpy arrays: one with generation values and another with the corresponding
+    average of the relevant fitness function.
     '''
     cursor = client.cursor()
 
-    cursor.execute(f' \
-        SELECT [coherence], [lethality], generation, SUM([frequency]) \
-        FROM {FREQ_TABLE} WHERE [function] = :function \
-        GROUP BY generation, [coherence], [lethality] \
-        ORDER BY generation DESC; \
-    ', { 'function': func })
+    if func == 'functional':
+        filt = 'lethality'
+    elif func == 'coherence':
+        filt = 'coherence'
+    elif func == 'multiobjective':
+        filt = 'combined'
+    else:
+        raise Exception(f'{func} is not a valid function')
 
-    coherenceArr = []
-    lethalitiesArr = []
-    genRangeArr = []
+    generations = [0]
+    fitnessAvgs = [0]
+    for i in range(start, end + 1, stepSize):
+        avg, = cursor.execute(f'\
+            SELECT AVG([{filt}]) FROM frequencies \
+            WHERE [function]=:function AND [generation] BETWEEN :lower AND :upper; \
+            ', { 'function': func, 'lower': i - 100, 'upper': i }
+        ).fetchone()
 
-    for (coh, leth, genRange, freq) in cursor.fetchall():
-        for _ in range(freq):
-            coherenceArr.append(coh)
-            lethalitiesArr.append(leth)
-            genRangeArr.append(genRange)
+        # Calculate and append the new average, standard deviation, and generation
+        fitnessAvgs.append((fitnessAvgs[-1] * generations[-1] + stepSize * avg) / i)
+        generations.append(i)
 
-    return np.array([coherenceArr, lethalitiesArr, genRangeArr])
+    cursor.close()
 
-    # coherence = []
-    # lethalities = []
-    # generations = []
-    # frequencies = []
-
-    # for (coh, leth, gen, freq) in cursor.fetchall():
-    #     coherence.append(coh)
-    #     lethalities.append(leth)
-    #     generations.append(gen)
-    #     frequencies.append(freq)
-
-    # return np.array([coherence, lethalities, generations, frequencies])
+    return np.array(generations), np.array(fitnessAvgs)

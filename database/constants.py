@@ -2,15 +2,23 @@
 This file contains the schema for the database, or a constants file for database related structures
 '''
 
+# Table names
 EXP_TABLE = 'experiments'
 FREQ_TABLE = 'frequencies'
+
+# Indexes
 FUNC_INDEX = 'idx_frequencies_func'
 LETH_COHER_INDEX = 'idx_frequencies_leth_coher'
 COHER_LETH_INDEX = 'idx_frequencies_coher_leth'
-GENER_LETH_INDEX = 'idx_frequencies_gener_leth'
-GENER_COHER_INDEX = 'idx_frequencies_gener_coher'
+GENER_INDEX = 'idx_frequencies_gener'
+
+# Partial Indexes
+LETH_INDEX = 'idx_frequencies_leth'
+COHER_INDEX = 'idx_frequencies_coher'
+COMBINED_INDEX = 'idx_frequencies_combined'
 
 EXP_SCHEMA = 'CREATE TABLE {} (\
+    experiment INTEGER, \
     trial INTEGER, \
     trap TEXT, \
     function TEXT, \
@@ -21,7 +29,7 @@ EXP_SCHEMA = 'CREATE TABLE {} (\
     combined REAL, \
     propDead REAL, \
     stdErr REAL, \
-    PRIMARY KEY(function, trap, trial) \
+    PRIMARY KEY(function, trap, experiment) \
 );'.format(EXP_TABLE)
 
 FREQ_SCHEMA = 'CREATE TABLE {} (\
@@ -33,21 +41,40 @@ FREQ_SCHEMA = 'CREATE TABLE {} (\
     lethality REAL, \
     coherence REAL, \
     combined REAL, \
+    generationRange INTEGER, \
     frequency INTEGER DEFAULT 1, \
     PRIMARY KEY(function, trial, generation, trap) \
 );'.format(FREQ_TABLE)
 
 FUNC_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} ([function], [trap], [frequency]);'.format(FUNC_INDEX, FREQ_TABLE)
+    f'CREATE INDEX {FUNC_INDEX} ON {FREQ_TABLE} ([function], [trap], [trial], [generation]);'
 
 LETH_COHER_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} ([function], [lethality], [coherence]);'.format(LETH_COHER_INDEX, FREQ_TABLE)
+    f'CREATE INDEX {LETH_COHER_INDEX} ON {FREQ_TABLE} ([function], [lethality], [coherence]);'
 
 COHER_LETH_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} ([function], [coherence], [lethality]);'.format(COHER_LETH_INDEX, FREQ_TABLE)
+    f'CREATE INDEX {COHER_LETH_INDEX} ON {FREQ_TABLE} ([function], [coherence]);'
 
-GENER_LETH_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} ([function], [generation], [coherence], [lethality]);'.format(GENER_LETH_INDEX, FREQ_TABLE)
+GENER_INDEX_SCHEMA = \
+    f'CREATE INDEX {GENER_INDEX} ON {FREQ_TABLE} ([function], [generation]);'
 
-GENER_COHER_INDEX_SCHEMA = \
-    'CREATE INDEX {} ON {} ([function], [generation], [coherence], [lethality]);'.format(GENER_COHER_INDEX, FREQ_TABLE)
+LETH_INDEX_SCHEMA = \
+    f'CREATE INDEX {LETH_INDEX} ON {FREQ_TABLE} ([function], [trial], [generation], [lethality]) WHERE [function]="functional";'
+
+COHER_INDEX_SCHEMA = \
+    f"CREATE INDEX idx_frequencies_coher ON frequencies ([function], [trial], [generation], [coherence]) WHERE [function]='coherence';"
+
+COMBINED_INDEX_SCHEMA = \
+    f'CREATE INDEX {COMBINED_INDEX} ON {FREQ_TABLE} ([function], [trial], [generation], [combined]) WHERE [function]="multiobjective";'
+
+FUNC_VALUES = ['random', 'uniform-random', 'binary-distance', 'coherence', 'functional', 'multiobjective', 'designed']
+
+FUNC_MAPPINGS = {
+    'random': 'random',
+    'functional': 'funct',
+    'coherence': 'coher',
+    'multiobjective': 'multi',
+    'binary-distance': 'hamming',
+    'uniform-random': 'unif',
+    'designed': 'desig'
+}
