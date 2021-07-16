@@ -20,7 +20,7 @@ Finally, if that fails, we can also interact with the CLI using
 ```
 python3 gopher-cli.py -h
 ```
-## Simulating a trap from the Command Line
+## Simulating a trap
 We have provided a CLI command to simulate an arbitrary encoded trap. To use this command, simply call
 ```
 ./gopher-cli.py genetic-algorithm simulate '<trap_encoding> -h HUNGER -in?'
@@ -40,6 +40,34 @@ The `--no-animation` (`-na`) flag tells the compiler to turn off animation, and 
 The `<state_encoding>` is formatted as `[x, y, rotation, state],` where (`x`, `y`) is the gopher's 0-indexed position from the top left, `rotation` is the gopher's rotation in degrees, and `state` is the index of the gopher's health state, in the order `[dead, alive, hit].`
 The default state is `[1, 4, 0, 1].`
 Finally, we have the `--frame` (`-f`) flag that determines what frame of the trap the board should display
+
+## Showing a trap as a PDF
+The CLI has also been equipped to take in a trap string and generate a PDF of the given trap.
+The command is as follows:
+```
+usage: gopher-cli.py genetic-algorithm show-trap [-h] [--save] [--output OUTPUT] [--no-pdf] [--no-gopher] trap
+
+positional arguments:
+  trap                  the encoded trap as a string (surrounded by ''s)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --save, -s            whether or not to save the trap created
+  --output OUTPUT, -o OUTPUT
+                        the name of the file (no extensions) to be saved
+  --no-pdf, -np         do not show PDF
+  --no-gopher, -ng      do not show the gopher
+```
+The flags are as follows:
+| Flag | Abbrev. | Default | Description |
+| :--: | :----------: | :-----: | :---------: |
+| --help | -h | N/A | help for any given parser|
+| --save | -s | False | whether or not to save the PDF |
+| --output | -o | 'generatedTrap' | the file name to save the trap to |
+| --no-pdf | -np | False | will not show a PDF after the code executes |
+| --no-gopher | -ng | False | will remove the gopher from the PDF |
+
+All traps can be found in the `images/traps/` folder. If this folder does not exist, it must first be made.
 
 ## Getting the Fitness of a Gopher
 To find the fitness of an arbitrary list encoding, we can use the CLI command:

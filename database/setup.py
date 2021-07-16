@@ -33,7 +33,11 @@ def setupTables(overwrite = False):
     indexes = [
         (FUNC_INDEX, FUNC_INDEX_SCHEMA),
         (LETH_COHER_INDEX, LETH_COHER_INDEX_SCHEMA),
-        (COHER_LETH_INDEX, COHER_LETH_INDEX_SCHEMA)
+        (COHER_LETH_INDEX, COHER_LETH_INDEX_SCHEMA),
+        (GENER_INDEX, GENER_INDEX_SCHEMA),
+        (LETH_INDEX, LETH_INDEX_SCHEMA),
+        (COHER_INDEX, COHER_INDEX_SCHEMA),
+        (COMBINED_INDEX, COMBINED_INDEX_SCHEMA),
     ]
 
     if overwrite:
@@ -74,23 +78,22 @@ def loadExperiments(inputFile: str):
 
             # Cast data types
             row[0] = int(row[0])
-            row[3] = float(row[3])
-            row[4] = int(row[4])
-            row[5] = float(row[5])
+            row[1] = int(row[1])
+            row[4] = float(row[4])
+            row[5] = int(row[5])
             row[6] = float(row[6])
             row[7] = float(row[7])
             row[8] = float(row[8])
             row[9] = float(row[9])
+            row[10] = float(row[10])
 
             currentBatch.append(row)
 
-            # Commit every 1000 elements and reset batch
-            if i % 1000 == 0:
-                cursor.executemany(
-                    'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'.format(EXP_TABLE),
-                    currentBatch
-                )
-                currentBatch = []
+    # Insert all elements into the database
+    cursor.executemany(
+        'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'.format(EXP_TABLE),
+        currentBatch
+    )
 
     # Commit changes
     client.commit()
@@ -131,22 +134,22 @@ def loadFrequencies(inputFile: str):
 
                 # Cast data types
                 row[0] = int(row[0])
-
-                # Making generation an enum to speed up query
                 row[1] = int(row[1])
-                row[1] = row[1] // 1000 if row[1] < 1e4 else 9
 
                 row[4] = float(row[4])
                 row[5] = float(row[5])
                 row[6] = float(row[6])
                 row[7] = float(row[7])
 
+                # Adding generation range to the results
+                row.append(row[1] // 1000 if row[1] < 1e4 else 9)
+
                 currentBatch.append(row)
 
                 # Commit every 1000 elements and reset batch to limit memory usage
                 if i % 1000 == 0:
                     cursor.executemany(
-                        'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1) \
+                        'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) \
                         ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
                         currentBatch
                     )
@@ -159,7 +162,7 @@ def loadFrequencies(inputFile: str):
             # Committing the remainder of the rows that may have not been added
             if currentBatch:
                 cursor.executemany(
-                    'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1) \
+                    'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) \
                     ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
                     currentBatch
                 )
@@ -175,15 +178,24 @@ def loadFrequencies(inputFile: str):
     # Close cursor
     cursor.close()
 
-
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'designed')):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed')):
     ''' Inserts all of the compiled csv files into the database '''
     experimentPath = constants.experimentPath
     frequencyPath = constants.frequencyPath
 
     for fitness in fitnesses:
-        loadExperiments(experimentPath.format(fitness,''))
-        loadFrequencies(frequencyPath.format(fitness,''))
+        currExpPath = experimentPath.format(fitness, '')
+        currFreqPath = frequencyPath.format(fitness, '')
+
+        if os.path.exists(currExpPath) and fitness != 'uniform-random':
+            loadExperiments(currExpPath)
+        else:
+            print(f'Cannot load {fitness} experiment since no such file exists.')
+        
+        if os.path.exists(currFreqPath):
+            loadFrequencies(currFreqPath)
+        else:
+            print(f'Cannot load {fitness} frequencies since no such file exists.')
     
     print('Done.')
 

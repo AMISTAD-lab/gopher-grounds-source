@@ -57,7 +57,7 @@ def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]]):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+def getLethality(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
@@ -90,7 +90,7 @@ def functionalFitness(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_EN
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def coherentFitness(encodedInput):
+def getCoherence(encodedInput):
     """Assigns a fitness based on the coherence of a given configuration"""
     ## Prevent duplicate code
     def calcFitness(encoding):
@@ -113,7 +113,7 @@ def coherentFitness(encodedInput):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def combinedFitness(encodedInput):
+def getCombined(encodedInput):
     """Assigns a fitness based on the coherence AND function of a configuration"""
 
     def calcFitness(encoded):
@@ -125,13 +125,13 @@ def combinedFitness(encodedInput):
 
         MAX_DIFF = 0.2
 
-        coherence = coherentFitness(encoded)
-        functionality = functionalFitness(encoded)
+        coherence = getCoherence(encoded)
+        functionality = getLethality(encoded)
 
         sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
         evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(2 * np.abs(x - y)))
         
-        # Scale the result to have combinedFitness(0, 0) = 0 and combinedFitness(1, 1) = 1
+        # Scale the result to have getCombined(0, 0) = 0 and getCombined(1, 1) = 1
         fitness = (2 * evaluator(coherence, functionality) - 1) / (2 * evaluator(1, 1) - 1)
 
         # If the difference is too large, then penalize the fitness
@@ -148,7 +148,7 @@ def combinedFitness(encodedInput):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def binaryDistanceFitness(encodedInput):
+def getBinaryDistance(encodedInput):
     """Assigns a fitness based on the binary distance to the target configuration"""
     def calcFitness(encoding):
         # Convert list to string to reference in dictionary
@@ -197,12 +197,12 @@ def binaryDistanceFitness(encodedInput):
 def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Given a list of traps, calculate the multiobjective (coherence and functional) fitness for each.
-    Returns an 1 x n numpy array [multifitness] * combinedFitness(config_maxScore) in order of population list
+    Returns an 1 x n numpy array [multifitness] * getCombined(config_maxScore) in order of population list
     """
 
     # Return the combined fitness if one trap is passed in
     if isinstance(population[0], (np.int32, np.int64)):
-        return combinedFitness(population)
+        return getCombined(population)
     
     # create preliminary variables
     size = len(population)
@@ -212,8 +212,8 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
 
     # determine score of trap by number of other traps it dominates
     for trap in population:
-        functionals.append(functionalFitness(trap, defaultProbEnter))
-        coherents.append(coherentFitness(trap))
+        functionals.append(getLethality(trap, defaultProbEnter))
+        coherents.append(getCoherence(trap))
 
     data = {"functional fitness": functionals, "coherent fitness": coherents}
     df = pd.DataFrame(data, columns = ["functional fitness", "coherent fitness"])
@@ -249,14 +249,14 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
     newScores = [scores[i] + boosters[i] for i in range(size)]
     newScores = [newScores[i]/max(newScores) for i in range(size)]
 
-    return np.array(newScores) * combinedFitness(population[np.argmax(newScores)])
+    return np.array(newScores) * getCombined(population[np.argmax(newScores)])
 
 functionLut = {
     'random': randomFitness,
-    'functional': functionalFitness,
-    'cohernece': coherentFitness,
+    'functional': getLethality,
+    'cohernece': getCoherence,
     'multiobjective': multiobjectiveFitness,
-    'binary-distance': binaryDistanceFitness,
+    'binary-distance': getBinaryDistance,
 }
 
 def getFunctionFromName(functionName: str) -> Callable:

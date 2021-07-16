@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import random
-from geneticAlgorithm.fitnessFunctions import *
-from geneticAlgorithm.experiment import *
-from geneticAlgorithm.encoding import *
+import geneticAlgorithm.fitnessFunctions as functions
+import geneticAlgorithm.experiment as exp
+import geneticAlgorithm.encoding as enc
 
 lethalityDict = {}
 
@@ -22,15 +22,15 @@ def generateRandomTraps(numTraps=100000):
             else:
                 trap.append(random.randrange(2,93,1))
         traps.append(trap)
-    return listDecoding(traps)
+    return enc.listDecoding(traps)
             
 def getStats(traps):
     """Given a list of encoded traps, returns a pandas df with each coherence and lethality"""
     coherences = []
     lethalities = []
     for trap in traps:
-        coherences.append(coherentFitness(trap))
-        lethality, _, _ = runSimulations(singleEncoding(trap), numSimulations=1000, printStatistics = False)
+        coherences.append(functions.getCoherence(trap))
+        lethality, _, _ = exp.runSimulations(enc.singleEncoding(trap), numSimulations=1000, printStatistics = False)
         lethalities.append(lethality)
     stats = {'Coherence': coherences, 'Lethality': lethalities}
     df = pd.DataFrame(stats, columns = ['Coherence', 'Lethality'])
