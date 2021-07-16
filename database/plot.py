@@ -1,9 +1,9 @@
-from typing import List
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm, Normalize, ListedColormap, LinearSegmentedColormap
-from matplotlib.colorbar import ColorbarBase
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.colors import LogNorm, Normalize, ListedColormap
+from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 from database.constants import FUNC_VALUES
 import database.library as dbLibrary
@@ -114,6 +114,13 @@ def createVectorMaps(measure: str, figSize=(8,8), save=False, name='VectorMap'):
         axes[i].set_ylabel('')
         axes[i].invert_yaxis()
     
+    # Add labels to vectors
+    ndX0, ndX1 = axes[0].get_position().x0, axes[2].get_position().x1
+    gdX0, gdX1 = axes[3].get_position().x0, axes[5].get_position().x1
+    hdX0, hdX1 = axes[6].get_position().x0, axes[6].get_position().x1
+
+    axes[1].annotate('Non-Designed', xy=(0.5, 0), xycoords='axes fraction', xytext=(0, -20), textcoords='offset points', horizontalalignment='center')
+
     if save:
         with PdfPages(f'./images/vectors/{measure}{name}Generated.pdf') as pdf:
             pdf.savefig(bbox_inches='tight')
@@ -155,8 +162,9 @@ def createAverageOptimalFitnessLinePlot(figSize=(6, 6), save=False):
     labels = ['functional', 'coherence', 'multiobjective']
 
     for func in labels:
-        generations, avgs = dbLibrary.getAverageOptimalFitness(func, step=100)
+        generations, avgs, marginErrs = dbLibrary.getAverageOptimalFitness(func, step=100)
         plt.plot(generations, avgs, label=func)
+        plt.fill_between(generations, avgs + marginErrs, avgs - marginErrs, alpha=0.15)
 
     plt.title('Cumulative Average Optimal Fitness Across All Trials vs. Generations', pad=20)
     plt.xlabel('Generation')
@@ -169,7 +177,7 @@ def createAverageOptimalFitnessLinePlot(figSize=(6, 6), save=False):
         with PdfPages(f'./images/lineplots/averageOptimalFitness.pdf') as pdf:
             pdf.savefig(bbox_inches='tight')
 
-def createAverageGenerationLinePlot(figSize=(6, 6), save=False):
+def createAverageGenerationLinePlot(cumulative=True, figSize=(6, 6), save=False):
     ''' Creates a line plot which shows the cumulative average fitness across every trial '''
     plt.figure(figsize=figSize)
 
@@ -177,10 +185,14 @@ def createAverageGenerationLinePlot(figSize=(6, 6), save=False):
     labels = ['functional', 'coherence', 'multiobjective']
 
     for func in labels:
-        generations, avgs = dbLibrary.getCumulativeAverage(func)
+        if cumulative:
+            generations, avgs = dbLibrary.getCumulativeAverageFitnessAcrossTrials(func)
+            print(generations[:3], avgs[:3])
+        else:
+            generations, avgs = dbLibrary.getAverageFitnessAcrossTrials(func)
         plt.plot(generations, avgs, label=func)
 
-    plt.title('Cumulative Average Fitness Across All Trials vs. Generations', pad=20)
+    plt.title('{}Average Fitness Across All Trials vs. Generations'.format('Cumulative ' if cumulative else ''), pad=20)
     plt.xlabel('Generation')
     plt.ylabel('Fitness value')
     plt.ylim(top=1)
@@ -188,5 +200,57 @@ def createAverageGenerationLinePlot(figSize=(6, 6), save=False):
     plt.legend()
 
     if save:
-        with PdfPages(f'./images/boxplots/averageGenerationFitness.pdf') as pdf:
+        with PdfPages('./images/boxplots/{}GenerationFitness.pdf'.format('cumulative' if cumulative else 'cumulativeAverage')) as pdf:
             pdf.savefig(bbox_inches='tight')
+
+
+def multiobjectivePlot(df: pd.DataFrame, x='functional_fitness', y='coherent_fitness', jitter=False, xlabel='', ylabel='', title='', labelLoc='upper right', box_index=None):
+    """
+    Plots function vs coherence data from a df. 
+    Creates shaded box with upper-right corner at trap with index 'box_index.'
+    """
+    plt.rcParams.update({'font.size':15})
+    fig, ax = plt.subplots()
+
+    x = np.array(df[x])
+    y = np.array(df[y])
+
+    if jitter:
+        x = addJitter(x)
+        y = addJitter(y)
+
+    ax.add_patch(Rectangle((0, 0), x[box_index], y[box_index],
+             facecolor = 'gray',
+             fill=True,
+             lw=1,
+             alpha=0.5))
+    plt.scatter(x, y, s=100)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.show()
+
+def barPlot():    
+    # creating the dataset
+    data = {'random': 0.01, 'functional': 0.01, 'coherent': 1, 'multiobjective': 0.77, 'binary distance': 0.01}
+    funcs = list(data.keys())
+    diffs = list(data.values())
+    
+    fig = plt.figure(figsize = (10, 4))
+    
+    # creating the bar plot
+    plt.bar(funcs, diffs, color ='orange',
+            width = 0.4)
+
+    addlabels(funcs, diffs)
+    
+    plt.xlabel("FITNESS FUNCTION")
+    plt.ylabel("% DETERMINED MADE WITH INTENTION")
+    plt.show()
+
+def addlabels(x,y):
+    for i in range(len(x)):
+        if y[i] == 0.01:
+            plt.text(i,y[i],0,ha='center')
+        else:
+            plt.text(i,y[i],y[i],ha='center')
