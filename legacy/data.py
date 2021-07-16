@@ -73,10 +73,10 @@ def percentThoughtReal(filename, param):
 def linearRunGraph(filename, param, fitnessFunc):
     """Saves a graph displaying information about the given parameter from the data in the given file"""
 
-    labelsize = 18
-    legendsize = 16
-    titlesize = 19
-    ticksize = 16
+    labelsize = 16
+    legendsize = 15
+    titlesize = 17
+    ticksize = 15
     linewidth = 3
 
     data = pd.read_csv(filename)
@@ -151,21 +151,21 @@ def linearRunGraph(filename, param, fitnessFunc):
         n_food_ax.plot(paramValues, n_food_vals, label=modes[i], color=color, linewidth=linewidth)
         n_food_ax.fill_between(paramValues, n_f_low_ci, n_f_up_ci, color=color, alpha=.15) 
     
-    life_ax.set(ylim=(0, 10))
+    life_ax.set(ylim=(0, 50))
     life_ax.set_ylabel(r"Gopher Lifespan (number of traps)", fontsize=labelsize, fontweight='bold')
     life_ax.set_xlabel(paramLabels[param], fontsize=labelsize, fontweight='bold')
     life_ax.tick_params(axis='both', which='major', labelsize=ticksize, direction='in')
     life_ax.set_title(r"Gopher Lifespan" + "\n" + r"vs" + "\n" + paramLabels[param] + "\n" + "(" + fitnessFunc + ")", fontsize=titlesize, fontweight='bold')
     life_ax.legend(prop={"size":legendsize})
 
-    food_ax.set(ylim=(0, 5))
+    food_ax.set(ylim=(0, 50))
     food_ax.set_ylabel(r"Amount of Food Consumed", fontsize=labelsize, fontweight='bold')
     food_ax.set_xlabel(paramLabels[param], fontsize=labelsize, fontweight='bold')
     food_ax.tick_params(axis='both', which='major', labelsize=ticksize, direction='in')
     food_ax.set_title(r"Food Consumption" + "\n" + r"vs" + "\n" + paramLabels[param] + "\n" + "(" + fitnessFunc + ")", fontsize=titlesize, fontweight='bold')
     food_ax.legend(prop={"size":legendsize})
 
-    n_food_ax.set(ylim=(0, 0.2))
+    n_food_ax.set(ylim=(0, 1))
     n_food_ax.set_ylabel(r"Food Consumed Per Trap Survived", fontsize=labelsize, fontweight='bold')
     n_food_ax.set_xlabel(paramLabels[param], fontsize=labelsize, fontweight='bold')
     n_food_ax.tick_params(axis='both', which='major', labelsize=ticksize, direction='in')
@@ -181,7 +181,7 @@ def linearRunGraph(filename, param, fitnessFunc):
 
 
 
-def statusOverTime(filename):
+def statusOverTime(filename, fitnessFunc):
     """displays a graph with information about the lifes of intention and normal gophers"""
 
     data = pd.read_csv(filename)
@@ -189,15 +189,16 @@ def statusOverTime(filename):
     # plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
         
-    df0 = filterDataFrame(data, [["intention", True]])
-    df1 = filterDataFrame(data, [["intention", False]])
+    df0 = filterDataFrame(data, [["intention", 0]])
+    df1 = filterDataFrame(data, [["intention", 1]])
+    df3 = filterDataFrame(data, [["intention", 2]])
 
-    dfs = [df0, df1]
-    modes = [r"With Intention Perception", r"Without Intention Perception"]
+    dfs = [df0, df1, df3]
+    modes = [r"Without Intention", r"With Old Intention", r"With New Intention"]
 
     figs = []
     axes = []
-    for i in range(2):
+    for i in range(3):
         figs.append(plt.figure(i + 1))
         axes.append(plt.gca())
 
@@ -236,11 +237,11 @@ def statusOverTime(filename):
         ax.tick_params(axis='both', which='major', labelsize=10, direction='in')
         ax.set_aspect(1.0/ax.get_data_ratio(), adjustable='box')
         ax.legend()
-        ax.set_title(r"Status Over Time" + "\n" + modes[i], fontsize=11)
+        ax.set_title(r"Status Over Time" + "\n" + modes[i] + "\n" + "(" + fitnessFunc + ")", fontsize=11)
 
     for i, fig in enumerate(figs):
         fig.tight_layout()
-        fig.savefig('stackplot{}.pdf'.format(i+1), bbox_inches='tight', pad_inches=0)
+        fig.savefig(constants.realExperimentPath.format(fitnessFunc, fitnessFunc, 'stackplot' + str(i+1), 'pdf'), bbox_inches='tight', pad_inches=0)
     
     plt.close('all')
 

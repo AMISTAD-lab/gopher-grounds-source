@@ -8,6 +8,8 @@ import numpy as np
 import legacy.magicVariables as mv
 import legacy.data as d
 import geneticAlgorithm.constants as constants
+import geneticAlgorithm.analytical as analy
+import geneticAlgorithm.library as lib
 
 pref = {
     "intention" : 1, #if gopher has intention
@@ -56,6 +58,8 @@ def createExpInputFile(inputToVary):
                 probEnter /= 100
                 file.write(toWrite)
                 file.write("defaultProbEnter " + str(probEnter) + "\n\n")
+        elif inputToVary == "default":
+            file.write(toWrite + "\n")
         else:
             raise Exception("Something went wrong")
     file.close() 
@@ -205,9 +209,9 @@ def printProgressBar (iteration, total, prefix = 'Progress:', suffix = 'Complete
         print()
 
 
-def loadTrapList(fitnesssFunc):
+def loadTrapList(fitnessFunc):
     trapList = []
-    inputPath = constants.experimentPath.format(fitnesssFunc, '')
+    inputPath = constants.experimentPath.format(fitnessFunc, '')
     with open(inputPath, 'r' ,newline='') as incsv:
         for row in csv.reader(incsv):
             if row[0] == "Trial":
@@ -219,24 +223,59 @@ def loadTrapList(fitnesssFunc):
                 trapList.append(trap)
     return trapList
 
-# 
+def percentShootProjectile(fitnessFunc):
+    countShoot = 0
+    countTotal = 0
+    inputPath = constants.experimentPath.format(fitnessFunc, '')
+    with open(inputPath, 'r' ,newline='') as incsv:
+        for row in csv.reader(incsv):
+            if row[0] == "Trial":
+                continue
+            else:
+                countTotal += 1
+                encodedTrap = utils.convertStringToEncoding(row[1])
+                decodedTrap = encode.singleDecoding(encodedTrap)
+                if analy.shootProjectile(decodedTrap):
+                    countShoot += 1
+    print("{}% {} traps shoot a projectile".format(countShoot / countTotal * 100, fitnessFunc) )
 
-# testList = loadTrapList('coherence')
-# trap = np.random.choice(testList)
-# print(trap.board)
-# encoded = encode.singleEncoding(trap.board)
-# print(encoded)
+def percentShootProjectileRandom(numTrap):
+    countShoot = 0
+    countTotal = 0
+    for i in range(numTrap):
+        encodedTrap = lib.generateTrap()
+        decodedTrap = encode.singleDecoding(encodedTrap)
+        if analy.shootProjectile(decodedTrap):
+                    countShoot += 1
+    print("{}% traps shoot a projectile".format(countShoot / numTrap * 100) )
 
-# fitnessFuncs = ['random']
-# params = ["defaultProbEnter", "maxProjectileStrength", "nTrapsWithoutFood", "probReal"]
+
+def testingShootProjectile(numTrap):
+    filename = "randomTraps.txt"
+    out = open(filename, "w")
+    for i in range(numTrap):
+        trap = lib.generateTrap()
+        out.write(utils.convertEncodingToString(trap) + "\n")
+
+# fitnessFuncs = ['binary-distance']
+# params = ['defaultProbEnter','maxProjectileStrength','nTrapsWithoutFood','probReal']
+# for fitnessFunc in fitnessFuncs:
+#     for param in params:
+#         fileName = constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'csv')
+#         # runExperiment(fileName, param, 10000, fitnessFunc)
+#         d.linearRunGraph(fileName, param, fitnessFunc)
+
+# fitnessFuncs = ['coherence', 'functional', 'multiobjective', 'random', 'binary-distance']
+# params = ['default']
 # for fitnessFunc in fitnessFuncs:
 #     for param in params:
 #         fileName = constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'csv')
 #         runExperiment(fileName, param, 10000, fitnessFunc)
+#         d.statusOverTime(fileName, fitnessFunc)
 
 
-# d.linearRunGraph(fileName, param, fitnessFunc)
-fitnessFunc = 'coherence'
-param = "defaultProbEnter"
-fileName = constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'csv')
-runExperiment(fileName, param, 10000, fitnessFunc)
+# fitnessFuncs = ['coherence', 'functional', 'multiobjective', 'random', 'binary-distance']
+# for fitnessFunc in fitnessFuncs:
+#     percentShootProjectile(fitnessFunc)
+
+# testingShootProjectile(20)

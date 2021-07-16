@@ -189,3 +189,7 @@ def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER
         sumProb += (deathProb * dist)
 
     return sumProb * defaultProbEnter
+
+def shootProjectile(configuration):
+    leftData, rightData = getArrowData(configuration)
+    return leftData[0] > 0 or rightData[0] > 0
