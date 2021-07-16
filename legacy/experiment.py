@@ -2,7 +2,7 @@ import libs.simulation as s
 import copy
 import classes.Trap as t
 import numpy as np
-import legacy.magicVariables as mv
+import legacy.magicFunctions as mf
 import legacy.data as d
 
 pref = {
@@ -152,7 +152,7 @@ def simulate(pref):
     probReal = pref["probReal"]
     nTrapsWithoutFood = pref["nTrapsWithoutFood"]
 
-    mv.initializeVariables(pref)
+    mf.initializeVariables(pref)
 
     stillAlive = True
     trapsWithoutFood = 0

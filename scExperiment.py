@@ -4,7 +4,6 @@ import geneticAlgorithm.encoding as encode
 import geneticAlgorithm.utils as utils
 import geneticAlgorithm.constants as constants
 import csv
-import ast
 
 def newIsTrap(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the real distribution"""

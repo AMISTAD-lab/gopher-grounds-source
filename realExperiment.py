@@ -5,7 +5,7 @@ import geneticAlgorithm.utils as utils
 import geneticAlgorithm.encoding as encode
 import classes.Trap as t
 import numpy as np
-import legacy.magicVariables as mv
+import legacy.magicFunctions as mf
 import legacy.data as d
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.analytical as analy
@@ -120,7 +120,7 @@ def simulate(pref, fitnessFunc, trapList):
     probReal = pref["probReal"]
     nTrapsWithoutFood = pref["nTrapsWithoutFood"]
 
-    mv.initializeVariablesNew(pref, fitnessFunc)
+    mf.initializeVariablesNew(pref, fitnessFunc)
 
     stillAlive = True
     trapsWithoutFood = 0
