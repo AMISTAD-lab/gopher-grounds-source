@@ -102,7 +102,7 @@ def barPlot():
     addlabels(funcs, diffs)
     
     plt.xlabel("FITNESS FUNCTION")
-    plt.ylabel("% OF TRAPS DETERMINED HUMAN-DESIGNED")
+    plt.ylabel("% DETERMINED MADE WITH INTENTION")
     plt.show()
 
 def addlabels(x,y):
