@@ -183,12 +183,6 @@ def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 
     
     return finalImage
 
-def createGIF(directory: str, duration=37):
-    ''' Takes in a directory that contains all images and makes a GIF from those images. '''
-    img, *imgs = [Image.open(f'{directory}/trap{i}Combined.png') for i in range(1, 101)]
-
-    img.save(f'{directory}/gopher.gif', ext='GIF', save_all=True, optimize=True, append_images=imgs, duration=duration, loop=0)
-
 def simulateTrapInBrowser(trapEncoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
     """Takes in a list encoding and simulates the trap in the browser"""
     decodedList = enc.singleDecoding(trapEncoding)

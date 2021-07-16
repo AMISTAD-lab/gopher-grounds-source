@@ -46,5 +46,3 @@ def createCombined():
         print(f"Starting trap {i}")
         imgPaths = [f'./images/traps/blog{func}/trap{i}.png' for func in ('Funct', 'Coher', 'Multi')]
         vis.combineThreeImages(imgPaths, 'trap{}{}Combined'.format((2 - int(math.log10(i))) * '0', i), save=True, labels=['FUNCTIONAL', 'COHERENCE', 'MULTIOBJECTIVE'])
-
-createCombined()
