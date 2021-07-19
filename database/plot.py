@@ -177,7 +177,7 @@ def createAverageOptimalFitnessLinePlot(figSize=(6, 6), save=False):
         with PdfPages(f'./images/lineplots/averageOptimalFitness.pdf') as pdf:
             pdf.savefig(bbox_inches='tight')
 
-def createAverageGenerationLinePlot(cumulative=True, figSize=(6, 6), save=False):
+def createAverageGenerationLinePlot(cumulative=False, start=0, end=10000, step=1, figSize=(6, 6), save=False):
     ''' Creates a line plot which shows the cumulative average fitness across every trial '''
     plt.figure(figsize=figSize)
 
@@ -186,11 +186,14 @@ def createAverageGenerationLinePlot(cumulative=True, figSize=(6, 6), save=False)
 
     for func in labels:
         if cumulative:
-            generations, avgs = dbLibrary.getCumulativeAverageFitnessAcrossTrials(func)
-            print(generations[:3], avgs[:3])
+            generations, avgs = dbLibrary.getCumulativeAverageFitnessAcrossTrials(func, start, end, step)
         else:
-            generations, avgs = dbLibrary.getAverageFitnessAcrossTrials(func)
+            generations, avgs, marginErrs = dbLibrary.getAverageFitnessAcrossTrials(func, start, end, step)
+
         plt.plot(generations, avgs, label=func)
+
+        if marginErrs is not None:
+            plt.fill_between(generations, avgs + marginErrs, avgs - marginErrs, alpha=0.30)
 
     plt.title('{}Average Fitness Across All Trials vs. Generations'.format('Cumulative ' if cumulative else ''), pad=20)
     plt.xlabel('Generation')
@@ -200,7 +203,7 @@ def createAverageGenerationLinePlot(cumulative=True, figSize=(6, 6), save=False)
     plt.legend()
 
     if save:
-        with PdfPages('./images/boxplots/{}GenerationFitness.pdf'.format('cumulative' if cumulative else 'cumulativeAverage')) as pdf:
+        with PdfPages('./images/lineplots/{}GenerationFitness.pdf'.format('cumulative' if cumulative else 'average')) as pdf:
             pdf.savefig(bbox_inches='tight')
 
 
