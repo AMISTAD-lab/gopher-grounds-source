@@ -250,7 +250,7 @@ def percentShootProjectileRandom(numTrap):
     print("{}% traps shoot a projectile".format(countShoot / numTrap * 100) )
 
 
-def testingShootProjectile(numTrap):
+def generateRandomTraps(numTrap):
     filename = "randomTraps.txt"
     out = open(filename, "w")
     for i in range(numTrap):
@@ -278,4 +278,4 @@ def testingShootProjectile(numTrap):
 # for fitnessFunc in fitnessFuncs:
 #     percentShootProjectile(fitnessFunc)
 
-# testingShootProjectile(20)
+# percentShootProjectileRandom(100000)
