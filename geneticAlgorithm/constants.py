@@ -17,6 +17,7 @@ fofHeaders = ['Frequency', 'FrequencyOfFrequency']
 experimentPath = './experiments/{}{}.csv'
 frequencyPath = './frequencies/{}{}.csv'
 fofPath = './frequencies/{}{}FoF.csv'
+realExperimentPath = './realExperiments/{}/{}{}.{}'
 
 # Enumeration of possible lethality/coherence values and generation ranges
 lethalities = sorted([

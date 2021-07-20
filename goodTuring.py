@@ -7,57 +7,13 @@ import numpy as np
 import pprint
 import database.library as dbLibrary
 import geneticAlgorithm.constants as constants
-
-def createFreqOfFreqs(fitnessFunction):
-    """
-    Returns a dictionary of all frequencies of frequencies of the given input file.
-    Additionally, writes the data to a file to prevent having to run the expensive operation again
-    """
-    inputPath = './frequencies/{}/{}FreqsCompiled.csv'.format(fitnessFunction, fitnessFunction)
-    outputPath = './frequencies/{}/{}FreqOfFreqs.csv'.format(fitnessFunction, fitnessFunction)
-
-    # Maintain a dictionary of counts
-    freqOfFreqs = {}
-
-    with open(inputPath, 'r', newline='') as out:
-        reader = csv.reader(out)
-
-        for row in reader:
-            if row[1] == 'Freq':
-                continue
-
-            currFreq = int(row[1])
-
-            if currFreq not in freqOfFreqs:
-                freqOfFreqs[currFreq] = 0
-            
-            freqOfFreqs[currFreq] += 1
-        out.close()
-
-    # Write the data to a file
-    with open(outputPath, 'w+', newline='') as out:
-        writer = csv.writer(out)
-        writeData = [['Frequency', 'Frequency_of_Frequency']]
-        currI = 1
-
-        copyDict = copy.copy(freqOfFreqs)
-        while copyDict:
-            if currI in copyDict:
-                writeData.append([str(currI), str(copyDict[currI])])
-                del copyDict[currI]
-            
-            currI += 1
-
-        writer.writerows(writeData)
-        out.close()
-
-    return freqOfFreqs
+import geneticAlgorithm.utils as utils
 
 def loadFoF(fitnessFunc):
     """
     Returns a dictionary of all frequency of frequencies of a given fitness function
     """
-    path = './frequencies/{}/{}FreqOfFreqs.csv'.format(fitnessFunc, fitnessFunc)
+    path = constants.fofPath.format(fitnessFunc,'')
 
     compiledDict = {}
     with open(path, 'r', newline='') as out:
@@ -98,14 +54,14 @@ def getProbDict(fofDict, confidenceLevel=1.65):
     # Simple Good Turing
     r_smoothed = {}
     useLinear = False
-    for r in sortedFreq:
+
+    for index, r in enumerate(sortedFreq):
         r_linear = r * (1 + 1 / r) ** (b + 1)  # estimates of r using LGT
 
         # If we didn't start use LGT (still using Turing estimate) 
         if not useLinear:
             # 1. if N_r+1==0, switch to LGT
             if (r + 1) not in fofDict:
-                print("reached unobserved frequency before crossing the 'smoothing threshold.'")
                 useLinear = True
                 r_smoothed[r] = r_linear
                 continue
@@ -136,6 +92,10 @@ def getProbDict(fofDict, confidenceLevel=1.65):
     unnormTotal = np.sum([r_smoothed[r] * fofDict[r] for r in sortedFreq])
     for r in sortedFreq:
         sgtProb[r] = (1 - p0) * (r_smoothed[r] / unnormTotal)
+
+    # # Test total = 1
+    # testTotal = sum([sgtProb[freq] * fofDict[freq] for freq in sortedFreq]) + p0
+    # print('test total = ', testTotal)
 
     return sgtProb
 
@@ -168,8 +128,6 @@ def logLinearReg(zDict):
     A = np.vstack([x, np.ones(len(x))]).T   
     b, a = np.linalg.lstsq(A, y, rcond=None)[0]
 
-    print('Regression: log(z) = {} * log(r) + {}'.format(round(b, 3), round(a, 3)))
-
     if b > -1.0:
         raise Exception('Warning: slope b > -1.0')
 
@@ -180,7 +138,11 @@ def getSmoothedProb(configuration, fitnessFunc):
     Returns the SGT-smoothed probability of a given configuration
     """
     probDict = getProbDict(loadFoF(fitnessFunc))
-    r = dbLibrary.getTrapFreq(configuration, fitnessFunc)
+
+    # Standardize the trap string
+    trapStr = np.array2string(np.array(configuration))
+
+    r = 0 if dbLibrary.getTrapFreq(trapStr, fitnessFunc) == None else dbLibrary.getTrapFreq(trapStr, fitnessFunc)
     return probDict[r]
 
 def testSGT(configuration, function = 'coherence'):
@@ -198,3 +160,5 @@ def testSGT(configuration, function = 'coherence'):
 
     print("This is the probability of a certain trap:")
     print(getSmoothedProb(configuration, function))
+
+# testSGT('[ 11, 8, 26, 89, 1, 81, 5, 2, 3, 29, 0, 15 ]', 'coherence')
