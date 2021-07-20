@@ -1,24 +1,30 @@
 import libs.simulation as s
 import copy
+import csv
+import geneticAlgorithm.utils as utils
+import geneticAlgorithm.encoding as encode
 import classes.Trap as t
 import numpy as np
 import legacy.magicFunctions as mf
 import legacy.data as d
+import geneticAlgorithm.constants as constants
+import geneticAlgorithm.analytical as analy
+import geneticAlgorithm.library as lib
 
 pref = {
-    "intention" : True, #if gopher has intention
-    "cautious" : False, # only used if intention, fakes a FSC test to confirm intention > cautiousness
+    "intention" : 1, #if gopher has intention
     "defaultProbEnter" : 0.8, #probability of gopher entering trap (not for intention)
-    "probReal" : 0.2, #percentage of traps that are designed as opposed to random
+    "probReal" : 0.2, #percentage of traps that are designed as opposed to random, set default to 0
     "nTrapsWithoutFood" : 4, #the amount of traps a gopher can survive without entering (due to starvation)
     "maxProjectileStrength" : 0.45, #thickWire strength
 }
 
-def runExperiment(filename, inputToVary, numSimulations):
+def runExperiment(filename, inputToVary, numSimulations, fitnessFunc):
     """runs the experiment on the indicated parameter input and saves the data to a csv"""
+    trapList = loadTrapList(fitnessFunc)
     inputfile = createExpInputFile(inputToVary)
     seedList = createSeedListFromFile(inputfile)
-    allData = simulateManySetups(numSimulations, seedList)
+    allData = simulateManySetups(numSimulations, seedList, fitnessFunc, trapList)
     d.allDataToCSV(allData, filename)
 
 def createExpInputFile(inputToVary):
@@ -31,7 +37,7 @@ def createExpInputFile(inputToVary):
     """
     filename = "experimentInput.txt"
     file = open(filename, "w")
-    for intention in [True, False]:
+    for intention in [0, 1, 2]:
         toWrite = "intention " + str(intention) + "\n" 
         if inputToVary == "probReal":
             for percent in range(0, 100+1, 5):
@@ -52,40 +58,10 @@ def createExpInputFile(inputToVary):
                 probEnter /= 100
                 file.write(toWrite)
                 file.write("defaultProbEnter " + str(probEnter) + "\n\n")
+        elif inputToVary == "default":
+            file.write(toWrite + "\n")
         else:
             raise Exception("Something went wrong")
-    file.close() 
-    return filename
-
-
-def runCautious(filename, numSimulations):
-    """runs the experiment but for cautious gophers"""
-    inputfile = createCautious()
-    seedList = createSeedListFromFile(inputfile)
-    allData = simulateManySetups(numSimulations, seedList)
-    d.allDataToCSV(allData, filename)
-
-def createCautious():
-    """Inputs:
-        inputToVary: String, the input to vary. 
-            eg. "predSightDistance"
-        startValue: the starting value of input, inclusive
-        endingValue: the ending value of input, inclusive
-        stepValue: the stepValue for input
-    """
-    filename = "experimentInput.txt"
-    file = open(filename, "w")
-    for intention in [True, "cautious", False]:
-        cautious = False
-        if intention == "cautious":
-            intention = True
-            cautious = True
-        toWrite = "intention " + str(intention) + "\n"
-        toWrite += "cautious " + str(cautious) + "\n"
-        for percent in range(0, 100+1, 5):
-            percent /= 100
-            file.write(toWrite)
-            file.write("probReal " + str(percent) + "\n\n")
     file.close() 
     return filename
 
@@ -98,8 +74,7 @@ def createSeedListFromFile(filename):
     lineList = lineList[:-1]
 
     standardSeed = {
-        "intention" : True,
-        "cautious" : False,
+        "intention" : 1,
         "defaultProbEnter" : 0.8,
         "probReal" : 0.2,
         "nTrapsWithoutFood" : 4,
@@ -115,44 +90,37 @@ def createSeedListFromFile(filename):
         else:
             key, value = line.split()
             if key in preferences:
-                if value == "True":
-                    preferences[key] = True
-                elif value == "False":  
-                    preferences[key] = False
-                else:
-                    preferences[key] = float(value)
-            else:
-                raise Exception(key + " is not a value in preferences!")
+                preferences[key] = float(value)
     seedList.append(preferences)
     return seedList
 
 
-def simulateManySetups(numSimulations, seedList):
+def simulateManySetups(numSimulations, seedList, fitnessFunc, trapList):
     allData = []
     numSeeds = len(seedList)
     for i in range(numSeeds):
-        allData.append(batchSimulate(numSimulations, seedList[i], [True, i, numSeeds]))
+        allData.append(batchSimulate(numSimulations, seedList[i], fitnessFunc, trapList, [True, i, numSeeds]))
     return allData
 
 
-def batchSimulate(numSimulations, pref, manySetups=[False,0,0]):
+def batchSimulate(numSimulations, pref, fitnessFunc, trapList, manySetups=[False,0,0]):
     """runs simulate many times"""
     batchData = copy.deepcopy(pref) # holds runData, as well as averages for each set of parameters
     runsData = [] # holds data dictionaries for runs with a given set of parameters. (greater number of runs = greater precision)
     for i in range(numSimulations):
-        data, trapInfo = simulate(pref)
+        data, trapInfo = simulate(pref, fitnessFunc, trapList)
         runsData.append(data)
         if manySetups[0]:
             printProgressBar((i+1) + (manySetups[1] * numSimulations), numSimulations * manySetups[2])
     batchData["runsData"] = runsData 
     return batchData
 
-def simulate(pref):
+def simulate(pref, fitnessFunc, trapList):
     intention = pref["intention"]
     probReal = pref["probReal"]
     nTrapsWithoutFood = pref["nTrapsWithoutFood"]
 
-    mf.initializeVariables(pref)
+    mf.initializeVariablesNew(pref, fitnessFunc)
 
     stillAlive = True
     trapsWithoutFood = 0
@@ -165,7 +133,10 @@ def simulate(pref):
         rowLength = 3
         colLength = 4
         functional = np.random.binomial(1, probReal)
-        trap = t.Trap(rowLength, colLength, functional)
+        if functional:
+            trap = t.Trap(rowLength, colLength, functional)
+        else:
+            trap = np.random.choice(trapList)
         hunger = (trapsWithoutFood + 1)/nTrapsWithoutFood
         ib, ac, gc, alive, eaten, thoughtReal = s.simulateTrap(trap, intention, hunger)
         numThoughtReal += thoughtReal
@@ -236,3 +207,75 @@ def printProgressBar (iteration, total, prefix = 'Progress:', suffix = 'Complete
     # Print New Line on Complete
     if iteration == total: 
         print()
+
+
+def loadTrapList(fitnessFunc):
+    trapList = []
+    inputPath = constants.experimentPath.format(fitnessFunc, '')
+    with open(inputPath, 'r' ,newline='') as incsv:
+        for row in csv.reader(incsv):
+            if row[0] == "Trial":
+                continue
+            else:
+                encodedTrap = utils.convertStringToEncoding(row[1])
+                decodedTrap = encode.singleDecoding(encodedTrap)
+                trap = utils.createTrap(decodedTrap)
+                trapList.append(trap)
+    return trapList
+
+def percentShootProjectile(fitnessFunc):
+    countShoot = 0
+    countTotal = 0
+    inputPath = constants.experimentPath.format(fitnessFunc, '')
+    with open(inputPath, 'r' ,newline='') as incsv:
+        for row in csv.reader(incsv):
+            if row[0] == "Trial":
+                continue
+            else:
+                countTotal += 1
+                encodedTrap = utils.convertStringToEncoding(row[1])
+                decodedTrap = encode.singleDecoding(encodedTrap)
+                if analy.shootProjectile(decodedTrap):
+                    countShoot += 1
+    print("{}% {} traps shoot a projectile".format(countShoot / countTotal * 100, fitnessFunc) )
+
+def percentShootProjectileRandom(numTrap):
+    countShoot = 0
+    countTotal = 0
+    for i in range(numTrap):
+        encodedTrap = lib.generateTrap()
+        decodedTrap = encode.singleDecoding(encodedTrap)
+        if analy.shootProjectile(decodedTrap):
+                    countShoot += 1
+    print("{}% traps shoot a projectile".format(countShoot / numTrap * 100) )
+
+
+def generateRandomTraps(numTrap):
+    filename = "randomTraps.txt"
+    out = open(filename, "w")
+    for i in range(numTrap):
+        trap = lib.generateTrap()
+        out.write(utils.convertEncodingToString(trap) + "\n")
+
+# fitnessFuncs = ['binary-distance']
+# params = ['defaultProbEnter','maxProjectileStrength','nTrapsWithoutFood','probReal']
+# for fitnessFunc in fitnessFuncs:
+#     for param in params:
+#         fileName = constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'csv')
+#         # runExperiment(fileName, param, 10000, fitnessFunc)
+#         d.linearRunGraph(fileName, param, fitnessFunc)
+
+# fitnessFuncs = ['coherence', 'functional', 'multiobjective', 'random', 'binary-distance']
+# params = ['default']
+# for fitnessFunc in fitnessFuncs:
+#     for param in params:
+#         fileName = constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'csv')
+#         runExperiment(fileName, param, 10000, fitnessFunc)
+#         d.statusOverTime(fileName, fitnessFunc)
+
+
+# fitnessFuncs = ['coherence', 'functional', 'multiobjective', 'random', 'binary-distance']
+# for fitnessFunc in fitnessFuncs:
+#     percentShootProjectile(fitnessFunc)
+
+# percentShootProjectileRandom(100000)
