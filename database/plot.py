@@ -4,6 +4,7 @@ from matplotlib.colors import LogNorm, Normalize, ListedColormap
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import pandas as pd
+from progress.bar import IncrementalBar
 import seaborn as sns
 from database.constants import FUNC_VALUES
 import database.library as dbLibrary
@@ -71,12 +72,7 @@ def createVectorMaps(measure: str, figSize=(8,8), save=False, name='VectorMap'):
     (coherence or lethality).
     '''
     # Get data
-    if measure == 'lethality':
-        df = dbLibrary.getTotalLethalityCounts()
-    elif measure == 'coherence':
-        df = dbLibrary.getTotalCoherenceCounts()
-    else:
-        raise Exception(f'{measure} is not a valid filter')
+    df = dbLibrary.getTotalCounts(measure)
 
     # Create figure and subplots
     fig = plt.figure()
@@ -113,13 +109,6 @@ def createVectorMaps(measure: str, figSize=(8,8), save=False, name='VectorMap'):
         axes[i].set_title(currSeries.name)
         axes[i].set_ylabel('')
         axes[i].invert_yaxis()
-    
-    # Add labels to vectors
-    ndX0, ndX1 = axes[0].get_position().x0, axes[2].get_position().x1
-    gdX0, gdX1 = axes[3].get_position().x0, axes[5].get_position().x1
-    hdX0, hdX1 = axes[6].get_position().x0, axes[6].get_position().x1
-
-    axes[1].annotate('Non-Designed', xy=(0.5, 0), xycoords='axes fraction', xytext=(0, -20), textcoords='offset points', horizontalalignment='center')
 
     if save:
         with PdfPages(f'./images/vectors/{measure}{name}Generated.pdf') as pdf:

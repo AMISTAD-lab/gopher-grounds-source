@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import statistics as stats
 from typing import List, Union
+
+from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
 import geneticAlgorithm.constants as constants
@@ -111,7 +113,7 @@ def getSingleLethalityCount(fitness: str) -> pd.DataFrame:
     cursor.execute(f' \
         SELECT [lethality], SUM([frequency]) FROM {FREQ_TABLE} \
         WHERE [function] = :function \
-        GROUP BY [lethality] LIMIT 5;',
+        GROUP BY [lethality];',
         { 'function': fitness }
     )
 
@@ -165,33 +167,21 @@ def getSingleCoherenceCount(fitness: str) -> pd.DataFrame:
 
     return ser
 
-def getTotalLethalityCounts() -> pd.DataFrame:
+def getTotalCounts(measure: str) -> pd.DataFrame:
     '''
     Returns a data frame where the columns correspond to different fitness functions, and each cell 
     represents the number of traps with a given lethality.
     '''
     # Create a list of series for each of the coherence counts per function
-    serList = [getSingleLethalityCount(func) for func in FUNC_VALUES]
-    
-    df = pd.concat(serList, axis=1)
-    df.fillna(0, inplace=True)
-    
-    df.rename(
-        index={ ind: '%.3f' % ind for ind in df.index },
-        columns=FUNC_MAPPINGS,
-        inplace=True
-    )
+    serList = []
 
-    return df
+    getSingleCountFunc = getSingleLethalityCount if measure == 'lethality' else getSingleCoherenceCount
 
-def getTotalCoherenceCounts() -> pd.DataFrame:
-    '''
-    Returns a data frame where the columns correspond to different fitness functions, and each cell 
-    represents the number of traps with a given lethality.
-    '''
-    # Create a list of series for each of the coherence counts per function
-    serList = [getSingleCoherenceCount(func) for func in FUNC_VALUES]
-    
+    with IncrementalBar(f'{measure} vector map:', max=len(FUNC_VALUES)) as bar:
+        for func in FUNC_VALUES:
+            serList.append(getSingleCountFunc(func))
+            bar.next()
+        
     df = pd.concat(serList, axis=1)
     df.fillna(0, inplace=True)
     
