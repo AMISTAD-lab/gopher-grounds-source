@@ -9,6 +9,12 @@ import geneticAlgorithm.encoding as enc
 import libs.simulation as sim
 import libs.visualize as vis
 
+TRAP = [47, 6, 86, 25, 1, 29, 26, 2, 62, 72, 0, 9]
+
+def setTrap(trap: List[int]):
+    global TRAP
+    TRAP = trap
+
 def getCellsFromStr(strEncoding: str) -> Trap:
     ''' Takes in a string encoding and returns a trap '''
     decoded = enc.singleDecoding(utils.convertStringToEncoding(strEncoding))
@@ -124,6 +130,8 @@ def convertTrapToImage(strEncoding: List[str], imageName: str, save=False, showG
 
     if show:
         finalImage.show(title=f'{imageName}.png')
+    
+    return finalImage
 
 def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 'MULTIOBJECTIVE'], save=False, show=False) -> Image.Image:
     ''' Takes 3 images and combines them into one (side by side). Can optionally add labels to the top. '''
@@ -180,6 +188,87 @@ def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 
 
     if show:
         finalImage.show(title=f'{outputName}.png')
+    
+    return finalImage
+
+def createAnnotatedTrap(show=True, save=False, output='annotated_trap'):
+    ''' Creates a trap with annotations on each cell enumerating the indexes of its encoding '''
+    TRAP_ENC = f'{TRAP}'
+    
+    cells = getCellsFromStr(TRAP_ENC)
+    images = getImages(cells, 12 * [0])
+    width, height = images[0].width, images[0].height
+    numRows, numCols = 4, 3
+
+    finalImage = convertTrapToImage(TRAP_ENC, 'encoding_tagged')
+
+    numFont = ImageFont.truetype(font='~/Library/Fonts/Arial Unicode.ttf', size=500)
+    imgDraw = ImageDraw.Draw(finalImage)
+
+    for row in range(0, numRows):
+        imgDraw.line((0, row * height, numCols * width, row * height), 'black', 20)
+        for col in range(0, numCols):
+            if row == 0:
+                imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
+
+            num = row * numCols + col
+            textWidth, textHeight = imgDraw.textsize(str(TRAP[num]), font=numFont)
+            x = (width - textWidth) // 2 + col * width
+            y = (height - textHeight) // 2 + row * height - 100
+
+            imgDraw.text((x, y), str(TRAP[num]), 'white', numFont)
+
+    if save:
+        if not os.path.exists('./images/traps/'):
+            os.mkdir('./images/traps/')
+        
+        finalImage.save(f'./images/traps/{output}.pdf')
+    if show:
+        finalImage.show(title=f'{output}.png')
+    
+    return finalImage
+
+def createSplitTrap(index, annotate=False, show=True, save=False, output='split_trap'):
+    '''Creates a trap image with red lines splitting the two sides of recombination '''
+    finalImage = None
+    TRAP_ENC = f'{TRAP}'
+    if annotate:
+        finalImage = createAnnotatedTrap()
+    else:
+        finalImage = convertTrapToImage(TRAP_ENC, 'annotated_trap')
+    
+    cells = getCellsFromStr(TRAP_ENC)
+    images = getImages(cells, 12 * [0])
+    width, height = images[0].width, images[0].height
+    numRows, numCols = 4, 3
+
+    imgDraw = ImageDraw.Draw(finalImage)
+
+    for row in range(numRows):
+        for col in range(numCols):
+            currInd = row * numCols + col
+            vertLine = (col * width, row * height, col * width, (row + 1) * height)
+            horizLine = (col * width, row * height, (col + 1) * width, row * height)
+            
+            horizColor = 'red' if currInd >= index and (currInd - 3) < index else 'black'
+            vertColor = 'red' if currInd >= index and (currInd - 1) < index else 'black'
+
+            if vertLine[0] == 0:
+                vertColor = 'black'
+            
+            if horizLine[1] == 0:
+                horizColor = 'black'
+
+            imgDraw.line(vertLine, vertColor, 20)
+            imgDraw.line(horizLine, horizColor, 20)
+
+    if save:
+        if not os.path.exists('./images/traps/'):
+            os.mkdir('./images/traps/')
+        
+        finalImage.save(f'./images/traps/{output}.pdf')
+    if show:
+        finalImage.show(title=f'{output}.png')
     
     return finalImage
 

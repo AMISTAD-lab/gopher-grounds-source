@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
+import statistics as stats
 from typing import List, Union
+
+from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
 import geneticAlgorithm.constants as constants
@@ -8,12 +11,12 @@ import geneticAlgorithm.constants as constants
 ##############################
 ##     Helper Functions     ##
 ##############################
-def getAverageFitnesses(genList, fitList, start=0, end=10000, step=1, debug=False):
+def getAverageFitnesses(genList, fitList, start=0, end=10000, step=1, conf_interval=1.96, debug=False):
     '''
     Takes in a lists of lists of generations and fitnesses, where each index corresponds to the 
     generation that the fitness was found and the new optimal fitness.
     Aggregates the average best fitness for each generation (determined by start, end, step,
-    inclusive) and returns an array of generations and average best fitnesses.
+    inclusive) and returns an array of generations, average best fitnesses, and standard errors.
     Ex: getAverageFitnesses([[0, 2, 3, 5]], [[1, 3, 5, 7]], 0, 7, 1) = 
         [1, 2, 3, 4, 5, 6, 7], [1, 1, 1.67, 2.5, 3, 3.67, 4.14, ]
     '''
@@ -22,7 +25,7 @@ def getAverageFitnesses(genList, fitList, start=0, end=10000, step=1, debug=Fals
 
     # Adding lists to keep track of generation fitness changes
     numTrials = len(genList); indexes = numTrials * [0]
-    generations = []; avgFitnesses = []
+    generations = []; avgFitnesses = []; variances = []
     totalSum = 0
     for generation in range(start, end + 1):
         # Calculate the average fitness for the current generation
@@ -44,8 +47,11 @@ def getAverageFitnesses(genList, fitList, start=0, end=10000, step=1, debug=Fals
             currAvg += currFitList[currInd]
             currTrial += 1
         
+        # Calculate the average
+        currAvg /= numTrials
+        
         # Add the average to the total sum of averages
-        totalSum += currAvg / numTrials
+        totalSum += currAvg
 
         if generation % step == 0:
             # Add the current generation to the list of generations
@@ -53,8 +59,16 @@ def getAverageFitnesses(genList, fitList, start=0, end=10000, step=1, debug=Fals
             
             # Take the average of averages and append it
             avgFitnesses.append(totalSum / (generation + 1))
+
+            # Calculate the variance for each point
+            var = 0
+            for trial in range(numTrials):
+                var += (currAvg - fitList[trial][indexes[trial]]) ** 2 / (numTrials - 1)
+            variances.append(var)
     
-    return np.array(generations), np.array(avgFitnesses)
+    marginErrors = conf_interval * np.sqrt(variances) / np.sqrt(numTrials)
+
+    return np.array(generations), np.array(avgFitnesses), marginErrors
         
 ##############################
 ##    Library Functions     ##
@@ -153,33 +167,21 @@ def getSingleCoherenceCount(fitness: str) -> pd.DataFrame:
 
     return ser
 
-def getTotalLethalityCounts() -> pd.DataFrame:
+def getTotalCounts(measure: str) -> pd.DataFrame:
     '''
     Returns a data frame where the columns correspond to different fitness functions, and each cell 
     represents the number of traps with a given lethality.
     '''
     # Create a list of series for each of the coherence counts per function
-    serList = [getSingleLethalityCount(func) for func in FUNC_VALUES]
-    
-    df = pd.concat(serList, axis=1)
-    df.fillna(0, inplace=True)
-    
-    df.rename(
-        index={ ind: '%.3f' % ind for ind in df.index },
-        columns=FUNC_MAPPINGS,
-        inplace=True
-    )
+    serList = []
 
-    return df
+    getSingleCountFunc = getSingleLethalityCount if measure == 'lethality' else getSingleCoherenceCount
 
-def getTotalCoherenceCounts() -> pd.DataFrame:
-    '''
-    Returns a data frame where the columns correspond to different fitness functions, and each cell 
-    represents the number of traps with a given lethality.
-    '''
-    # Create a list of series for each of the coherence counts per function
-    serList = [getSingleCoherenceCount(func) for func in FUNC_VALUES]
-    
+    with IncrementalBar(f'{measure} vector map:', max=len(FUNC_VALUES)) as bar:
+        for func in FUNC_VALUES:
+            serList.append(getSingleCountFunc(func))
+            bar.next()
+        
     df = pd.concat(serList, axis=1)
     df.fillna(0, inplace=True)
     
@@ -288,7 +290,7 @@ def getOptimalGenerations(func: str, returnFitnesses=False):
     
     return np.array(genList)
 
-def getAverageOptimalFitness(func: str, start=0, end=10000, step=1000):
+def getAverageOptimalFitness(func: str, start=0, end=10000, step=100):
     ''' Returns a numpy array that contains a vector of generations and average optimal fitnesses '''
     
     if func == 'functional':
@@ -338,13 +340,11 @@ def getAverageOptimalFitness(func: str, start=0, end=10000, step=1000):
         genList.append(currGenList)
         fitList.append(currFitList)
 
-    generations, avgFitnesses = getAverageFitnesses(genList, fitList, start, end, step)
-
     cursor.close()
 
-    return generations, avgFitnesses
+    return getAverageFitnesses(genList, fitList, start, end, step)
 
-def getCumulativeAverage(func: str, start=100, end=10000, stepSize=100):
+def getCumulativeAverageFitnessAcrossTrials(func: str, start=100, end=10000, stepSize=100):
     '''
     Returns two numpy arrays: one with generation values and another with the corresponding
     average of the relevant fitness function.
@@ -366,7 +366,7 @@ def getCumulativeAverage(func: str, start=100, end=10000, stepSize=100):
         avg, = cursor.execute(f'\
             SELECT AVG([{filt}]) FROM frequencies \
             WHERE [function]=:function AND [generation] BETWEEN :lower AND :upper; \
-            ', { 'function': func, 'lower': i - 100, 'upper': i }
+            ', { 'function': func, 'lower': i - start, 'upper': i }
         ).fetchone()
 
         # Calculate and append the new average, standard deviation, and generation
@@ -376,3 +376,40 @@ def getCumulativeAverage(func: str, start=100, end=10000, stepSize=100):
     cursor.close()
 
     return np.array(generations), np.array(fitnessAvgs)
+
+def getAverageFitnessAcrossTrials(func: str, start=0, end=10000, stepSize=1, conf_interval=1.96):
+    '''
+    Returns two numpy arrays: one with generation values and another with the corresponding
+    average of the relevant fitness function.
+    '''
+    cursor = client.cursor()
+
+    if func == 'functional':
+        filt = 'lethality'
+    elif func == 'coherence':
+        filt = 'coherence'
+    elif func == 'multiobjective':
+        filt = 'combined'
+    else:
+        raise Exception(f'{func} is not a valid function')
+
+    generations = []
+    fitnessAvgs = []
+    marginErrs = []
+    for i in range(start, end + 1, stepSize):
+        cursor.execute(f'\
+            SELECT {filt}, frequency FROM frequencies \
+            WHERE [function]=:function AND [generation]=:generation; \
+            ', { 'function': func, 'generation': i }
+        ).fetchone()
+
+        fitnesses = [fitness for (fitness, frequency) in cursor.fetchall() for _ in range(frequency)]
+
+        # Calculate and append the new average, standard deviation, and generation
+        fitnessAvgs.append(stats.mean(fitnesses))
+        generations.append(i)
+        marginErrs.append(conf_interval * stats.stdev(fitnesses) / np.sqrt(len(fitnesses)))
+
+    cursor.close()
+
+    return np.array(generations), np.array(fitnessAvgs), np.array(marginErrs)
