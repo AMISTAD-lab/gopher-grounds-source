@@ -9,11 +9,16 @@ import geneticAlgorithm.cellarray as ca
 ## trap[10] = 1 # Door
 
 class Encoding():
-    def __init__(self, permutation: List[int] = None):
+    def __init__(self, permutation: List[int] = None, code = -1):
         if permutation is None:
             self._permutation = np.array([x for x in range(12)])
+            self._code = code
+        elif code == 1 or permutation == [9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]:
+            self._permutation = np.array([9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4])
+            self._code = 1
         else:
             self._permutation = np.array(permutation)
+            self._code = code        
         
         self.door = np.where(self._permutation == 10)[0][0]
         self.floor = np.where(self._permutation == 7)[0][0]
@@ -84,6 +89,9 @@ class Encoding():
     def getPermutation(self) -> np.ndarray:
         ''' Returns the permutation of an encoding instance '''
         return np.array(self._permutation)
+
+    def getCode(self) -> int:
+        ''' Returns the code of an encoding '''
 
 # def singleEncoding(board):
 #     '''
