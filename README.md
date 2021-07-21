@@ -20,6 +20,16 @@ Finally, if that fails, we can also interact with the CLI using
 ```
 python3 gopher-cli.py -h
 ```
+
+## Defining an encoding
+For most of the subparsers in the CLI, the encoding of a trap can be specified.
+By default, the encoding of the list is [0..11].
+To set the permutation, use the `--permutation (-p)` flag as follows:
+`--permutation <string_encoding>`, (i.e. `--permutation '[0, 1, 2, ...]'`)
+
+For our convenience, we have provided the hot key `-p 1` to set the permutation to the default permutation used in the code base:
+<center><code>[9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]</code></center>
+
 ## Simulating a trap
 We have provided a CLI command to simulate an arbitrary encoded trap. To use this command, simply call
 ```
