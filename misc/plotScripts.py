@@ -1,5 +1,6 @@
 # import matplotlib.pyplot as plt
 # import database.plot as plot2
+from geneticAlgorithm.encoding import Encoding
 import misc.visualization as vis
 
 # plot2.createLethalityCoherenceHeatMap('coherence', log=True, save=True)
@@ -19,8 +20,10 @@ import misc.visualization as vis
 # plot2.createAverageOptimalFitnessLinePlot(save=True)
 # plot2.createAverageGenerationLinePlot(cumulative=False, end=500, save=True)
 
-vis.convertTrapToImage('[47, 6, 86, 25, 1, 29, 26, 2, 62, 72, 0, 9]', 'example', save=True)
-vis.createAnnotatedTrap(save=True, show=False)
-vis.createSplitTrap(5, save=True, show=False)
+encoder = Encoding([9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4])
+trap = encoder.from_canonical([47, 6, 86, 25, 1, 29, 26, 2, 62, 72, 0, 9])
+vis.convertTrapToImage(f'{trap}', 'example', encoder, show=False, save=True)
+vis.createAnnotatedTrap(encoder, save=True, show=False)
+vis.createSplitTrap(5, encoder, annotate=True, save=True, show=False)
 
 # plt.show()
