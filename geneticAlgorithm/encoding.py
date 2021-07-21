@@ -10,16 +10,16 @@ import geneticAlgorithm.cellarray as ca
 
 class Encoding():
     def __init__(self, permutation: List[int] = None):
-        if not np.all(permutation):
-            self._permutation = [x for x in range(12)]
+        if permutation is None:
+            self._permutation = np.array([x for x in range(12)])
         else:
-            self._permutation = permutation
+            self._permutation = np.array(permutation)
         
-        self.door = self._permutation.index(10)
-        self.floor = self._permutation.index(7)
-        self.food = self._permutation.index(4)
+        self.door = np.where(self._permutation == 10)
+        self.floor = np.where(self._permutation == 7)
+        self.food = np.where(self._permutation == 4)
 
-    def encode(self, board):
+    def encode(self, board) -> np.ndarray:
         '''
         Takes a board (4 x 3 array of cells) and returns a 1x12 numpy int array encoding it
         Each sequence of three items in the array represents a row of the trap grid
@@ -28,7 +28,7 @@ class Encoding():
 
         return np.array([ca.findIndex(flattened[i]) for i in self._permutation])
     
-    def decode(self, encoded):
+    def decode(self, encoded) -> np.ndarray:
         '''
         Takes an encoded trap (1 x 12 array) and decodes it back into normal form
         '''
@@ -52,7 +52,7 @@ class Encoding():
             decodedTrap.append(row)
         return np.array(decodedTrap)
     
-    def from_canonical(self, canonical):
+    def from_canonical(self, canonical) -> np.ndarray:
         ''' Takes an encoding in canonical and returns an encoding given by the permutation '''
         encoding = 12 * [0]
         permutation = self.getPermutation()
@@ -61,7 +61,7 @@ class Encoding():
         
         return encoding
     
-    def to_canonical(self, encoding):
+    def to_canonical(self, encoding) -> np.ndarray:
         ''' Takes an encoding in permutation form and returns it in canonical form ([0..11]) '''
         canonical = 12 * [0]
         permutation = self.getPermutation()
@@ -70,20 +70,20 @@ class Encoding():
         
         return canonical
 
-    def listEncoding(self, boards):
+    def listEncoding(self, boards) -> np.ndarray:
         ''' Given a list of n non-encoded traps, return a nx12 numpy array with the encoded versions of the traps '''
         encodedTraps = []
         for board in boards:
             encodedTraps.append(self.encode(board))
         return np.array(encodedTraps)
 
-    def listDecoding(self, encoded_boards):
+    def listDecoding(self, encoded_boards) -> np.ndarray:
         ''' Takes an list of encoded traps and decodes its elements back into normal form - returns an n x 4 x 3 list '''
         np.array([self.decode(board) for board in encoded_boards])
 
-    def getPermutation(self):
+    def getPermutation(self) -> np.ndarray:
         ''' Returns the permutation of an encoding instance '''
-        return self._permutation
+        return np.array(self._permutation)
 
 # def singleEncoding(board):
 #     '''

@@ -96,7 +96,6 @@ def convertTrapToImage(strEncoding: List[str], imageName: str, encoder: Encoding
     # Add tag to the visual
     if tag:
         scale = 0.4
-        print(int(tag))
         if 10 <= int(tag) < 100:
             scale = 0.3
         elif 100 <= int(tag) < 1000:
@@ -193,7 +192,7 @@ def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 
 
 def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annotated_trap'):
     ''' Creates a trap with annotations on each cell enumerating the indexes of its encoding '''
-    TRAP_ENC = f'{TRAP}'
+    TRAP_ENC = f'{encoder.from_canonical(TRAP)}'
     
     cells = getCellsFromStr(TRAP_ENC, encoder)
     images = getImages(cells, 12 * [0])
@@ -212,11 +211,11 @@ def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annota
                 imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
 
             num = row * numCols + col
-            textWidth, textHeight = imgDraw.textsize(str(TRAP[num]), font=numFont)
+            textWidth, textHeight = imgDraw.textsize(str(num), font=numFont)
             x = (width - textWidth) // 2 + col * width
             y = (height - textHeight) // 2 + row * height - 100
 
-            imgDraw.text((x, y), str(TRAP[num]), 'white', numFont)
+            imgDraw.text((x, y), str(num), 'white', numFont)
 
     if save:
         if not os.path.exists('./images/traps/'):
@@ -231,13 +230,14 @@ def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annota
 def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=False, output='split_trap'):
     '''Creates a trap image with red lines splitting the two sides of recombination '''
     finalImage = None
-    TRAP_ENC = f'{TRAP}'
+    TRAP_ENC = f'{encoder.from_canonical(TRAP)}'
     if annotate:
-        finalImage = createAnnotatedTrap(encoder)
+        finalImage = createAnnotatedTrap(encoder, show=False)
     else:
-        finalImage = convertTrapToImage(TRAP_ENC, 'annotated_trap', encoder)
+        finalImage = convertTrapToImage(TRAP_ENC, 'annotated_trap', encoder, show=False)
     
-    cells = getCellsFromStr(TRAP_ENC)
+    recombined = encoder.getPermutation()[:index]
+    cells = getCellsFromStr(TRAP_ENC, encoder)
     images = getImages(cells, 12 * [0])
     width, height = images[0].width, images[0].height
     numRows, numCols = 4, 3
@@ -250,8 +250,8 @@ def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=Fa
             vertLine = (col * width, row * height, col * width, (row + 1) * height)
             horizLine = (col * width, row * height, (col + 1) * width, row * height)
             
-            horizColor = 'red' if currInd >= index and (currInd - 3) < index else 'black'
-            vertColor = 'red' if currInd >= index and (currInd - 1) < index else 'black'
+            horizColor = 'red' if currInd not in recombined and currInd - 3 in recombined  else 'black'
+            vertColor = 'red' if currInd not in recombined and currInd - 1 in recombined else 'black'
 
             if vertLine[0] == 0:
                 vertColor = 'black'
