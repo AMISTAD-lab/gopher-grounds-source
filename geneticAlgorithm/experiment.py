@@ -4,26 +4,24 @@ import os
 from progress.bar import IncrementalBar
 from scipy.stats import norm
 import geneticAlgorithm.constants as constants
-from geneticAlgorithm.encoding import singleDecoding
+from geneticAlgorithm.encoding import Encoding
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.utils as utils
 from geneticAlgorithm.main import geneticAlgorithm
 import libs.simulation as sim
 import misc.csvUtils as csvUtils
 
-def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=False, printStatistics = True):
+def runSimulations(trap, encoding: Encoding=None, numSimulations=10000, confLevel=0.95, intention=False, printStatistics = True):
     '''
     Takes in an encoded trap and runs `numSimulations` simulations at 5 different hunger levels.
     Tallies the number of alive gophers and returns the proportion of alive gophers as well as the
     standard error.
     '''
-    decodedTrap = singleDecoding(encodedTrap)
-
     numberAlive = 0
     hungerLevels = 5
     for _ in range(int(numSimulations)):
         for hunger in range(hungerLevels):
-            numberAlive += int(sim.simulateTrap(utils.createTrap(decodedTrap), intention, hunger = hunger / 5)[3])
+            numberAlive += int(sim.simulateTrap(utils.createTrap(trap), intention, hunger = hunger / 5)[3])
 
     # Calculate statistics
     proportion = 1 - numberAlive / (numSimulations * hungerLevels)
@@ -41,7 +39,7 @@ def runSimulations(encodedTrap, numSimulations=10000, confLevel=0.95, intention=
 
     return proportion, stderr
 
-def runExperiment(functionName, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, barData={}, writer=None):
+def runExperiment(functionName, encoder: Encoding, maxGenerations=10000, showLogs=True, numSimulations=5000, printStatistics=True, trialNo=0, barData={}, writer=None):
     '''
     Creates a trap using the genetic algorithm (optimized for the input fitness function) and
     conducts an experiment using that trap. The experiment calculates the probability that the gopher
@@ -49,24 +47,33 @@ def runExperiment(functionName, maxGenerations=10000, showLogs=True, numSimulati
     Returns a list of 2 5-tuples of (trap (encoded), fitness, proportion, stderr, intention), where intention
     is varied between True and False
     '''
+    if not encoder:
+        raise Exception('An encoding object must be given!')
 
     # Generate the trap (either by exporting to a file or calling the genetic algorithm)
-    _, trap, fitness = geneticAlgorithm(functionName, maxGenerations, showLogs, trial=trialNo, barData=barData, writer=writer)
+    _, trap, fitness = geneticAlgorithm(
+        functionName,
+        encoder,
+        maxGenerations=maxGenerations,
+        showLogs=showLogs,
+        trial=trialNo,
+        barData=barData,
+        writer=writer
+    )
 
     # Run the experiment on the generated (optimized) trap
     retList = []
     for intention in (True, False):
-        proportion, stderr = runSimulations(trap, numSimulations=numSimulations, intention=intention, printStatistics=printStatistics)
+        proportion, stderr = runSimulations(encoder.decode(trap), numSimulations=numSimulations, intention=intention, printStatistics=printStatistics)
         retList.append([trap, fitness, proportion, stderr, intention])
     
-    print(functions.targetTrap)
     return retList
 
-def runBatchExperiments(numExperiments, functionName, numSimulations = 5000, maxGenerations=10000, showLogs=False, overwrite=False, suffix=''):
+def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, numSimulations = 5000, maxGenerations=10000, showLogs=False, overwrite=False, suffix=''):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
-    # Defining the function name for logging purposes
-    fitnessFunction = functions.getFunctionFromName(functionName)
-
+    if not encoder:
+        raise Exception('An encoding object must be given!')
+    
     experimentNum = 0
 
     frequencyPath = constants.frequencyPath.format(functionName, suffix)
@@ -91,7 +98,8 @@ def runBatchExperiments(numExperiments, functionName, numSimulations = 5000, max
                 # Generates and runs simulations on a trap, returning experiment data
                 experimentData = runExperiment(
                     functionName,
-                    maxGenerations,
+                    encoder,
+                    maxGenerations=maxGenerations,
                     showLogs=showLogs,
                     numSimulations=numSimulations,
                     printStatistics=False,
@@ -110,9 +118,9 @@ def runBatchExperiments(numExperiments, functionName, numSimulations = 5000, max
                         functionName,
                         round(fitness, 4),
                         int(intention),
-                        round(functions.getLethality(trap), 4),
-                        round(functions.getCoherence(trap), 4),
-                        round(functions.getCombined(trap), 4),
+                        round(functions.getLethality(trap, encoder), 4),
+                        round(functions.getCoherence(trap, encoder), 4),
+                        round(functions.getCombined(trap, encoder), 4),
                         round(proportion, 4), round(stderr, 4)
                     ])
 

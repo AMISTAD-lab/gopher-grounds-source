@@ -4,6 +4,7 @@ DEFAULT_PROB_ENTER = 0.8
 MAX_PROB_DEATH = 1 - 0.55 ** 2
 ARROW_STRENGTHS = [0, 0.15, 0.3, 0.45]
 FUNCTIONS = ['random', 'functional', 'coherence', 'multiobjective', 'binary-distance']
+ENC_PERMUTATION = [9, 6, 3, 0, 1, 2, 4, 8, 11, 10, 7, 4]
 
 # Total number of traps -> |X|
 TOTAL = 427929800129788411

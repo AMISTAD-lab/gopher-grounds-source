@@ -1,16 +1,18 @@
 import numpy as np
 import time
+from geneticAlgorithm.encoding import Encoding
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.library as lib
 
-def geneticAlgorithm(functionName, maxGenerations = 10000, showLogs = True, trial = None, barData={}, writer=None):
+def geneticAlgorithm(functionName, encoder: Encoding, maxGenerations = 10000, showLogs = True, trial = None, barData={}, writer=None):
     """
     Finds a near-optimal solution in the search space using the given fitness function
     Returns a 3-tuple of (finalPopulation, bestTrap (encoded), bestFitness)
     """
     fitnessFunc = functions.getFunctionFromName(functionName)
-    fitnesses = np.array([0 for _ in range(15)])
+    fitnesses = np.array(20 * [0])
     population = np.array([])
+
     if functionName == 'binary-distance':
         functions.targetTrap = lib.generateTrap()
 
@@ -19,20 +21,20 @@ def geneticAlgorithm(functionName, maxGenerations = 10000, showLogs = True, tria
             [
                 trial, generation, trap, functionName,
                 round(fitnesses[i], 4),
-                round(functions.getLethality(trap), 4),
-                round(functions.getCoherence(trap), 4),
-                round(functions.getCombined(trap), 4),
+                round(functions.getLethality(trap, encoder), 4),
+                round(functions.getCoherence(trap, encoder), 4),
+                round(functions.getCombined(trap, encoder), 4),
             ]
             for i, trap in enumerate(population)
         ]
 
     # Sampling the (encoded) population until we get one non-zero member
     while(np.count_nonzero(fitnesses) == 0):
-        population = lib.initializePopulation()
-        fitnesses = fitnessFunc(population)
+        population = lib.initializePopulation(encoder)
+        fitnesses = fitnessFunc(population, encoder)
     
     # Recalculate frequencies
-    fitnesses = fitnessFunc(population)
+    fitnesses = fitnessFunc(population, encoder)
 
     generation = 0
     startTime = lastTime = time.time()
@@ -67,11 +69,11 @@ def geneticAlgorithm(functionName, maxGenerations = 10000, showLogs = True, tria
         for _ in range(len(population)):
             parent1, parent2 = lib.selectionFunc(population, fitnesses)
             child = lib.crossoverFunc(parent1, parent2)
-            childMutated = lib.mutationFunc(child)
+            childMutated = lib.mutationFunc(encoder, child)
             newPopulation.append(childMutated)
 
         # Calculating new fitnesses and updating the optimal solutions
-        fitnesses = fitnessFunc(newPopulation)
+        fitnesses = fitnessFunc(newPopulation, encoder)
         population = newPopulation
 
         currMax = np.argmax(fitnesses)

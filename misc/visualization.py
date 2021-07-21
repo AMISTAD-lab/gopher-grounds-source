@@ -5,7 +5,7 @@ from typing import List
 import webbrowser
 from classes.Trap import Trap
 import geneticAlgorithm.utils as utils
-import geneticAlgorithm.encoding as enc
+from geneticAlgorithm.encoding import Encoding
 import libs.simulation as sim
 import libs.visualize as vis
 
@@ -15,9 +15,9 @@ def setTrap(trap: List[int]):
     global TRAP
     TRAP = trap
 
-def getCellsFromStr(strEncoding: str) -> Trap:
+def getCellsFromStr(strEncoding: str, encoder: Encoding) -> Trap:
     ''' Takes in a string encoding and returns a trap '''
-    decoded = enc.singleDecoding(utils.convertStringToEncoding(strEncoding))
+    decoded = encoder.decode(utils.convertStringToEncoding(strEncoding))
     cells = utils.createTrap(decoded).saveCells()
 
     return cells
@@ -82,9 +82,9 @@ def createImage(images: List[Image.Image], showGopher=True) -> Image.Image:
     
     return fullImage
 
-def convertTrapToImage(strEncoding: List[str], imageName: str, save=False, showGopher=True, show=False, ext='pdf', tag=None, fitness=None):
+def convertTrapToImage(strEncoding: List[str], imageName: str, encoder: Encoding, save=False, showGopher=True, show=False, ext='pdf', tag=None, fitness=None):
     ''' Takes in the string encoding of a trap and converts it to an image '''
-    cells = getCellsFromStr(strEncoding)
+    cells = getCellsFromStr(strEncoding, encoder)
     images = getImages(cells, 12 * [0])
     finalImage = createImage(images, showGopher)
     width, height = images[0].width, images[0].height
@@ -191,16 +191,16 @@ def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 
     
     return finalImage
 
-def createAnnotatedTrap(show=True, save=False, output='annotated_trap'):
+def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annotated_trap'):
     ''' Creates a trap with annotations on each cell enumerating the indexes of its encoding '''
     TRAP_ENC = f'{TRAP}'
     
-    cells = getCellsFromStr(TRAP_ENC)
+    cells = getCellsFromStr(TRAP_ENC, encoder)
     images = getImages(cells, 12 * [0])
     width, height = images[0].width, images[0].height
     numRows, numCols = 4, 3
 
-    finalImage = convertTrapToImage(TRAP_ENC, 'encoding_tagged')
+    finalImage = convertTrapToImage(TRAP_ENC, 'encoding_tagged', encoder)
 
     numFont = ImageFont.truetype(font='~/Library/Fonts/Arial Unicode.ttf', size=500)
     imgDraw = ImageDraw.Draw(finalImage)
@@ -228,14 +228,14 @@ def createAnnotatedTrap(show=True, save=False, output='annotated_trap'):
     
     return finalImage
 
-def createSplitTrap(index, annotate=False, show=True, save=False, output='split_trap'):
+def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=False, output='split_trap'):
     '''Creates a trap image with red lines splitting the two sides of recombination '''
     finalImage = None
     TRAP_ENC = f'{TRAP}'
     if annotate:
-        finalImage = createAnnotatedTrap()
+        finalImage = createAnnotatedTrap(encoder)
     else:
-        finalImage = convertTrapToImage(TRAP_ENC, 'annotated_trap')
+        finalImage = convertTrapToImage(TRAP_ENC, 'annotated_trap', encoder)
     
     cells = getCellsFromStr(TRAP_ENC)
     images = getImages(cells, 12 * [0])
@@ -272,9 +272,9 @@ def createSplitTrap(index, annotate=False, show=True, save=False, output='split_
     
     return finalImage
 
-def simulateTrapInBrowser(trapEncoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
+def simulateTrapInBrowser(trapEncoding, encoder: Encoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
     """Takes in a list encoding and simulates the trap in the browser"""
-    decodedList = enc.singleDecoding(trapEncoding)
+    decodedList = encoder.decode(trapEncoding)
     simulationInfo = sim.simulateTrap(utils.createTrap(decodedList), intention, hunger=hunger, forceEnter=True)[:3]
     vis.writeTojs([simulationInfo], noAnimation, gopherState, frame)
 
