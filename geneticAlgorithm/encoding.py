@@ -13,7 +13,7 @@ class Encoding():
         if permutation is None:
             self._permutation = np.array([x for x in range(12)])
             self._code = code
-        elif code == 1 or permutation == [9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]:
+        elif code == 1 or np.allclose(permutation, [9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]):
             self._permutation = np.array([9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4])
             self._code = 1
         else:

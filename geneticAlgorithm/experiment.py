@@ -69,7 +69,7 @@ def runExperiment(functionName, encoder: Encoding, maxGenerations=10000, showLog
     
     return retList
 
-def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, numSimulations = 5000, maxGenerations=10000, showLogs=False, overwrite=False, suffix=''):
+def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, numSimulations = 5000, maxGenerations=10000, overwrite=False, suffix=''):
     """Runs an experiment `numExperiments` times with the given parameters and exports it to a .csv file"""
     if not encoder:
         raise Exception('An encoding object must be given!')
@@ -100,7 +100,7 @@ def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, nu
                     functionName,
                     encoder,
                     maxGenerations=maxGenerations,
-                    showLogs=showLogs,
+                    showLogs=False,
                     numSimulations=numSimulations,
                     printStatistics=False,
                     trialNo=i+1,
