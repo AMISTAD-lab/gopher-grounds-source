@@ -114,7 +114,6 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | Flag | Abbrev. | Default | Description |
 | :--: | :----------: | :-----: | :---------: |
 | --help | -h | N/A | help for any given parser|
-| --threshold | -t | 0.8 | value of `measure` over which we terminate|
 | --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
@@ -131,10 +130,9 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | Flag | Abbrev. | Default | Description |
 | :--: | :----------: | :-----: | :---------: |
 | --num-experiments | -e | 10 | number of experiements to run |
-| --threshold | -t | 0.8 | value of `measure` over which we terminate|
 | --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
 | --show-logs | -l | False | turns on printing of generation data |
-| --ouput-suffix | -suff | x<sup>1</sup> | the suffix to append to the end of the file name |
+| --ouput-suffix | -o | x<sup>1</sup> | the suffix to append to the end of the file name |
 | --overwrite | -w | False | overwrites the experiment CSV file created with a new one |
 
 <sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.

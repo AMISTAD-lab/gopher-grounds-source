@@ -56,8 +56,7 @@ geneticExperimentParser = geneticSubparsers.add_parser('runBatchExperiments', he
 geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective, binary-distance}')
 geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of experiments to run', type=int, default=10)
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
-geneticExperimentParser.add_argument('--show-logs', '-l', help='turns on logs for generations', action='store_true')
-geneticExperimentParser.add_argument('--output-suffix', '-suff', help='a suffix to append to the output file name', default='Generated')
+geneticExperimentParser.add_argument('--output-suffix', '-o', help='a suffix to append to the output file name', default='Generated')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=5000)
 geneticExperimentParser.add_argument('--no-overwrite', '-nw', help='overwrites the experiment csv file', action='store_false')
 geneticExperimentParser.add_argument('--permutation', '-p', help='the permutation for the encoding', default=None)
@@ -165,7 +164,6 @@ elif args.command == 'genetic-algorithm':
             encoder=encoder,
             numSimulations=args.num_simulations,
             maxGenerations=args.max_generations,
-            showLogs=args.show_logs,
             overwrite=args.no_overwrite,
             suffix=args.output_suffix,
         )

@@ -1,7 +1,7 @@
 from legacy.magicVariables import *
 import libs.algorithms as alg
 import geneticAlgorithm.encoding as encode
-import goodTuring as gt
+import sc.goodTuring as gt
 
 def initializeVariables(pref):
     global PROB_REAL
