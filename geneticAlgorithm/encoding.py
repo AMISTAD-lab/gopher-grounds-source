@@ -15,9 +15,9 @@ class Encoding():
         else:
             self._permutation = np.array(permutation)
         
-        self.door = np.where(self._permutation == 10)
-        self.floor = np.where(self._permutation == 7)
-        self.food = np.where(self._permutation == 4)
+        self.door = np.where(self._permutation == 10)[0][0]
+        self.floor = np.where(self._permutation == 7)[0][0]
+        self.food = np.where(self._permutation == 4)[0][0]
 
     def encode(self, board) -> np.ndarray:
         '''

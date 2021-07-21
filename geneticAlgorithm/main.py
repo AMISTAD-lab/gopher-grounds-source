@@ -51,13 +51,11 @@ def geneticAlgorithm(functionName, encoder: Encoding, maxGenerations = 10000, sh
             writeData = []
 
         if showLogs and (generation % 50 == 0):
-            print("Generation {}:".format(generation))
-            print("Max fitness\t:", round(max(fitnesses), 3))
-            print("Min fitness\t:", round(min(fitnesses), 3))
-            print("Mean fitness\t:", round(np.mean(fitnesses), 3))
-            print("Median fitness\t:", round(np.median(fitnesses), 3))
-            print("Lap Time\t:", round(time.time() - lastTime, 4))
-            print("Total Time\t:", round(time.time() - startTime, 4))
+            print(f"Generation {generation}:")
+            print("Current Max fitness\t: {}".format(round(max(fitnesses), 3)))
+            print("Global Max fitness\t: {}".format(round(maxFitness, 3)))
+            print("Lap Time\t\t: {}".format(round(time.time() - lastTime, 4)))
+            print("Total Time\t\t: {}".format(round(time.time() - startTime, 4)))
             print("------------------------")
             print()
             
@@ -100,13 +98,11 @@ def geneticAlgorithm(functionName, encoder: Encoding, maxGenerations = 10000, sh
         writer.writerows(writeData)
 
     if showLogs:
-        print("Generation {}:".format(generation - 1))
-        print("Max fitness\t:", round(max(fitnesses), 3))
-        print("Min fitness\t:", round(min(fitnesses), 3))
-        print("Mean fitness\t:", round(np.mean(fitnesses), 3))
-        print("Median fitness\t:", round(np.median(fitnesses), 3))
-        print("Lap Time\t:", round(time.time() - lastTime, 4))
-        print("Total Time\t:", round(time.time() - startTime, 4))
+        print(f"Generation {generation}:")
+        print("Current Max fitness\t: {}".format(round(max(fitnesses), 3)))
+        print("Global Max fitness\t: {}".format(round(maxFitness, 3)))
+        print("Lap Time\t\t: {}".format(round(time.time() - lastTime, 4)))
+        print("Total Time\t\t: {}".format(round(time.time() - startTime, 4)))
         print("------------------------")
         print()
 

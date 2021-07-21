@@ -78,7 +78,7 @@ showTrap.add_argument('--save', '-s', help='whether or not to save the trap crea
 showTrap.add_argument('--output', '-o', help='the name of the file (no extensions) to be saved', default='generatedTrap')
 showTrap.add_argument('--no-pdf', '-np', help='do not show PDF', action='store_false')
 showTrap.add_argument('--no-gopher', '-ng', help='do not show the gopher', action='store_false')
-showTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default=None)
+showTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default='1')
 
 # get fitness trap flags
 fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
