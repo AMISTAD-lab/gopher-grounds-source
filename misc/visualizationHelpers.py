@@ -92,20 +92,31 @@ def arrowedLine(im, ptA, ptB, width=40, color=(0,255,0)):
     x0, y0 = ptA
     x1, y1 = ptB
     # Now we can work out the x,y coordinates of the bottom of the arrowhead triangle
-    xb = 0.90 * (x1 - x0) + x0
     yb = 0.90 * (y1 - y0) + y0
+    xb = 0.90 * (x1 - x0) + x0
 
     # Work out the other two vertices of the triangle
     # Check if line is vertical
     if x0==x1:
-        vtx0 = (xb-5, yb)
-        vtx1 = (xb+5, yb)
-        line_coords = (ptA, (ptB[0], 0.95 * ptB[1]))
+        vtx0 = (xb-150, yb)
+        vtx1 = (xb+150, yb)
+
+        if (y0 < y1):
+            scale = 0.95
+        else:
+            scale = 1.05
+        line_coords = (ptA, (x1, scale * y1))
     # Check if line is horizontal
     elif y0==y1:
+        if (x0 < x1):
+            scale = 0.95
+        else:
+            scale = 1.05
+
         vtx0 = (xb, yb+150)
         vtx1 = (xb, yb-150)
-        line_coords = (ptA, (0.95 * ptB[0], ptB[1]))
+
+        line_coords = (ptA, (scale * x1, y1))
     else:
         alpha = math.atan2(y1 - y0, x1 - x0) - 90 * math.pi / 180
         a = 100*math.cos(alpha)
@@ -113,7 +124,7 @@ def arrowedLine(im, ptA, ptB, width=40, color=(0,255,0)):
         vtx0 = (xb+a, yb+b)
         vtx1 = (xb-a, yb-b)
 
-        line_coords = (ptA, (ptB[0] + 0.12 * ptB[0], ptB[1] - 0.07 * alpha * ptB[0]))
+        line_coords = (ptA, (x1 + 0.12 * x1, y1 - 0.07 * alpha * x1))
 
     draw.line(line_coords, width=width, fill=color)
 

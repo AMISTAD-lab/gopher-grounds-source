@@ -122,7 +122,7 @@ def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 
     
     return finalImage
 
-def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annotated_trap', text_color='white'):
+def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annotated_trap', text_color='white', indexes=False):
     ''' Creates a trap with annotations on each cell enumerating the indexes of its encoding '''
     TRAP_ENC = f'{encoder.from_canonical(TRAP)}'
     
@@ -143,7 +143,7 @@ def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annota
                 imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
 
             num = row * numCols + col
-            text = str(TRAP[num])
+            text = str(num) if indexes else str(TRAP[num])
             textWidth, textHeight = imgDraw.textsize(text, font=numFont)
             x = (width - textWidth) // 2 + col * width
             y = (height - textHeight) // 2 + row * height - 100
@@ -205,15 +205,13 @@ def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=Fa
     
     return finalImage
 
-def createArrowTrap(encoder: Encoding, show=True, save=False, output='arrowed_trap', text_color='white', arrow_color='red'):
-    annotated_image = createAnnotatedTrap(encoder=encoder, show=False, save=save, output=output, text_color=text_color)
+def createArrowTrap(encoder: Encoding, point_list=None, show=True, save=False, output='arrowed_trap', text_color='white', arrow_color='red'):
+    if not point_list:
+        raise Exception('Must pass in point list')
+
+    annotated_image = createAnnotatedTrap(encoder=encoder, show=False, save=save, output=output, text_color=text_color, indexes=True)
     
-    for (start, end) in [
-        ((0, 0), (2, 0)), ((2, 0), (0, 1)),
-        ((0, 1), (2, 1)), ((2, 1), (0, 2)),
-        ((0, 2), (2, 2)), ((2, 2), (0, 3)),
-        ((0, 3), (2, 3))
-    ]:
+    for (start, end) in point_list:
         arrowedLine(annotated_image, getPoint(start), getPoint(end), 30, color=arrow_color)
 
     if save:
