@@ -143,7 +143,7 @@ def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annota
                 imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
 
             num = row * numCols + col
-            text = str(num) if indexes else str(TRAP[num])
+            text = str(encoder.getIndex(num)) if indexes else str(TRAP[num])
             textWidth, textHeight = imgDraw.textsize(text, font=numFont)
             x = (width - textWidth) // 2 + col * width
             y = (height - textHeight) // 2 + row * height - 100
@@ -165,10 +165,11 @@ def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=Fa
     finalImage = None
     TRAP_ENC = f'{encoder.from_canonical(TRAP)}'
     if annotate:
-        finalImage = createAnnotatedTrap(encoder, show=False)
+        finalImage = createAnnotatedTrap(encoder, show=False, indexes=True)
     else:
         finalImage = convertTrapToImage(TRAP_ENC, 'annotated_trap', encoder, show=False)
-    
+    [9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]
+
     recombined = encoder.getPermutation()[:index]
     cells = getCellsFromStr(TRAP_ENC, encoder)
     images = getImages(cells, 12 * [0])
