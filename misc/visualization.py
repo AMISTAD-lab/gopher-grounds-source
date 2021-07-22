@@ -1,86 +1,18 @@
-import numpy as np
 import os
 from PIL import Image, ImageDraw, ImageFont
 from typing import List
 import webbrowser
-from classes.Trap import Trap
 import geneticAlgorithm.utils as utils
 from geneticAlgorithm.encoding import Encoding
 import libs.simulation as sim
 import libs.visualize as vis
+from misc.visualizationHelpers import *
 
 TRAP = [47, 6, 86, 25, 1, 29, 26, 2, 62, 72, 0, 9]
 
 def setTrap(trap: List[int]):
     global TRAP
     TRAP = trap
-
-def getCellsFromStr(strEncoding: str, encoder: Encoding) -> Trap:
-    ''' Takes in a string encoding and returns a trap '''
-    decoded = encoder.decode(utils.convertStringToEncoding(strEncoding))
-    cells = utils.createTrap(decoded).saveCells()
-
-    return cells
-
-def getImages(cells: List[str], activeList: List[int]) -> List[Image.Image]:
-    ''' Get images from the the cells given, with activity determined by activeList '''
-
-    # Define lists to generate image names
-    cellTypes = ["gopher", "door", "wire", "arrow", "dirt", "food", "floor"]
-    angleTypes = ["lacute", "racute", "lright", "rright", "lobtuse", "robtuse", "straight"]
-    thickTypes = ["skinny", "normal", "wide"]
-
-    imgList = []
-    flattened = [col for row in cells for col in row]
-    for i, cell in enumerate(flattened):
-        cellCh, angleCh, thickCh, rotationCh = cell
-        isActive = activeList[i]
-        
-        # Create subfields of image path
-        cell = cellTypes[int(cellCh)] if cellCh != 'x' else ''
-        angle = angleTypes[int(angleCh)] if angleCh != 'x' else ''
-        thick = thickTypes[int(thickCh)] if thickCh != 'x' else ''
-        active = 'active' if isActive else 'inactive'
-        rotation = 45 * int(rotationCh) if rotationCh != 'x' else 0
-
-        # Create image path and load it
-        imageName = './animation/{cell}{thick}/{cell}{angle}{thick}{active}.png'.format(
-                cell=cell, angle=angle, thick=thick, active=active
-            )
-        image = Image.open(imageName).rotate(-rotation)
-
-        # Rotate the image
-        imgList.append(image)
-
-    # Add row of dirt at the bottom
-    dirtImage = './animation/dirt/dirtinactive.png'
-    for _ in range(3):
-        imgList.append(Image.open(dirtImage))
-
-    return imgList
-
-def createImage(images: List[Image.Image], showGopher=True) -> Image.Image:
-    ''' Takes in a list of 15 images and creates a trap image from it '''
-    # Define constants for image
-    width, height = images[0].width, images[0].height
-    numRows, numCols = 5, 3
-
-    # Create new background image on which to paste
-    fullImage = Image.new('RGB', (numCols * width, numRows * height))
-    
-    # Add all background images for the trap
-    for i in range(numRows):
-        for j in range(numCols):
-            x = j * width
-            y = i * height
-            fullImage.paste(images[j + i * numCols], (x, y))
-
-    # Show the gopher and use the gopher as a mask to keep background transparent
-    if showGopher:
-        gopherImage = Image.open('./animation/gopher/gopheralive.png')
-        fullImage.paste(gopherImage, (width, 4 * height), gopherImage)
-    
-    return fullImage
 
 def convertTrapToImage(strEncoding: List[str], imageName: str, encoder: Encoding, save=False, showGopher=True, show=False, ext='pdf', tag=None, fitness=None):
     ''' Takes in the string encoding of a trap and converts it to an image '''
@@ -190,7 +122,7 @@ def combineThreeImages(imgPaths, outputName, labels=['FUNCTIONAL', 'COHERENCE', 
     
     return finalImage
 
-def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annotated_trap'):
+def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annotated_trap', text_color='white'):
     ''' Creates a trap with annotations on each cell enumerating the indexes of its encoding '''
     TRAP_ENC = f'{encoder.from_canonical(TRAP)}'
     
@@ -211,11 +143,12 @@ def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annota
                 imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
 
             num = row * numCols + col
-            textWidth, textHeight = imgDraw.textsize(str(num), font=numFont)
+            text = str(TRAP[num])
+            textWidth, textHeight = imgDraw.textsize(text, font=numFont)
             x = (width - textWidth) // 2 + col * width
             y = (height - textHeight) // 2 + row * height - 100
 
-            imgDraw.text((x, y), str(num), 'white', numFont)
+            imgDraw.text((x, y), text, text_color, numFont)
 
     if save:
         if not os.path.exists('./images/traps/'):
@@ -259,8 +192,8 @@ def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=Fa
             if horizLine[1] == 0:
                 horizColor = 'black'
 
-            imgDraw.line(vertLine, vertColor, 20)
-            imgDraw.line(horizLine, horizColor, 20)
+            imgDraw.line(vertLine, vertColor, 40)
+            imgDraw.line(horizLine, horizColor, 40)
 
     if save:
         if not os.path.exists('./images/traps/'):
@@ -271,6 +204,26 @@ def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=Fa
         finalImage.show(title=f'{output}.png')
     
     return finalImage
+
+def createArrowTrap(encoder: Encoding, show=True, save=False, output='arrowed_trap', text_color='white', arrow_color='red'):
+    annotated_image = createAnnotatedTrap(encoder=encoder, show=False, save=save, output=output, text_color=text_color)
+    
+    for (start, end) in [
+        ((0, 0), (2, 0)), ((2, 0), (0, 1)),
+        ((0, 1), (2, 1)), ((2, 1), (0, 2)),
+        ((0, 2), (2, 2)), ((2, 2), (0, 3)),
+        ((0, 3), (2, 3))
+    ]:
+        arrowedLine(annotated_image, getPoint(start), getPoint(end), 30, color=arrow_color)
+
+    if save:
+        if not os.path.exists('./images/traps/'):
+            os.mkdir('./images/traps/')
+        annotated_image.save(f'./images/traps/{output}.pdf')
+    if show:
+        annotated_image.show(title=f'{output}.png')
+    
+    return annotated_image
 
 def simulateTrapInBrowser(trapEncoding, encoder: Encoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
     """Takes in a list encoding and simulates the trap in the browser"""
