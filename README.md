@@ -131,7 +131,6 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | :--: | :----------: | :-----: | :---------: |
 | --num-experiments | -e | 10 | number of experiements to run |
 | --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
-| --show-logs | -l | False | turns on printing of generation data |
 | --ouput-suffix | -o | x<sup>1</sup> | the suffix to append to the end of the file name |
 | --overwrite | -w | False | overwrites the experiment CSV file created with a new one |
 
