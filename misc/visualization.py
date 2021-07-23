@@ -160,6 +160,44 @@ def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annota
     
     return finalImage
 
+def createAnnotatedTrapNew(encoder: Encoding, show=True, save=False, output='annotated_trap', text_color='yellow', indexes=False):
+    ''' Creates a trap with annotations on each cell enumerating the indexes of its encoding '''
+    TRAP_ENC = f'{encoder.from_canonical(TRAP)}'
+
+    cells = getCellsFromStr(TRAP_ENC, encoder)
+    images = getImages(cells, 12 * [0])
+    width, height = images[0].width, images[0].height
+    numRows, numCols = 4, 3
+
+    finalImage = convertTrapToImage(TRAP_ENC, 'encoding_tagged', encoder)
+
+    numFont = ImageFont.truetype(font='C:/Windows/Fonts/arialbd.ttf', size=300)
+    imgDraw = ImageDraw.Draw(finalImage)
+
+    for row in range(0, numRows):
+        imgDraw.line((0, row * height, numCols * width, row * height), 'black', 20)
+        for col in range(0, numCols):
+            if row == 0:
+                imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
+
+            num = row * numCols + col
+            text = str(encoder.getIndex(num)) if indexes else str(TRAP[num])
+            textWidth, textHeight = imgDraw.textsize(text, font=numFont)
+            x = (width - textWidth) // 2 + col * width + 300
+            y = (height - textHeight) // 2 + row * height -100 - 250
+
+            imgDraw.text((x, y), text, text_color, numFont)
+
+    if save:
+        if not os.path.exists('./images/traps/'):
+            os.mkdir('./images/traps/')
+        
+        finalImage.save(f'./images/traps/{output}.pdf')
+    if show:
+        finalImage.show(title=f'{output}.png')
+
+    return finalImage
+
 def createSplitTrap(index, encoder: Encoding, annotate=False, show=True, save=False, output='split_trap'):
     '''Creates a trap image with red lines splitting the two sides of recombination '''
     finalImage = None
