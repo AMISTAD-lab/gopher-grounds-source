@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from geneticAlgorithm.encoding import Encoding
+from classes.Encoding import Encoding
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.library as lib
 

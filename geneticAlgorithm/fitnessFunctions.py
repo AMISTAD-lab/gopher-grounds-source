@@ -5,7 +5,7 @@ import pandas as pd
 import libs.algorithms as alg
 import geneticAlgorithm.analytical as analytical
 import geneticAlgorithm.constants as constants
-from geneticAlgorithm.encoding import Encoding
+from classes.Encoding import Encoding
 import geneticAlgorithm.utils as utils
 
 randomFitnesses = {}

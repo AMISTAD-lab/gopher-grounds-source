@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw, ImageFont
 from typing import List
 import webbrowser
 import geneticAlgorithm.utils as utils
-from geneticAlgorithm.encoding import Encoding
+from classes.Encoding import Encoding
 import libs.simulation as sim
 import libs.visualize as vis
 from misc.visualizationHelpers import *

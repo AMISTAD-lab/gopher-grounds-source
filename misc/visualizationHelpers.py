@@ -3,7 +3,7 @@ import random
 from PIL import Image, ImageDraw
 from typing import List, Tuple
 from classes.Trap import Trap
-from geneticAlgorithm.encoding import Encoding
+from classes.Encoding import Encoding
 import geneticAlgorithm.utils as utils
 
 def getCellsFromStr(strEncoding: str, encoder: Encoding) -> Trap:

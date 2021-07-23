@@ -2,7 +2,7 @@
 import argparse
 import geneticAlgorithm.fitnessFunctions as functions 
 import geneticAlgorithm.experiment as geneticExperiment
-from geneticAlgorithm.encoding import Encoding
+from classes.Encoding import Encoding
 from geneticAlgorithm.main import geneticAlgorithm
 import geneticAlgorithm.utils as util
 import legacy.experiment as experiment

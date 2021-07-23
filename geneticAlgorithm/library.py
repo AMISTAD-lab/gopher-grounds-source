@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from geneticAlgorithm.encoding import Encoding
+from classes.Encoding import Encoding
 import geneticAlgorithm.constants as constants
 
 """

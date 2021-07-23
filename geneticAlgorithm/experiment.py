@@ -4,7 +4,7 @@ import os
 from progress.bar import IncrementalBar
 from scipy.stats import norm
 import geneticAlgorithm.constants as constants
-from geneticAlgorithm.encoding import Encoding
+from classes.Encoding import Encoding
 import geneticAlgorithm.fitnessFunctions as functions
 import geneticAlgorithm.utils as utils
 from geneticAlgorithm.main import geneticAlgorithm
