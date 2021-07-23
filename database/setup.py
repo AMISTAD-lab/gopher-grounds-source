@@ -1,5 +1,6 @@
 import csv
 import os
+from typing import List
 from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
@@ -64,30 +65,57 @@ def setupTables(overwrite = False):
     client.commit()
     cursor.close()
 
-def loadExperiments(inputFile: str):
+def wrangleExperimentCSV(inputFiles: List[str]):
+    ''' Ensures that the experiment CSV files are in the correct format '''
+    for inputFile in inputFiles:
+        new_file = []
+        with open(inputFile, 'r', newline='') as out:
+            reader = csv.reader(out)
+            for i, row in enumerate(reader):
+                if i == 0:
+                    if row[0] == 'Experiment':
+                        break
+                    new_file.append(['Experiment', *row])
+                    continue
+            
+                new_file.append([i, int(row[0]) // 2 + 1, *row[1:]])
+        
+        if new_file:
+            with open(inputFile, 'w+', newline='') as out:
+                csv.writer(out).writerows(new_file)
+        
+        new_file = []
+
+def loadExperiments(inputFiles: str):
     ''' Takes an input file (as csv) and loads all the data from the CSV into the database '''
     # Open a cursor
     cursor = client.cursor()
 
-    currentBatch = []
-    with open(inputFile, 'r', newline='') as out:
-        reader = csv.reader(out)
-        for i, row in enumerate(reader):
-            if i == 0:
-                continue
+    wrangleExperimentCSV(inputFiles)
 
-            # Cast data types
-            row[0] = int(row[0])
-            row[1] = int(row[1])
-            row[4] = float(row[4])
-            row[5] = int(row[5])
-            row[6] = float(row[6])
-            row[7] = float(row[7])
-            row[8] = float(row[8])
-            row[9] = float(row[9])
-            row[10] = float(row[10])
+    currentBatch = []; currTrial = 1
+    for inputFile in inputFiles:
+        with open(inputFile, 'r', newline='') as out:
+            reader = csv.reader(out)
+            for i, row in enumerate(reader):
+                if i == 0:
+                    continue
 
-            currentBatch.append(row)
+                # Cast data types
+                # Each file starts at 1 so we calculate the offset
+                row[0] = currTrial
+                row[1] = (int(row[0]) + 1) // 2
+                row[4] = float(row[4])
+                row[5] = int(row[5])
+                row[6] = float(row[6])
+                row[7] = float(row[7])
+                row[8] = float(row[8])
+                row[9] = float(row[9])
+                row[10] = float(row[10])
+
+                currentBatch.append(row)
+            
+                currTrial += 1
 
     # Insert all elements into the database
     cursor.executemany(
@@ -95,107 +123,82 @@ def loadExperiments(inputFile: str):
         currentBatch
     )
 
-    # Commit changes
     client.commit()
-
-    # Close cursor
     cursor.close()
 
-def loadFrequencies(inputFile: str):
+def loadFrequencies(inputFiles: str):
     ''' Takes in a frequency csv file as input and loads the data into the database '''
     # Open a cursor
     cursor = client.cursor()
 
-    print('Starting to load frequencies from {}.'.format(inputFile.split('/')[-1]))
-    rowCount = 0
-    numBars = 1000
-    barSkip = 1
+    trial_num = 1; prev_trial = 1
+    with IncrementalBar('Processing:', max = len(inputFiles)) as bar:
+        for inputFile in inputFiles:
+            currentBatch = []
+            with open(inputFile, 'r', newline='') as out:
+                reader = csv.reader(out)
 
-    # Get the number of lines in the file
-    with open(inputFile, 'r', newline='') as file:
-        for i, _ in enumerate(file):
-            pass
-        rowCount = i - 1
-        file.close()
+                for i, row in enumerate(reader):
+                    if i == 0:
+                        continue
 
-    modulo = rowCount // numBars
-    if not modulo:
-        modulo = 1
-        barSkip = numBars // rowCount
+                    # Cast data types
+                    if prev_trial != int(row[0]):
+                        prev_trial = int(row[0])
+                        trial_num += 1
+                    
+                    row[0] = trial_num
+                    row[1] = int(row[1])
 
-    with IncrementalBar('Processing:', max = numBars) as bar:
-        currentBatch = []
-        with open(inputFile, 'r', newline='') as out:
-            reader = csv.reader(out)
+                    row[4] = float(row[4])
+                    row[5] = float(row[5])
+                    row[6] = float(row[6])
+                    row[7] = float(row[7])
 
-            for i, row in enumerate(reader):
-                if i == 0:
-                    continue
-
-                # Cast data types
-                row[0] = int(row[0])
-                row[1] = int(row[1])
-
-                row[4] = float(row[4])
-                row[5] = float(row[5])
-                row[6] = float(row[6])
-                row[7] = float(row[7])
-
-                # Adding generation range to the results
-                row.append(row[1] // 1000 if row[1] < 1e4 else 9)
-
-                currentBatch.append(row)
-
-                # Commit every 1000 elements and reset batch to limit memory usage
-                if i % 1000 == 0:
-                    cursor.executemany(
-                        'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) \
-                        ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
-                        currentBatch
-                    )
-                    currentBatch = []
+                    # Adding generation range to the results
+                    row.append(row[1] // 1000 if row[1] < 1e4 else 9)
+                    currentBatch.append(row)
                 
-                # Increment the bar 
-                if i % modulo == 0:
-                    bar.next(n=barSkip)
+            # Committing all rows from the file to the database
+            cursor.executemany(
+                'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) \
+                ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
+                currentBatch
+            )
             
-            # Committing the remainder of the rows that may have not been added
-            if currentBatch:
-                cursor.executemany(
-                    'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) \
-                    ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
-                    currentBatch
-                )
+            # Increment the bar
+            bar.next()
 
     print('Committing changes to database...')
 
     # Commit changes
     client.commit()
-
-    # Complete bar
+    cursor.close()
     bar.finish()
 
-    # Close cursor
-    cursor.close()
-
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed')):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=5):
     ''' Inserts all of the compiled csv files into the database '''
     experimentPath = constants.experimentPath
     frequencyPath = constants.frequencyPath
 
     for fitness in fitnesses:
-        currExpPath = experimentPath.format(fitness, '')
-        currFreqPath = frequencyPath.format(fitness, '')
+        experiment_file_paths = []
+        frequency_file_paths = []
+        for i in range(num_files):
+            currExpPath = experimentPath.format(enc='new_encoding', func=fitness, suff=f'_new_enc_{i + 1}')
+            currFreqPath = frequencyPath.format(enc='new_encoding', func=fitness, suff=f'_new_enc_{i + 1}')
 
-        if os.path.exists(currExpPath) and fitness != 'uniform-random':
-            loadExperiments(currExpPath)
-        else:
-            print(f'Cannot load {fitness} experiment since no such file exists.')
-        
-        if os.path.exists(currFreqPath):
-            loadFrequencies(currFreqPath)
-        else:
-            print(f'Cannot load {fitness} frequencies since no such file exists.')
+            if not os.path.exists(currExpPath) and fitness != 'uniform-random':
+                print(f'Cannot load {fitness} experiment since {currExpPath} does not exist.')
+            
+            if not os.path.exists(currFreqPath) and fitness != 'uniform-random':
+                print(f'Cannot load {fitness} frequencies since {currFreqPath} does not exist.')
+
+            experiment_file_paths.append(currExpPath)
+            frequency_file_paths.append(currFreqPath)
+
+        # loadExperiments(experiment_file_paths)
+        loadFrequencies(frequency_file_paths)
     
     print('Done.')
 

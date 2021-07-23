@@ -13,8 +13,8 @@ def newIsTrap(encodedTrap, trap, fitnessFunc, sigVal=13.29):
 
 def differenceExperiment(fitnessFunc):
 
-    inputPath = constants.experimentPath.format(fitnessFunc,'')
-    outputPath = constants.experimentPath.format(fitnessFunc,'SCexperiment')
+    inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
+    outputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
     countTotal = 0
     countDiff = 0
 
@@ -43,8 +43,8 @@ def differenceExperiment(fitnessFunc):
 
 def freqDifferenceExperiment(fitnessFunc):
 
-    inputPath = constants.frequencyPath.format(fitnessFunc, '')
-    outputPath = constants.frequencyPath.format(fitnessFunc, 'SCexperiment')
+    inputPath = constants.frequencyPath.format(enc='old_encoding', func=fitnessFunc, suff='')
+    outputPath = constants.frequencyPath.format(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
     countTotal = 0
     countDiff = 0
     trialNum = 0

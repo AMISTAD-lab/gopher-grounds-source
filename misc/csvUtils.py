@@ -65,7 +65,18 @@ def updateCSV(inputPath, data=None, headers = None, overwrite=False):
     '''
     Takes in an input path and a 2D list, then adds the contents of the list to the given input file
     '''
-    if not os.path.exists(inputPath) or overwrite:
+    dirs = inputPath.split('/')
+
+    for i in range(len(dirs)):
+        if dirs[i] == '.':
+            continue
+
+        if i == len(dirs) - 1:
+            break
+        
+        os.mkdir("/".join(dirs[:i + 1]))
+
+    if (not os.path.exists(inputPath) and headers) or overwrite:
         with open(inputPath, 'w+', newline='') as out:
             writer = csv.writer(out)
             writer.writerow(headers)

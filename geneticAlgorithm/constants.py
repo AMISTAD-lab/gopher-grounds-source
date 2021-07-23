@@ -15,8 +15,8 @@ experimentHeaders = ['Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Letha
 fofHeaders = ['Frequency', 'FrequencyOfFrequency']
 
 # File paths
-experimentPath = './experiments/{}{}.csv'
-frequencyPath = './frequencies/{}{}.csv'
+experimentPath = './experiments/{enc}/{func}/{func}{suff}.csv'
+frequencyPath = './frequencies/{enc}/{func}/{func}{suff}.csv'
 fofPath = './frequencies/{}{}FoF.csv'
 realExperimentPath = './realExperiments/{}/{}{}.{}'
 

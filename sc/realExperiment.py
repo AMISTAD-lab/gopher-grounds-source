@@ -211,7 +211,7 @@ def printProgressBar (iteration, total, prefix = 'Progress:', suffix = 'Complete
 
 def loadTrapList(fitnessFunc):
     trapList = []
-    inputPath = constants.experimentPath.format(fitnessFunc, '')
+    inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
     with open(inputPath, 'r' ,newline='') as incsv:
         for row in csv.reader(incsv):
             if row[0] == "Trial":
@@ -226,7 +226,7 @@ def loadTrapList(fitnessFunc):
 def percentShootProjectile(fitnessFunc):
     countShoot = 0
     countTotal = 0
-    inputPath = constants.experimentPath.format(fitnessFunc, '')
+    inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
     with open(inputPath, 'r' ,newline='') as incsv:
         for row in csv.reader(incsv):
             if row[0] == "Trial":
@@ -256,26 +256,3 @@ def generateRandomTraps(numTrap):
     for i in range(numTrap):
         trap = lib.generateTrap()
         out.write(utils.convertEncodingToString(trap) + "\n")
-
-# fitnessFuncs = ['binary-distance']
-# params = ['defaultProbEnter','maxProjectileStrength','nTrapsWithoutFood','probReal']
-# for fitnessFunc in fitnessFuncs:
-#     for param in params:
-#         fileName = constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'csv')
-#         # runExperiment(fileName, param, 10000, fitnessFunc)
-#         d.linearRunGraph(fileName, param, fitnessFunc)
-
-# fitnessFuncs = ['coherence', 'functional', 'multiobjective', 'random', 'binary-distance']
-# params = ['default']
-# for fitnessFunc in fitnessFuncs:
-#     for param in params:
-#         fileName = constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'csv')
-#         runExperiment(fileName, param, 10000, fitnessFunc)
-#         d.statusOverTime(fileName, fitnessFunc)
-
-
-# fitnessFuncs = ['coherence', 'functional', 'multiobjective', 'random', 'binary-distance']
-# for fitnessFunc in fitnessFuncs:
-#     percentShootProjectile(fitnessFunc)
-
-# percentShootProjectileRandom(100000)
