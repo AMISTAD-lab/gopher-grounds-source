@@ -14,7 +14,7 @@ def geneticAlgorithm(functionName, encoder: Encoding, maxGenerations = 10000, sh
     population = np.array([])
 
     if functionName == 'binary-distance':
-        functions.targetTrap = lib.generateTrap()
+        functions.targetTrap = lib.generateTrap(encoder)
 
     # Destructure population into CSV format
     getWriteData = lambda population, fitnesses : [

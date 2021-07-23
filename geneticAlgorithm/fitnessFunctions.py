@@ -148,7 +148,7 @@ def getCombined(encodedInput, encoder: Encoding):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def getBinaryDistance(encodedInput):
+def getBinaryDistance(encodedInput, encoder: Encoding):
     """Assigns a fitness based on the binary distance to the target configuration"""
     def calcFitness(encoding):
         # Convert list to string to reference in dictionary
