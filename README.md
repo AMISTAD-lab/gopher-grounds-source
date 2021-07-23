@@ -10,8 +10,69 @@ pip3 install -r requirements.txt
 ```
 Note: I would recommend creating a virtual environment for these installs
 
+## Project Structure
+Please refer to the following for the project structure. Most of the important files have been added, as well.
+```
+.
++-- gopher-cli.py
++-- README.md
++-- requirements.txt
++-- animation/
++-- classes/
+|   +-- Board.py
+|   +-- Cell.py
+|   +-- Door.py
+|   +-- Encoding.py
+|   +-- Gopher.py
+|   +-- Projectile.py
+|   +-- Trap.py
+|   +-- Wire.py
++-- database/
+|   +-- client.py
+|   +-- constants.py
+|   +-- library.py
+|   +-- plot.py
+|   +-- setup.py
++-- enums/
++-- experiments/
+|   +-- new_encoding/
+|   |   +-- functional/
+|   |   +-- multiobjective/
+|   |   +-- coherence/
+|   |   ...
+|   +-- old_encoding/
+|   |   ...
++-- frequencies/
+|   +-- new_encoding/
+|   |   +-- functional/
+|   |   +-- multiobjective/
+|   |   +-- coherence/
+|   |   ...
+|   +-- old_encoding/
+|   |   ...
++-- geneticAlgorithm/
+|   +-- analytical.py
+|   +-- cellarray.py
+|   +-- constants.py
+|   +-- experiment.py
+|   +-- fitnessFunctions.py
+|   +-- library.py
+|   +-- main.py
+|   +-- utils.py
++-- images/
++-- legacy/
++-- libs/
++-- misc/
+|   +-- visualization.py
+|   +-- visualizationHelpers.py
++-- sc/
+|   +-- goodTuring.py
+|   +-- realExperiment.py
+|   +-- scExperiment.py
+```
+
 ## Interacting with the CLI
-We have provided a CLI interface to allow users to more easily interact with the code without having to dig through files. To access the CLI, simple execute the command
+We have provided a command line interface (CLI) interface to allow users to more easily interact with the code without having to dig through files. To access the CLI, simple execute the command
 ```
 ./gopher-cli.py -h
 ```
