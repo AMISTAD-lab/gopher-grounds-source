@@ -76,8 +76,8 @@ def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, nu
     
     experimentNum = 0
 
-    frequencyPath = constants.frequencyPath.format(enc='new_encoding', func=functionName, suff=suffix)
-    experimentPath = constants.experimentPath.format(enc='new_encoding', func=functionName, suff=suffix)
+    frequencyPath = constants.getFrequencyPath(func=functionName, suff=suffix)
+    experimentPath = constants.getExperimentPath(func=functionName, suff=suffix)
 
     # If the path exists but not the file, or we are overwriting the file, create it
     csvUtils.updateCSV(frequencyPath, headers=constants.frequencyHeaders, overwrite=overwrite)
@@ -143,7 +143,7 @@ def createFoF(func, suffix=''):
     fof = {}
     freqs = {}
 
-    freqPath = constants.frequencyPath.format(enc='old_encoding', func=func, suff=suffix)
+    freqPath = constants.getFrequencyPath(enc='old_encoding', func=func, suff=suffix)
 
     with open(freqPath, 'r', newline='') as fRead:
         reader = csv.reader(fRead)

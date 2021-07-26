@@ -178,15 +178,12 @@ def loadFrequencies(inputFiles: str):
 
 def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=5):
     ''' Inserts all of the compiled csv files into the database '''
-    experimentPath = constants.experimentPath
-    frequencyPath = constants.frequencyPath
-
     for fitness in fitnesses:
         experiment_file_paths = []
         frequency_file_paths = []
         for i in range(num_files):
-            currExpPath = experimentPath.format(enc='new_encoding', func=fitness, suff=f'_new_enc_{i + 1}')
-            currFreqPath = frequencyPath.format(enc='new_encoding', func=fitness, suff=f'_new_enc_{i + 1}')
+            currExpPath = constants.getExperimentPath(func=fitness, suff=f'_new_enc_{i + 1}')
+            currFreqPath = constants.getFrequencyPath(func=fitness, suff=f'_new_enc_{i + 1}')
 
             if not os.path.exists(currExpPath) and fitness != 'uniform-random':
                 print(f'Cannot load {fitness} experiment since {currExpPath} does not exist.')

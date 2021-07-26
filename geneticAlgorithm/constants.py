@@ -14,9 +14,21 @@ frequencyHeaders = ['Trial', 'Generation', 'Trap', 'Function', 'Fitness', 'Letha
 experimentHeaders = ['Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Lethality', 'Coherence', 'Combined', 'PropDead', 'StdErr']
 fofHeaders = ['Frequency', 'FrequencyOfFrequency']
 
-# File paths
-experimentPath = './experiments/{enc}/{func}/{func}{suff}.csv'
-frequencyPath = './frequencies/{enc}/{func}/{func}{suff}.csv'
+# File path getters
+getExperimentPath = \
+    lambda func, suff='', enc=None : './experiments/{enc}{func}/{func}{suff}.csv'.format(
+        enc=f'{enc}/' if enc else '',
+        func=func,
+        suff=suff
+    )
+
+getFrequencyPath = \
+    lambda func, suff='', enc=None : './frequencies/{enc}{func}/{func}{suff}.csv'.format(
+        enc=f'{enc}/' if enc else '',
+        func=func,
+        suff=suff
+    )
+
 fofPath = './frequencies/{}{}FoF.csv'
 realExperimentPath = './realExperiments/{}/{}{}.{}'
 

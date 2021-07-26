@@ -15,8 +15,8 @@ def differenceExperiment(fitnessFunc, encoder: Encoding = None):
     if not encoder:
         encoder = Encoding()
 
-    inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
-    outputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
+    inputPath = constants.getExperimentPath(enc='old_encoding', func=fitnessFunc)
+    outputPath = constants.getExperimentPath(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
     countTotal = 0
     countDiff = 0
 
@@ -47,8 +47,8 @@ def freqDifferenceExperiment(fitnessFunc, encoder: Encoding = None):
     if not encoder:
         encoder = Encoding()
 
-    inputPath = constants.frequencyPath.format(enc='old_encoding', func=fitnessFunc, suff='')
-    outputPath = constants.frequencyPath.format(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
+    inputPath = constants.getFrequencyPath(enc='old_encoding', func=fitnessFunc)
+    outputPath = constants.getFrequencyPath(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
     countTotal = 0
     countDiff = 0
     trialNum = 0
