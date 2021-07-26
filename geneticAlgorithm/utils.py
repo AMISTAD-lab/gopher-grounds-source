@@ -1,6 +1,6 @@
 import numpy as np
 import classes.Trap as TrapClass
-import geneticAlgorithm.encoding as encoding
+from classes.Encoding import Encoding
 
 def createTrap(configuration):
     """Takes in a board configuration and wraps that configuration in a trap class"""
@@ -28,7 +28,9 @@ def convertEncodingToString(encoding):
     
     return encodingStr
 
-def convertStringToDecoding(strEncoding):
+def convertStringToDecoding(strEncoding, encoder: Encoding = None):
     """ Takes in a string encoding and returns the decoded trap """
-    return encoding.singleDecoding(convertStringToEncoding(strEncoding))
+    if not encoder:
+        encoder = Encoding()
+    return encoder.singleDecoding(convertStringToEncoding(strEncoding))
 

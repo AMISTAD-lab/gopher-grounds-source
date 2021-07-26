@@ -2,7 +2,7 @@ import libs.simulation as s
 import copy
 import csv
 import geneticAlgorithm.utils as utils
-import geneticAlgorithm.encoding as encode
+from classes.Encoding import Encoding
 import classes.Trap as t
 import numpy as np
 import legacy.magicFunctions as mf
@@ -209,7 +209,10 @@ def printProgressBar (iteration, total, prefix = 'Progress:', suffix = 'Complete
         print()
 
 
-def loadTrapList(fitnessFunc):
+def loadTrapList(fitnessFunc, encoder: Encoding = None):
+    if not encoder:
+        encoder = Encoding()
+    
     trapList = []
     inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
     with open(inputPath, 'r' ,newline='') as incsv:
@@ -218,12 +221,15 @@ def loadTrapList(fitnessFunc):
                 continue
             else:
                 encodedTrap = utils.convertStringToEncoding(row[1])
-                decodedTrap = encode.singleDecoding(encodedTrap)
+                decodedTrap = encoder.decode(encodedTrap)
                 trap = utils.createTrap(decodedTrap)
                 trapList.append(trap)
     return trapList
 
-def percentShootProjectile(fitnessFunc):
+def percentShootProjectile(fitnessFunc, encoder: Encoding = None):
+    if not encoder:
+        encoder = Encoding()
+
     countShoot = 0
     countTotal = 0
     inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
@@ -234,17 +240,19 @@ def percentShootProjectile(fitnessFunc):
             else:
                 countTotal += 1
                 encodedTrap = utils.convertStringToEncoding(row[1])
-                decodedTrap = encode.singleDecoding(encodedTrap)
+                decodedTrap = encoder.decode(encodedTrap)
                 if analy.shootProjectile(decodedTrap):
                     countShoot += 1
     print("{}% {} traps shoot a projectile".format(countShoot / countTotal * 100, fitnessFunc) )
 
-def percentShootProjectileRandom(numTrap):
+def percentShootProjectileRandom(numTrap, encoder: Encoding = None):
+    if not encoder:
+        encoder = Encoding()
+    
     countShoot = 0
-    countTotal = 0
     for i in range(numTrap):
         encodedTrap = lib.generateTrap()
-        decodedTrap = encode.singleDecoding(encodedTrap)
+        decodedTrap = encoder.decode(encodedTrap)
         if analy.shootProjectile(decodedTrap):
                     countShoot += 1
     print("{}% traps shoot a projectile".format(countShoot / numTrap * 100) )
