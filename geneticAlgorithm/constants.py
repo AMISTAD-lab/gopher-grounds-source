@@ -17,7 +17,7 @@ fofHeaders = ['Frequency', 'FrequencyOfFrequency']
 # File paths
 experimentPath = './experiments/{enc}/{func}/{func}{suff}.csv'
 frequencyPath = './frequencies/{enc}/{func}/{func}{suff}.csv'
-fofPath = './frequencies/{}{}FoF.csv'
+fofPath = './frequencies/{enc}/{func}/{func}FoF.csv'
 realExperimentPath = './realExperiments/{}/{}{}.{}'
 
 # Enumeration of possible lethality/coherence values and generation ranges
