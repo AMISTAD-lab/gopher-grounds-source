@@ -45,11 +45,6 @@ def geneticAlgorithm(functionName, encoder: Encoding, maxGenerations = 10000, sh
     maxFitness, bestTrap = fitnesses[currMax], population[currMax]
 
     while generation < maxGenerations:
-        # Write frequency data before we change the population
-        if writer and generation % 1000 == 0:
-            writer.writerows(writeData)
-            writeData = []
-
         if showLogs and (generation % 50 == 0):
             print(f"Generation {generation}:")
             print("Current Max fitness\t: {}".format(round(max(fitnesses), 3)))

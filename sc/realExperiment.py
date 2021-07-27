@@ -214,7 +214,7 @@ def loadTrapList(fitnessFunc, encoder: Encoding = None):
         encoder = Encoding()
     
     trapList = []
-    inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
+    inputPath = constants.getExperimentPath(enc='old_encoding', func=fitnessFunc)
     with open(inputPath, 'r' ,newline='') as incsv:
         for row in csv.reader(incsv):
             if row[0] == "Trial":
@@ -232,7 +232,7 @@ def percentShootProjectile(fitnessFunc, encoder: Encoding = None):
 
     countShoot = 0
     countTotal = 0
-    inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
+    inputPath = constants.getExperimentPath(enc='old_encoding', func=fitnessFunc)
     with open(inputPath, 'r' ,newline='') as incsv:
         for row in csv.reader(incsv):
             if row[0] == "Trial":

@@ -1,13 +1,11 @@
 """
 This file contains all the necessary functions to apply a Simple Good Turing smoothing of a given distribution
 """
-import copy
 import csv
 import numpy as np
 import pprint
 import database.library as dbLibrary
 import geneticAlgorithm.constants as constants
-import geneticAlgorithm.utils as utils
 
 def loadFoF(fitnessFunc):
     """
@@ -160,5 +158,3 @@ def testSGT(configuration, function = 'coherence'):
 
     print("This is the probability of a certain trap:")
     print(getSmoothedProb(configuration, function))
-
-# testSGT('[ 11, 8, 26, 89, 1, 81, 5, 2, 3, 29, 0, 15 ]', 'coherence')

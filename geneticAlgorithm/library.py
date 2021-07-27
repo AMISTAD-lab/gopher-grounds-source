@@ -6,29 +6,28 @@ import geneticAlgorithm.constants as constants
 """
 A library of all essential functions for the genetic algorithm
 """
-def generateTrap(encoding: Encoding = Encoding()):
+def generateTrap(encoder: Encoding = Encoding()):
     member = []
     for i in range(12):
         cellCode = random.randrange(2, len(constants.CELL_ALPHABET), 1)
         
         # Ensuring the board is valid
-        if i == encoding.food:
+        if i == encoder.food:
             cellCode = 1 # Food
-        elif i == encoding.floor:
+        elif i == encoder.floor:
             cellCode = 2 # Floor
-        elif i == encoding.door:
+        elif i == encoder.door:
             cellCode = 0 # Door
 
         member.append(cellCode)
     return np.array(member)
 
-
-def initializePopulation(encoding: Encoding, populationSize = 20):
+def initializePopulation(encoder: Encoding, populationSize = 20):
     """ Initializes the population (encoded as per the encoding) by sampling from the search space """
-    if not encoding:
+    if not encoder:
         raise Exception('An encoding object must be given to initializePopulation')
 
-    return np.array([generateTrap(encoding) for _ in range(populationSize)])
+    return np.array([generateTrap(encoder) for _ in range(populationSize)])
 
 def checkTerminationMultiobjective(functionals, coherents, threshold):
     """

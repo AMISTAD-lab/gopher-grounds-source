@@ -11,13 +11,25 @@ TOTAL = 427929800129788411
 
 # CSV constants
 frequencyHeaders = ['Trial', 'Generation', 'Trap', 'Function', 'Fitness', 'Lethality', 'Coherence', 'Combined']
-experimentHeaders = ['Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Lethality', 'Coherence', 'Combined', 'PropDead', 'StdErr']
+experimentHeaders = ['Experiment', 'Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Lethality', 'Coherence', 'Combined', 'PropDead', 'StdErr']
 fofHeaders = ['Frequency', 'FrequencyOfFrequency']
 
-# File paths
-experimentPath = './experiments/{enc}/{func}/{func}{suff}.csv'
-frequencyPath = './frequencies/{enc}/{func}/{func}{suff}.csv'
-fofPath = './frequencies/{enc}/{func}/{func}FoF.csv'
+# File path getters
+getExperimentPath = \
+    lambda func, suff='', enc=None : './experiments/{enc}{func}/{func}{suff}.csv'.format(
+        enc=f'{enc}/' if enc else '',
+        func=func,
+        suff=suff
+    )
+
+getFrequencyPath = \
+    lambda func, suff='', enc=None : './frequencies/{enc}{func}/{func}{suff}.csv'.format(
+        enc=f'{enc}/' if enc else '',
+        func=func,
+        suff=suff
+    )
+
+fofPath = './frequencies/{}{}FoF.csv'
 realExperimentPath = './realExperiments/{}/{}{}.{}'
 
 # Enumeration of possible lethality/coherence values and generation ranges

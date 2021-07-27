@@ -173,7 +173,7 @@ def linearRunGraph(filename, param, fitnessFunc):
     n_food_ax.legend(prop={"size":legendsize})
 
     fig.tight_layout()
-    fig.savefig(constants.realExperimentPath.format(fitnessFunc, fitnessFunc, param, 'pdf'), bbox_inches='tight', pad_inches=0)
+    fig.savefig(constants.realExperimentPath(fitnessFunc, fitnessFunc, param, 'pdf'), bbox_inches='tight', pad_inches=0)
     plt.close('all')
 
 
@@ -241,7 +241,7 @@ def statusOverTime(filename, fitnessFunc):
 
     for i, fig in enumerate(figs):
         fig.tight_layout()
-        fig.savefig(constants.realExperimentPath.format(fitnessFunc, fitnessFunc, 'stackplot' + str(i+1), 'pdf'), bbox_inches='tight', pad_inches=0)
+        fig.savefig(constants.realExperimentPath(fitnessFunc, fitnessFunc, 'stackplot' + str(i+1), 'pdf'), bbox_inches='tight', pad_inches=0)
     
     plt.close('all')
 

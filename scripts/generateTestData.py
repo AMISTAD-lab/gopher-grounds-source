@@ -15,7 +15,7 @@ def create_test_data(funcs: Tuple[str], num_files=25, num_rows=10000):
     for func in funcs:
         for file in file_names:
             write_data = []
-            input_path = constants.frequencyPath.format(enc='new_encoding', func=func, suff=file)
+            input_path = constants.getFrequencyPath(func=func, suff=file)
             output_path = f'./test_data/{func}/{func}{file}.csv'
 
             with open(input_path, 'r', newline='') as out:
@@ -27,3 +27,4 @@ def create_test_data(funcs: Tuple[str], num_files=25, num_rows=10000):
             
             csvUtils.updateCSV(output_path, data=write_data, overwrite=True)
     
+create_test_data(('coherence', 'functional', 'multiobjective'))

@@ -126,13 +126,13 @@ def loadExperiments(inputFiles: str):
     client.commit()
     cursor.close()
 
-def loadFrequencies(inputFiles: str):
+def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN'):
     ''' Takes in a frequency csv file as input and loads the data into the database '''
     # Open a cursor
     cursor = client.cursor()
 
     trial_num = 1; prev_trial = 1
-    with IncrementalBar('Processing:', max = len(inputFiles)) as bar:
+    with IncrementalBar(f'Processing {func} files:', max = len(inputFiles)) as bar:
         for inputFile in inputFiles:
             currentBatch = []
             with open(inputFile, 'r', newline='') as out:
@@ -176,29 +176,43 @@ def loadFrequencies(inputFiles: str):
     cursor.close()
     bar.finish()
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=5):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=25):
     ''' Inserts all of the compiled csv files into the database '''
-    experimentPath = constants.experimentPath
-    frequencyPath = constants.frequencyPath
-
     for fitness in fitnesses:
         experiment_file_paths = []
         frequency_file_paths = []
+
+        if not os.path.exists(f'./frequencies/{fitness}'):
+            print(f'Cannot load {fitness} files since the respective subdirectories do not exist...')
+            continue
+        
+        if fitness == 'designed':
+            loadExperiments([constants.getExperimentPath(fitness)])
+            loadFrequencies([constants.getFrequencyPath(fitness)], fitness)
+            continue
+
+        if fitness == 'uniform-random':
+            loadFrequencies([constants.getFrequencyPath(fitness)], fitness)
+            continue
+
         for i in range(num_files):
-            currExpPath = experimentPath.format(enc='new_encoding', func=fitness, suff=f'_new_enc_{i + 1}')
-            currFreqPath = frequencyPath.format(enc='new_encoding', func=fitness, suff=f'_new_enc_{i + 1}')
+            suff = '' if num_files == 1 else f'_new_enc_{i + 1}'
+            currExpPath = constants.getExperimentPath(func=fitness, suff=suff)
+            currFreqPath = constants.getFrequencyPath(func=fitness, suff=suff)
 
             if not os.path.exists(currExpPath) and fitness != 'uniform-random':
                 print(f'Cannot load {fitness} experiment since {currExpPath} does not exist.')
+                continue
             
             if not os.path.exists(currFreqPath) and fitness != 'uniform-random':
                 print(f'Cannot load {fitness} frequencies since {currFreqPath} does not exist.')
+                continue
 
             experiment_file_paths.append(currExpPath)
             frequency_file_paths.append(currFreqPath)
 
         # loadExperiments(experiment_file_paths)
-        loadFrequencies(frequency_file_paths)
+        loadFrequencies(frequency_file_paths, fitness)
     
     print('Done.')
 
