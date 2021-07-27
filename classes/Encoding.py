@@ -10,7 +10,7 @@ import geneticAlgorithm.cellarray as ca
 
 class Encoding():
     def __init__(self, permutation: List[int] = None, code = -1):
-        if permutation is None:
+        if permutation is None and code == -1:
             self._permutation = np.array([x for x in range(12)])
             self._code = code
         elif code == 1 or np.allclose(permutation, [9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]):

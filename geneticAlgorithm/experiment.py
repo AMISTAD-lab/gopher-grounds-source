@@ -74,8 +74,6 @@ def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, nu
     if not encoder:
         raise Exception('An encoding object must be given!')
     
-    experimentNum = 0
-
     frequencyPath = constants.getFrequencyPath(func=functionName, suff=suffix)
     experimentPath = constants.getExperimentPath(func=functionName, suff=suffix)
 
@@ -85,6 +83,7 @@ def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, nu
 
     numBars = 1000
     maxSteps = numExperiments * maxGenerations
+    experimentNum = 1
     
     # Run the experiment many times
     with IncrementalBar('Fraction done: ', max = numBars) as bar:
@@ -109,11 +108,12 @@ def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, nu
                 )
 
                 # Writes the experiment data to a CSV (len(experimentData) == 2)
-                for j, [trap, fitness, proportion, stderr, intention] in enumerate(experimentData):
+                for _, [trap, fitness, proportion, stderr, intention] in enumerate(experimentData):
                     trapStr = utils.convertEncodingToString(trap)
 
                     writeData.append([
-                        (experimentNum + i) * 2 + j,
+                        experimentNum,
+                        (experimentNum + 1) // 2,
                         trapStr,
                         functionName,
                         round(fitness, 4),
@@ -123,6 +123,8 @@ def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, nu
                         round(functions.getCombined(trap, encoder), 4),
                         round(proportion, 4), round(stderr, 4)
                     ])
+
+                    experimentNum += 1
 
                 # Write data to csv
                 csvUtils.updateCSV(experimentPath, writeData)

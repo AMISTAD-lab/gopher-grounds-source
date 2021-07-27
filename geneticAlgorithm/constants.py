@@ -11,7 +11,7 @@ TOTAL = 427929800129788411
 
 # CSV constants
 frequencyHeaders = ['Trial', 'Generation', 'Trap', 'Function', 'Fitness', 'Lethality', 'Coherence', 'Combined']
-experimentHeaders = ['Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Lethality', 'Coherence', 'Combined', 'PropDead', 'StdErr']
+experimentHeaders = ['Experiment', 'Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Lethality', 'Coherence', 'Combined', 'PropDead', 'StdErr']
 fofHeaders = ['Frequency', 'FrequencyOfFrequency']
 
 # File path getters
