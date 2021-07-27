@@ -137,26 +137,25 @@ def runBatchExperiments(numExperiments, functionName, encoder: Encoding=None, nu
         
     print("SIMULATION FINISHED.\n")
 
-def createFoF(func, suffix=''):
+def createFoF(func, numFiles, enc='new_encoding'):
     '''
     Take in a fitness function (and optional suffix) and create a frequency of
     frequency dictionary from the frequency file generated
     '''
     fof = {}
     freqs = {}
+    freqPaths = [constants.frequencyPath.format(enc=enc, func=func, suff=f'_new_enc_{index}') for index in range(1,numFiles + 1)]
+    for freqPath in freqPaths:
+        with open(freqPath, 'r', newline='') as fRead:
+            reader = csv.reader(fRead)
 
-    freqPath = constants.getFrequencyPath(enc='old_encoding', func=func, suff=suffix)
+            for i, [_, _, trap, *_] in enumerate(reader):
+                if i == 0:
+                    continue
 
-    with open(freqPath, 'r', newline='') as fRead:
-        reader = csv.reader(fRead)
+                functions.updateFreqs(trap, freqs, fof)
 
-        for i, [_, _, trap, *_] in enumerate(reader):
-            if i == 0:
-                continue
-
-            functions.updateFreqs(trap, freqs, fof)
-
-    fofPath = constants.fofPath.format(func, suffix)
+    fofPath = constants.fofPath.format(enc=enc, func=func)
     fofData = [[key, fof[key]] for key in sorted(fof.keys())]
 
     csvUtils.updateCSV(fofPath, fofData, constants.fofHeaders, True)
