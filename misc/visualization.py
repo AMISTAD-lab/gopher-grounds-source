@@ -137,10 +137,10 @@ def createAnnotatedTrap(encoder: Encoding, show=True, save=False, output='annota
     imgDraw = ImageDraw.Draw(finalImage)
 
     for row in range(0, numRows):
-        imgDraw.line((0, row * height, numCols * width, row * height), 'black', 20)
+        imgDraw.line((0, row * height, numCols * width, row * height), 'black', 40)
         for col in range(0, numCols):
             if row == 0:
-                imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
+                imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 40)
 
             num = row * numCols + col
             text = str(encoder.getIndex(num)) if indexes else str(TRAP[num])
@@ -175,10 +175,10 @@ def createAnnotatedTrapNew(encoder: Encoding, show=True, save=False, output='ann
     imgDraw = ImageDraw.Draw(finalImage)
 
     for row in range(0, numRows):
-        imgDraw.line((0, row * height, numCols * width, row * height), 'black', 20)
+        imgDraw.line((0, row * height, numCols * width, row * height), 'black', 40)
         for col in range(0, numCols):
             if row == 0:
-                imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 20)
+                imgDraw.line((col * width, 0, col * width, height * numRows), 'black', 40)
 
             num = row * numCols + col
             text = str(encoder.getIndex(num)) if indexes else str(TRAP[num])
