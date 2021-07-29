@@ -1,3 +1,4 @@
 import database.setup as dbSetup
 
-dbSetup.setup(num_rows=200021)
+ONE_TRIAL = 200021
+dbSetup.setup()
