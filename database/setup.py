@@ -91,20 +91,28 @@ def loadExperiments(inputFiles: str):
     # Open a cursor
     cursor = client.cursor()
 
-    wrangleExperimentCSV(inputFiles)
-
-    currentBatch = []; currTrial = 1
+    currentBatch = []
+    trial_num = 0; exp_num = 0
     for inputFile in inputFiles:
         with open(inputFile, 'r', newline='') as out:
             reader = csv.reader(out)
+
+            prev_trial = 1
+            trial_num += 1
             for i, row in enumerate(reader):
                 if i == 0:
                     continue
 
+                exp_num += 1
+
+                if prev_trial != int(row[1]):
+                    prev_trial = int(row[1])
+                    trial_num += 1
+
                 # Cast data types
                 # Each file starts at 1 so we calculate the offset
-                row[0] = currTrial
-                row[1] = (int(row[0]) + 1) // 2
+                row[0] = exp_num
+                row[1] = trial_num
                 row[4] = float(row[4])
                 row[5] = int(row[5])
                 row[6] = float(row[6])
@@ -114,8 +122,6 @@ def loadExperiments(inputFiles: str):
                 row[10] = float(row[10])
 
                 currentBatch.append(row)
-            
-                currTrial += 1
 
     # Insert all elements into the database
     cursor.executemany(
@@ -126,27 +132,32 @@ def loadExperiments(inputFiles: str):
     client.commit()
     cursor.close()
 
-def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN'):
+def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
     ''' Takes in a frequency csv file as input and loads the data into the database '''
     # Open a cursor
     cursor = client.cursor()
 
-    trial_num = 1; prev_trial = 1
+    trial_num = 0
     with IncrementalBar(f'Processing {func} files:', max = len(inputFiles)) as bar:
         for inputFile in inputFiles:
             currentBatch = []
             with open(inputFile, 'r', newline='') as out:
                 reader = csv.reader(out)
 
+                prev_trial = 1
+                trial_num += 1
                 for i, row in enumerate(reader):
                     if i == 0:
                         continue
 
-                    # Cast data types
+                    if i > num_rows:
+                        break
+
                     if prev_trial != int(row[0]):
                         prev_trial = int(row[0])
                         trial_num += 1
                     
+                    # Cast data types
                     row[0] = trial_num
                     row[1] = int(row[1])
 
@@ -158,7 +169,7 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN'):
                     # Adding generation range to the results
                     row.append(row[1] // 1000 if row[1] < 1e4 else 9)
                     currentBatch.append(row)
-                
+
             # Committing all rows from the file to the database
             cursor.executemany(
                 'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) \
@@ -176,7 +187,7 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN'):
     cursor.close()
     bar.finish()
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=25):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=25, num_rows=1000000):
     ''' Inserts all of the compiled csv files into the database '''
     for fitness in fitnesses:
         experiment_file_paths = []
@@ -188,11 +199,11 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
         
         if fitness == 'designed':
             loadExperiments([constants.getExperimentPath(fitness)])
-            loadFrequencies([constants.getFrequencyPath(fitness)], fitness)
+            # loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
             continue
 
         if fitness == 'uniform-random':
-            loadFrequencies([constants.getFrequencyPath(fitness)], fitness)
+            # loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
             continue
 
         for i in range(num_files):
@@ -211,12 +222,12 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
             experiment_file_paths.append(currExpPath)
             frequency_file_paths.append(currFreqPath)
 
-        # loadExperiments(experiment_file_paths)
-        loadFrequencies(frequency_file_paths, fitness)
+        loadExperiments(experiment_file_paths)
+        # loadFrequencies(frequency_file_paths, fitness, num_rows)
     
     print('Done.')
 
-def setup():
+def setup(num_rows=1000000):
     ''' Sets up all tables and loads the tables with the respective data. '''
-    setupTables(overwrite=True)
-    loadDatabases()
+    # setupTables(overwrite=True)
+    loadDatabases(num_rows=num_rows)

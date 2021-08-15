@@ -9,8 +9,8 @@ import geneticAlgorithm.cellarray as ca
 ## trap[10] = 1 # Door
 
 class Encoding():
-    def __init__(self, permutation: List[int] = None, code = -1):
-        if permutation is None and code == -1:
+    def __init__(self, permutation: List[int] = None, code = 0):
+        if permutation is None and code == 0:
             self._permutation = np.array([x for x in range(12)])
             self._code = code
         elif code == 1 or np.allclose(permutation, [9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]):
@@ -18,7 +18,7 @@ class Encoding():
             self._code = 1
         else:
             self._permutation = np.array(permutation)
-            self._code = code        
+            self._code = -1 
         
         self.door = np.where(self._permutation == 10)[0][0]
         self.floor = np.where(self._permutation == 7)[0][0]
