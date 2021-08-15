@@ -4,6 +4,7 @@ import geneticAlgorithm.analytical as analytical
 import csv
 import numpy as np
 import geneticAlgorithm.utils as utils
+import legacy.data as data
 
 def arrowLengthExp(fitnessFunc, numFiles, enc='new_encoding'):
     if enc == 'new_encoding':
@@ -11,10 +12,10 @@ def arrowLengthExp(fitnessFunc, numFiles, enc='new_encoding'):
     else:
         encoder = Encoding()
 
-    inputPaths = [constants.experimentPath.format(enc=enc, func=fitnessFunc, suff=f'_new_enc_{index}') for index in range(1,numFiles + 1)]
-    outputPath = constants.experimentPath.format(enc=enc, func=fitnessFunc, suff='ArrowLengthExp')
+    inputPaths = [constants.getExperimentPath(enc=enc, func=fitnessFunc, suff=f'_new_enc_{index}') for index in range(1,numFiles + 1)]
+    outputPath = constants.getExperimentPath(enc=enc, func=fitnessFunc, suff='ArrowLengthExp')
     count = 0
-    sumLength = 0 
+    totalLengthList = []
     
     header = ["Trial", "Trap", "leftLength", "rightLength", "totalLength"]
     with open(outputPath, 'w' ,newline='') as outcsv:
@@ -32,8 +33,12 @@ def arrowLengthExp(fitnessFunc, numFiles, enc='new_encoding'):
                             encodedTrap = utils.convertStringToEncoding(row[1])
                             decodedTrap = encoder.decode(encodedTrap)
                             leftLength, rightLength, totalLength = analytical.getArrowLength(decodedTrap)
-                            sumLength += totalLength
+                            totalLengthList.append(totalLength)
                             writer.writerow([int(count / 2), row[1], leftLength, rightLength, totalLength])
     outcsv.close()
-    
-    print("{} Average total length: {}".format(fitnessFunc, sumLength / (count/2)))
+    [avg, std, (ci1,ci2)] = data.listStats(totalLengthList)
+    print(f"{fitnessFunc} totalLength data: ")
+    print(f"Average: {round(avg,5)}")
+    print(f"STD: {round(std,5)}")
+    print(f"Confidence Interval: {(round(ci1,5), round(ci2,5))}")
+    print()
