@@ -199,11 +199,11 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
         
         if fitness == 'designed':
             loadExperiments([constants.getExperimentPath(fitness)])
-            # loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
+            loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
             continue
 
         if fitness == 'uniform-random':
-            # loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
+            loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
             continue
 
         for i in range(num_files):
@@ -223,11 +223,11 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
             frequency_file_paths.append(currFreqPath)
 
         loadExperiments(experiment_file_paths)
-        # loadFrequencies(frequency_file_paths, fitness, num_rows)
+        loadFrequencies(frequency_file_paths, fitness, num_rows)
     
     print('Done.')
 
 def setup(num_rows=1000000):
     ''' Sets up all tables and loads the tables with the respective data. '''
-    # setupTables(overwrite=True)
+    setupTables(overwrite=True)
     loadDatabases(num_rows=num_rows)
