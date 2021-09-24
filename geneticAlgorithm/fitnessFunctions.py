@@ -5,7 +5,7 @@ import pandas as pd
 import libs.algorithms as alg
 import geneticAlgorithm.analytical as analytical
 import geneticAlgorithm.constants as constants
-from geneticAlgorithm.encoding import singleDecoding, singleEncoding
+from classes.Encoding import Encoding
 import geneticAlgorithm.utils as utils
 
 randomFitnesses = {}
@@ -39,7 +39,7 @@ def updateFreqs(strEncoding, freqDict, fofDict):
 
     fofDict[oldFreq + 1] += 1
 
-def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]]):
+def randomFitness(encodedInput: Union[List[int], np.ndarray, List[List[int]]], _: Encoding):
     """Assigns a random fitness to each configuration (choosing uniformly at random)"""   
     ## Prevent duplicate code
     def calcFitness (encoding: List[int]):
@@ -57,7 +57,7 @@ def randomFitness(encodedInput: Union[List[int], np.array, List[List[int]]]):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def getLethality(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+def getLethality(encodedInput, encoder: Encoding, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
@@ -65,7 +65,7 @@ def getLethality(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     ## Prevent duplicate code
     def calcFitness(encoding):
-        configuration = singleDecoding(encoding)
+        configuration = encoder.decode(encoding)
 
         # Convert list to string to reference in dictionary
         strEncoding = np.array2string(encoding)
@@ -90,11 +90,11 @@ def getLethality(encodedInput, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def getCoherence(encodedInput):
+def getCoherence(encodedInput, encoder: Encoding):
     """Assigns a fitness based on the coherence of a given configuration"""
     ## Prevent duplicate code
     def calcFitness(encoding):
-        configuration = singleDecoding(encoding)
+        configuration = encoder.decode(encoding)
 
         # Convert list to string to reference in dictionary
         strEncoding = np.array2string(encoding)
@@ -113,7 +113,7 @@ def getCoherence(encodedInput):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def getCombined(encodedInput):
+def getCombined(encodedInput, encoder: Encoding):
     """Assigns a fitness based on the coherence AND function of a configuration"""
 
     def calcFitness(encoded):
@@ -125,8 +125,8 @@ def getCombined(encodedInput):
 
         MAX_DIFF = 0.2
 
-        coherence = getCoherence(encoded)
-        functionality = getLethality(encoded)
+        coherence = getCoherence(encoded, encoder)
+        functionality = getLethality(encoded, encoder)
 
         sigmoid = lambda x : 1 / (1 + np.exp(-1 * x))
         evaluator = lambda x, y: sigmoid(np.sum([x, y]) / np.exp(2 * np.abs(x - y)))
@@ -148,7 +148,7 @@ def getCombined(encodedInput):
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def getBinaryDistance(encodedInput):
+def getBinaryDistance(encodedInput, encoder: Encoding):
     """Assigns a fitness based on the binary distance to the target configuration"""
     def calcFitness(encoding):
         # Convert list to string to reference in dictionary
@@ -194,7 +194,7 @@ def getBinaryDistance(encodedInput):
 
 #     return distance / (len(encoding) - 3)
 
-def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+def multiobjectiveFitness(population, encoder: Encoding, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Given a list of traps, calculate the multiobjective (coherence and functional) fitness for each.
     Returns an 1 x n numpy array [multifitness] * getCombined(config_maxScore) in order of population list
@@ -212,8 +212,8 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
 
     # determine score of trap by number of other traps it dominates
     for trap in population:
-        functionals.append(getLethality(trap, defaultProbEnter))
-        coherents.append(getCoherence(trap))
+        functionals.append(getLethality(trap, encoder, defaultProbEnter))
+        coherents.append(getCoherence(trap, encoder))
 
     data = {"functional fitness": functionals, "coherent fitness": coherents}
     df = pd.DataFrame(data, columns = ["functional fitness", "coherent fitness"])
@@ -249,12 +249,12 @@ def multiobjectiveFitness(population, defaultProbEnter = constants.DEFAULT_PROB_
     newScores = [scores[i] + boosters[i] for i in range(size)]
     newScores = [newScores[i]/max(newScores) for i in range(size)]
 
-    return np.array(newScores) * getCombined(population[np.argmax(newScores)])
+    return np.array(newScores) * getCombined(population[np.argmax(newScores)], encoder)
 
 functionLut = {
     'random': randomFitness,
     'functional': getLethality,
-    'cohernece': getCoherence,
+    'coherence': getCoherence,
     'multiobjective': multiobjectiveFitness,
     'binary-distance': getBinaryDistance,
 }

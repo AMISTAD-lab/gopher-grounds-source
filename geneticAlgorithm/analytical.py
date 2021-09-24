@@ -191,5 +191,18 @@ def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER
     return sumProb * defaultProbEnter
 
 def shootProjectile(configuration):
+    """
+    Takes in a board configuration, and returns whether the trap shoot a projectile or not
+    """
     leftData, rightData = getArrowData(configuration)
     return leftData[0] > 0 or rightData[0] > 0
+
+def getArrowLength(configuration):
+    """
+    Takes in a board configuration, and returns a 3-tuple: the first element is the length of first arrow, the second element is the length of the second arrow,
+    and the third element is the total lemgth
+    """
+    leftData, rightData = getArrowData(configuration)
+    leftLength = 0 if leftData[0] <= 0 else leftData[0] - 1
+    rightLength = 0 if rightData[0] <= 0 else rightData[0] - 1
+    return leftLength, rightLength, leftLength + rightLength

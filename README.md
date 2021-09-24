@@ -10,8 +10,69 @@ pip3 install -r requirements.txt
 ```
 Note: I would recommend creating a virtual environment for these installs
 
+## Project Structure
+Please refer to the following for the project structure. Most of the important files have been added, as well.
+```
+.
++-- gopher-cli.py
++-- README.md
++-- requirements.txt
++-- animation/
++-- classes/
+|   +-- Board.py
+|   +-- Cell.py
+|   +-- Door.py
+|   +-- Encoding.py
+|   +-- Gopher.py
+|   +-- Projectile.py
+|   +-- Trap.py
+|   +-- Wire.py
++-- database/
+|   +-- client.py
+|   +-- constants.py
+|   +-- library.py
+|   +-- plot.py
+|   +-- setup.py
++-- enums/
++-- experiments/
+|   +-- new_encoding/
+|   |   +-- functional/
+|   |   +-- multiobjective/
+|   |   +-- coherence/
+|   |   ...
+|   +-- old_encoding/
+|   |   ...
++-- frequencies/
+|   +-- new_encoding/
+|   |   +-- functional/
+|   |   +-- multiobjective/
+|   |   +-- coherence/
+|   |   ...
+|   +-- old_encoding/
+|   |   ...
++-- geneticAlgorithm/
+|   +-- analytical.py
+|   +-- cellarray.py
+|   +-- constants.py
+|   +-- experiment.py
+|   +-- fitnessFunctions.py
+|   +-- library.py
+|   +-- main.py
+|   +-- utils.py
++-- images/
++-- legacy/
++-- libs/
++-- misc/
+|   +-- visualization.py
+|   +-- visualizationHelpers.py
++-- sc/
+|   +-- goodTuring.py
+|   +-- realExperiment.py
+|   +-- scExperiment.py
+```
+
 ## Interacting with the CLI
-We have provided a CLI interface to allow users to more easily interact with the code without having to dig through files. To access the CLI, simple execute the command
+We have provided a command line interface (CLI) interface to allow users to more easily interact with the code without having to dig through files. To access the CLI, simple execute the command
 ```
 ./gopher-cli.py -h
 ```
@@ -20,6 +81,16 @@ Finally, if that fails, we can also interact with the CLI using
 ```
 python3 gopher-cli.py -h
 ```
+
+## Defining an encoding
+For most of the subparsers in the CLI, the encoding of a trap can be specified.
+By default, the encoding of the list is [0..11].
+To set the permutation, use the `--permutation (-p)` flag as follows:
+`--permutation <string_encoding>`, (i.e. `--permutation '[0, 1, 2, ...]'`)
+
+For our convenience, we have provided the hot key `-p 1` to set the permutation to the default permutation used in the code base:
+<center><code>[9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]</code></center>
+
 ## Simulating a trap
 We have provided a CLI command to simulate an arbitrary encoded trap. To use this command, simply call
 ```
@@ -104,7 +175,6 @@ Now, we can provide a table of the common flags that are shown in the help menu:
 | Flag | Abbrev. | Default | Description |
 | :--: | :----------: | :-----: | :---------: |
 | --help | -h | N/A | help for any given parser|
-| --threshold | -t | 0.8 | value of `measure` over which we terminate|
 | --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
 | --no-logs | -nl | False | turns off logging during the genetic algorithm |
 | --export | -e | False | exports outputs to a separate file (`-o` flag)| |
@@ -121,10 +191,8 @@ These flags are for the `genetic-algorithm runBatchExperiments` parser:
 | Flag | Abbrev. | Default | Description |
 | :--: | :----------: | :-----: | :---------: |
 | --num-experiments | -e | 10 | number of experiements to run |
-| --threshold | -t | 0.8 | value of `measure` over which we terminate|
 | --max-generations | -g | 10,000 | maximum number of generations the algorithm runs |
-| --show-logs | -l | False | turns on printing of generation data |
-| --ouput-suffix | -suff | x<sup>1</sup> | the suffix to append to the end of the file name |
+| --ouput-suffix | -o | x<sup>1</sup> | the suffix to append to the end of the file name |
 | --overwrite | -w | False | overwrites the experiment CSV file created with a new one |
 
 <sup>1</sup> The default output file is 'geneticAlgorithm.txt' for the `generate` subparser and 'experiment.csv' for the `runExperiment` and `runBatchExperiments` subparsers. The file extension must be added.

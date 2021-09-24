@@ -1,6 +1,6 @@
 import libs.algorithms as algo
 import goodTuring as gt
-import geneticAlgorithm.encoding as encode
+from classes.Encoding import Encoding
 import geneticAlgorithm.utils as utils
 import geneticAlgorithm.constants as constants
 import csv
@@ -11,10 +11,12 @@ def newIsTrap(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
-def differenceExperiment(fitnessFunc):
+def differenceExperiment(fitnessFunc, encoder: Encoding = None):
+    if not encoder:
+        encoder = Encoding()
 
-    inputPath = constants.experimentPath.format(fitnessFunc,'')
-    outputPath = constants.experimentPath.format(fitnessFunc,'SCexperiment')
+    inputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='')
+    outputPath = constants.experimentPath.format(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
     countTotal = 0
     countDiff = 0
 
@@ -30,7 +32,7 @@ def differenceExperiment(fitnessFunc):
                     if countTotal % 2 == 0:
                         continue
                     encodedTrap = utils.convertStringToEncoding(row[1])
-                    decodedTrap = encode.singleDecoding(encodedTrap)
+                    decodedTrap = encoder.decode(encodedTrap)
                     trap = utils.createTrap(decodedTrap)
                     old_is_trap = algo.isTrap(trap)
                     new_is_trap = newIsTrap(encodedTrap, trap, fitnessFunc)
@@ -41,10 +43,12 @@ def differenceExperiment(fitnessFunc):
     
     print("{} Proprotion Different: {}".format(fitnessFunc, countDiff / (countTotal/2)))
 
-def freqDifferenceExperiment(fitnessFunc):
+def freqDifferenceExperiment(fitnessFunc, encoder: Encoding = None):
+    if not encoder:
+        encoder = Encoding()
 
-    inputPath = constants.frequencyPath.format(fitnessFunc, '')
-    outputPath = constants.frequencyPath.format(fitnessFunc, 'SCexperiment')
+    inputPath = constants.frequencyPath.format(enc='old_encoding', func=fitnessFunc, suff='')
+    outputPath = constants.frequencyPath.format(enc='old_encoding', func=fitnessFunc, suff='SCexperiment')
     countTotal = 0
     countDiff = 0
     trialNum = 0
@@ -62,7 +66,7 @@ def freqDifferenceExperiment(fitnessFunc):
                         trialNum = row[0]
                         print(trialNum)
                     encodedTrap = utils.convertStringToEncoding(row[2])
-                    decodedTrap = encode.singleDecoding(encodedTrap)
+                    decodedTrap = encoder.decode(encodedTrap)
                     trap = utils.createTrap(decodedTrap)
                     old_is_trap = algo.isTrap(trap)
                     new_is_trap = newIsTrap(encodedTrap, trap, fitnessFunc)

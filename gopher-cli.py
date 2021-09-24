@@ -2,6 +2,7 @@
 import argparse
 import geneticAlgorithm.fitnessFunctions as functions 
 import geneticAlgorithm.experiment as geneticExperiment
+from classes.Encoding import Encoding
 from geneticAlgorithm.main import geneticAlgorithm
 import geneticAlgorithm.utils as util
 import legacy.experiment as experiment
@@ -39,6 +40,7 @@ generateTrap.add_argument('--max-generations', '-g', help='the maximum number of
 generateTrap.add_argument('--no-logs', '-nl', help='turns off logs as generations increase', action='store_false')
 generateTrap.add_argument('--output-file', '-o', help='the output file to which we write', default='geneticAlgorithm.txt')
 generateTrap.add_argument('--show', '-s', help='show output in browser', action='store_true')
+generateTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default=None)
 
 # run experiment flags
 geneticExperimentParser = geneticSubparsers.add_parser('runExperiment', help='runs an experiment')
@@ -47,16 +49,17 @@ geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximu
 geneticExperimentParser.add_argument('--no-logs', '-nl', help='turns on logs for generations', action='store_false')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=5000)
 geneticExperimentParser.add_argument('--no-print-stats', '-np', help='turn off statistic printing', action='store_false')
+geneticExperimentParser.add_argument('--permutation', '-p', help='the permutation for the encoding', default=None)
 
 # run batch experiments flags
 geneticExperimentParser = geneticSubparsers.add_parser('runBatchExperiments', help='runs an experiment')
 geneticExperimentParser.add_argument('function', help='a choice of {random, coherence, functional, multiobjective, binary-distance}')
 geneticExperimentParser.add_argument('--num-experiments', '-e', help='number of experiments to run', type=int, default=10)
 geneticExperimentParser.add_argument('--max-generations', '-g', help='the maximum number of iterations to run', type=int, default=10000)
-geneticExperimentParser.add_argument('--show-logs', '-l', help='turns on logs for generations', action='store_true')
-geneticExperimentParser.add_argument('--output-suffix', '-suff', help='a suffix to append to the output file name', default='Generated')
+geneticExperimentParser.add_argument('--output-suffix', '-o', help='a suffix to append to the output file name', default='Generated')
 geneticExperimentParser.add_argument('--num-simulations', '-s', help='the number of simulations of the trap to run', type=int, default=5000)
 geneticExperimentParser.add_argument('--no-overwrite', '-nw', help='overwrites the experiment csv file', action='store_false')
+geneticExperimentParser.add_argument('--permutation', '-p', help='the permutation for the encoding', default=None)
 
 # simulate trap flags
 simulateTrap = geneticSubparsers.add_parser('simulate', help='simulates a trap given an input string')
@@ -66,6 +69,7 @@ simulateTrap.add_argument('--intention', '-in', help='give the simulated gopher 
 simulateTrap.add_argument('--no-animation', '-na', help='turns off animation', action='store_true')
 simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[-1, -1, 0, 1]')
 simulateTrap.add_argument('--frame', '-f', help='the frame of the grid to print', type=int, default=0)
+simulateTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default=None)
 
 showTrap = geneticSubparsers.add_parser('show-trap', help='shows (and, optionally, saves) a trap given an input string')
 showTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
@@ -73,12 +77,21 @@ showTrap.add_argument('--save', '-s', help='whether or not to save the trap crea
 showTrap.add_argument('--output', '-o', help='the name of the file (no extensions) to be saved', default='generatedTrap')
 showTrap.add_argument('--no-pdf', '-np', help='do not show PDF', action='store_false')
 showTrap.add_argument('--no-gopher', '-ng', help='do not show the gopher', action='store_false')
+showTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default='1')
 
 # get fitness trap flags
 fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
 fitnessParser.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
+fitnessParser.add_argument('--permutation', '-p', help='the permutation for the encoding (1 is preset)', default=None)
 
 args = parser.parse_args()
+
+# Defining variables repeated
+if 'permutation' in args and args.permutation == '1':
+    args.permutation = '[9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]'
+
+encoder = Encoding(util.convertStringToEncoding(args.permutation)) if 'permutation' in args else Encoding()
+trap = util.convertStringToEncoding(args.trap) if 'trap' in args else None
 
 if args.command == 'legacy' and args.legacy == 'runExperiment':
     experiment.runExperiment(args.output, args.inputToVary, args.numSimulations)
@@ -97,15 +110,15 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     gopherState = util.convertStringToEncoding(args.gopher_state)
-    vis.simulateTrapInBrowser(util.convertStringToEncoding(args.trap), args.hunger, args.intention, args.no_animation, gopherState, args.frame)
+    vis.simulateTrapInBrowser(trap, encoder, args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'show-trap':
-    vis.convertTrapToImage(args.trap, args.output, save=args.save, showGopher=args.no_gopher, show=args.no_pdf)
+    vis.convertTrapToImage(args.trap, args.output, encoder, save=args.save, showGopher=args.no_gopher, show=args.no_pdf)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
-    print('Coherence fitness:\t', round(functions.getCoherence(util.convertStringToEncoding(args.trap)), 3))
-    print('Functional fitness:\t', round(functions.getLethality(util.convertStringToEncoding(args.trap)), 3))
-    print('Combined fitness:\t', round(functions.getCombined(util.convertStringToEncoding(args.trap)), 3))
+    print('Coherence fitness:\t', round(functions.getCoherence(trap, encoder), 3))
+    print('Functional fitness:\t', round(functions.getLethality(trap, encoder), 3))
+    print('Combined fitness:\t', round(functions.getCombined(trap, encoder), 3))
 
 elif args.command == 'genetic-algorithm':
     if args.genetic == 'generate':
@@ -114,21 +127,23 @@ elif args.command == 'genetic-algorithm':
         bestFitness = 0
         finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
             args.function,
+            encoder,
             args.max_generations,
             args.no_logs,
         )
 
         print('Trap (encoded):\t\t', bestTrap)
-        print('Coherence fitness:\t', round(functions.getCoherence(bestTrap), 3))
-        print('Functional fitness:\t', round(functions.getLethality(bestTrap), 3))
-        print('Combined fitness:\t', round(functions.getCombined(bestTrap), 3))
+        print('Coherence fitness:\t', round(functions.getCoherence(bestTrap, encoder), 3))
+        print('Functional fitness:\t', round(functions.getLethality(bestTrap, encoder), 3))
+        print('Combined fitness:\t', round(functions.getCombined(bestTrap, encoder), 3))
 
         if args.show:
-            vis.simulateTrapInBrowser(bestTrap)
+            vis.simulateTrapInBrowser(bestTrap, encoder)
     
     elif args.genetic == 'runExperiment':
         trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
             args.function,
+            encoder,
             maxGenerations=args.max_generations,
             showLogs=args.no_logs,
             numSimulations=args.num_simulations,
@@ -146,9 +161,9 @@ elif args.command == 'genetic-algorithm':
         geneticExperiment.runBatchExperiments(
             numExperiments=args.num_experiments,
             functionName=args.function,
+            encoder=encoder,
             numSimulations=args.num_simulations,
             maxGenerations=args.max_generations,
-            showLogs=args.show_logs,
             overwrite=args.no_overwrite,
             suffix=args.output_suffix,
         )

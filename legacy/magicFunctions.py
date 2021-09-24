@@ -1,7 +1,7 @@
 from legacy.magicVariables import *
 import libs.algorithms as alg
-import geneticAlgorithm.encoding as encode
-import goodTuring as gt
+from classes.Encoding import Encoding
+import specified_complexity.goodTuring as gt
 
 def initializeVariables(pref):
     global PROB_REAL
@@ -26,13 +26,16 @@ def initializeVariables(pref):
     SKINNY_PROJECTILE_STRENGTH = WIDE_PROJECTILE_STRENGTH * (1/3)
 
 
-def initializeVariablesNew(pref, fitnessFunc):
+def initializeVariablesNew(pref, fitnessFunc, encoder: Encoding = None):
+    if not encoder:
+        encoder = Encoding()
+    
     global PROB_REAL
     PROB_REAL = pref["probReal"]
 
     global DECISION_ALG
     if pref["intention"]==2:
-        DECISION_ALG = lambda trap: newIsTrap(encode.singleEncoding(trap.board), trap, fitnessFunc)
+        DECISION_ALG = lambda trap: newIsTrap(encoder.encode(trap.board), trap, fitnessFunc)
     else:
         DECISION_ALG = alg.isTrap
     

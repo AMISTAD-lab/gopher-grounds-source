@@ -4,18 +4,31 @@ DEFAULT_PROB_ENTER = 0.8
 MAX_PROB_DEATH = 1 - 0.55 ** 2
 ARROW_STRENGTHS = [0, 0.15, 0.3, 0.45]
 FUNCTIONS = ['random', 'functional', 'coherence', 'multiobjective', 'binary-distance']
+ENC_PERMUTATION = [9, 6, 3, 0, 1, 2, 4, 8, 11, 10, 7, 4]
 
 # Total number of traps -> |X|
 TOTAL = 427929800129788411
 
 # CSV constants
 frequencyHeaders = ['Trial', 'Generation', 'Trap', 'Function', 'Fitness', 'Lethality', 'Coherence', 'Combined']
-experimentHeaders = ['Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Lethality', 'Coherence', 'Combined', 'PropDead', 'StdErr']
+experimentHeaders = ['Experiment', 'Trial', 'Trap', 'Function', 'Fitness', 'Intention', 'Lethality', 'Coherence', 'Combined', 'PropDead', 'StdErr']
 fofHeaders = ['Frequency', 'FrequencyOfFrequency']
 
-# File paths
-experimentPath = './experiments/{}{}.csv'
-frequencyPath = './frequencies/{}{}.csv'
+# File path getters
+getExperimentPath = \
+    lambda func, suff='', enc=None : './experiments/{enc}{func}/{func}{suff}.csv'.format(
+        enc=f'{enc}/' if enc else '',
+        func=func,
+        suff=suff
+    )
+
+getFrequencyPath = \
+    lambda func, suff='', enc=None : './frequencies/{enc}{func}/{func}{suff}.csv'.format(
+        enc=f'{enc}/' if enc else '',
+        func=func,
+        suff=suff
+    )
+
 fofPath = './frequencies/{}{}FoF.csv'
 realExperimentPath = './realExperiments/{}/{}{}.{}'
 
