@@ -88,6 +88,9 @@ def wrangleExperimentCSV(inputFiles: List[str]):
 
 def loadExperiments(inputFiles: str):
     ''' Takes an input file (as csv) and loads all the data from the CSV into the database '''
+    if not inputFiles:
+        return
+    
     # Open a cursor
     cursor = client.cursor()
 
@@ -134,6 +137,9 @@ def loadExperiments(inputFiles: str):
 
 def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
     ''' Takes in a frequency csv file as input and loads the data into the database '''
+    if not inputFiles:
+        return
+    
     # Open a cursor
     cursor = client.cursor()
 
@@ -202,25 +208,20 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
             loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
             continue
 
-        if fitness == 'uniform-random':
-            loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
-            continue
-
         for i in range(num_files):
             suff = '' if num_files == 1 else f'_new_enc_{i + 1}'
             currExpPath = constants.getExperimentPath(func=fitness, suff=suff)
             currFreqPath = constants.getFrequencyPath(func=fitness, suff=suff)
 
-            if not os.path.exists(currExpPath) and fitness != 'uniform-random':
+            if not os.path.exists(currExpPath):
                 print(f'Cannot load {fitness} experiment since {currExpPath} does not exist.')
-                continue
+            else:
+                experiment_file_paths.append(currExpPath)
             
-            if not os.path.exists(currFreqPath) and fitness != 'uniform-random':
+            if not os.path.exists(currFreqPath):
                 print(f'Cannot load {fitness} frequencies since {currFreqPath} does not exist.')
-                continue
-
-            experiment_file_paths.append(currExpPath)
-            frequency_file_paths.append(currFreqPath)
+            else:
+                frequency_file_paths.append(currFreqPath)
 
         loadExperiments(experiment_file_paths)
         loadFrequencies(frequency_file_paths, fitness, num_rows)
