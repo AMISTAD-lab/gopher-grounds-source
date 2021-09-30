@@ -90,7 +90,7 @@ args = parser.parse_args()
 if 'permutation' in args and args.permutation == '1':
     args.permutation = '[9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]'
 
-encoder = Encoding(util.convertStringToEncoding(args.permutation)) if 'permutation' in args else Encoding()
+encoder = Encoding(util.convertStringToEncoding(args.permutation)) if args.permutation else Encoding()
 trap = util.convertStringToEncoding(args.trap) if 'trap' in args else None
 
 if args.command == 'legacy' and args.legacy == 'runExperiment':
