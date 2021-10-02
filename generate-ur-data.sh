@@ -1,1 +1,1 @@
-for i in {1..100}; do screen -dmS "generate-ur-$i" python3 generateUR.py $i 10; done
+for i in {1..100}; do screen -dmS "generate-ur-$i" python3 generateUR.py $i; done
