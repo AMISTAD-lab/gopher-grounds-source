@@ -90,6 +90,8 @@ def loadExperiments(inputFiles: str):
     ''' Takes an input file (as csv) and loads all the data from the CSV into the database '''
     if not inputFiles:
         return
+
+    wrangleExperimentCSV(inputFiles)
     
     # Open a cursor
     cursor = client.cursor()
