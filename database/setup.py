@@ -148,6 +148,10 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
     trial_num = 0
     with IncrementalBar(f'Processing {func} files:', max = len(inputFiles)) as bar:
         for inputFile in inputFiles:
+            if not os.path.exists(inputFile):
+                print(f'Cannot find file ${inputFile}. Skipping this.')
+                continue
+
             currentBatch = []
             with open(inputFile, 'r', newline='') as out:
                 reader = csv.reader(out)
@@ -157,9 +161,6 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
                 for i, row in enumerate(reader):
                     if i == 0:
                         continue
-
-                    if i > num_rows:
-                        break
 
                     if prev_trial != int(row[0]):
                         prev_trial = int(row[0])
@@ -195,7 +196,7 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
     cursor.close()
     bar.finish()
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=25, num_rows=1000000):
+def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=25):
     ''' Inserts all of the compiled csv files into the database '''
     for fitness in fitnesses:
         experiment_file_paths = []
@@ -204,10 +205,14 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
         if not os.path.exists(f'./frequencies/{fitness}'):
             print(f'Cannot load {fitness} files since the respective subdirectories do not exist...')
             continue
+
+        if fitness == 'uniform-random':
+            loadFrequencies([constants.getFrequencyPath(fitness, f'_new_enc_{i}.csv') for i in range(1, 121)])
+            continue
         
         if fitness == 'designed':
             loadExperiments([constants.getExperimentPath(fitness)])
-            loadFrequencies([constants.getFrequencyPath(fitness)], fitness, num_rows)
+            loadFrequencies([constants.getFrequencyPath(fitness)], fitness)
             continue
 
         for i in range(num_files):
@@ -226,11 +231,11 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
                 frequency_file_paths.append(currFreqPath)
 
         loadExperiments(experiment_file_paths)
-        loadFrequencies(frequency_file_paths, fitness, num_rows)
+        loadFrequencies(frequency_file_paths, fitness)
     
     print('Done.')
 
 def setup(num_rows=1000000):
     ''' Sets up all tables and loads the tables with the respective data. '''
     setupTables(overwrite=True)
-    loadDatabases(num_rows=num_rows)
+    loadDatabases()
