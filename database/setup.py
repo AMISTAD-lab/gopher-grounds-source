@@ -182,7 +182,8 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
             # Committing all rows from the file to the database
             cursor.executemany(
                 'INSERT INTO {} VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) \
-                ON CONFLICT DO UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
+                ON CONFLICT (function, trial, generation, trap) DO \
+                UPDATE SET frequency = frequency + 1;'.format(FREQ_TABLE),
                 currentBatch
             )
             
