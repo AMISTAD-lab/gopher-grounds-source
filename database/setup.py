@@ -208,7 +208,7 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
             continue
 
         if fitness == 'uniform-random':
-            loadFrequencies([constants.getFrequencyPath(fitness, f'_new_enc_{i}.csv') for i in range(1, 121)])
+            loadFrequencies([constants.getFrequencyPath(fitness, f'_new_enc_{i}') for i in range(1, 121)])
             continue
         
         if fitness == 'designed':
@@ -238,5 +238,5 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
 
 def setup(num_rows=1000000):
     ''' Sets up all tables and loads the tables with the respective data. '''
-    setupTables(overwrite=True)
+    setupTables()
     loadDatabases()
