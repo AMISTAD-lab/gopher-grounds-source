@@ -12,24 +12,23 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser(description="Commands to run the experiment")
-parser.add_argument('file_num', help='the file number to append to the end of the file')
-parser.add_argument('generations', help='the number of generations to run per trial', type=int, default=200200)
+parser.add_argument('file_num', help='the file number to append to the end of the file', type=int)
+parser.add_argument('--generations', '-g', help='the number of generations to run per trial', type=int, default=2000200)
+parser.add_argument('--offset', '-o', help='the offset for the file number', type=int, default=0)
 args = parser.parse_args()
 
-if not os.path.exists('./uniform-random'):
-    os.mkdir('./uniform-random')
-
-write_data = [['Trial', 'Generation', 'Trap', 'Function', 'Fitness', 'Lethality', 'Coherence', 'Combined']]
 encoder = Encoding(code=1)
+with open(f'./uniform-random/uniform-random_new_enc_{args.file_num + args.offset}.csv', 'w+', newline='') as out:
+    writer = csv.writer(out)
 
-for i in range(args.generations):
-    trap = lib.generateTrap(encoder)
-    write_data.append([
-        -1, -1, trap, 'uniform-random', 0,
-        round(functions.getLethality(trap, encoder), 3),
-        round(functions.getCoherence(trap, encoder), 3),
-        round(functions.getCombined(trap, encoder), 3)
-    ])
+    writer.writerow(['Trial', 'Generation', 'Trap', 'Function', 'Fitness', 'Lethality', 'Coherence', 'Combined'])
 
-with open(f'./uniform-random/uniform-random_new_enc_{args.file_num}.csv', 'w+', newline='') as out:
-    csv.writer(out).writerows(write_data)
+    for i in range(args.generations):
+        trap = lib.generateTrap(encoder)
+        writer.writerow([
+            -1, -1, trap, 'uniform-random', 0,
+            round(functions.getLethality(trap, encoder), 3),
+            round(functions.getCoherence(trap, encoder), 3),
+            round(functions.getCombined(trap, encoder), 3)
+        ])
+

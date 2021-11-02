@@ -162,6 +162,10 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
                     if i == 0:
                         continue
 
+                    # if the row is malformed, break and continue to the next file
+                    if len(row) < 8 or not row[7]:
+                        break
+
                     if prev_trial != int(row[0]):
                         prev_trial = int(row[0])
                         trial_num += 1
@@ -197,7 +201,7 @@ def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
     cursor.close()
     bar.finish()
 
-def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'uniform-random', 'designed'), num_files=25):
+def loadDatabases(fitnesses=('uniform-random', 'random', 'coherence', 'functional', 'multiobjective', 'binary-distance', 'designed'), num_files=25):
     ''' Inserts all of the compiled csv files into the database '''
     for fitness in fitnesses:
         experiment_file_paths = []
@@ -208,7 +212,7 @@ def loadDatabases(fitnesses=('random', 'coherence', 'functional', 'multiobjectiv
             continue
 
         if fitness == 'uniform-random':
-            loadFrequencies([constants.getFrequencyPath(fitness, f'_new_enc_{i}.csv') for i in range(1, 121)])
+            loadFrequencies([constants.getFrequencyPath(fitness, f'_new_enc_{i}') for i in range(1, 121)], fitness)
             continue
         
         if fitness == 'designed':
