@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import database.plot as plot
 
 def generate_all_visuals(show=False):
-    # plot.createLethalityCoherenceHeatMap('coherence', log=True, save=True)
-    # plot.createLethalityCoherenceHeatMap('random', log=True, save=True)
-    # plot.createLethalityCoherenceHeatMap('functional', log=True, save=True)
-    # plot.createLethalityCoherenceHeatMap('multiobjective', log=True, save=True)
-    # plot.createLethalityCoherenceHeatMap('binary-distance', log=True, save=True)
+    plot.createLethalityCoherenceHeatMap('coherence', log=True, save=True)
+    plot.createLethalityCoherenceHeatMap('random', log=True, save=True)
+    plot.createLethalityCoherenceHeatMap('functional', log=True, save=True)
+    plot.createLethalityCoherenceHeatMap('multiobjective', log=True, save=True)
+    plot.createLethalityCoherenceHeatMap('binary-distance', log=True, save=True)
     plot.createLethalityCoherenceHeatMap('uniform-random', log=True, save=True)
 
     plot.createVectorMaps('lethality', save=True, name='VectorMapProd')

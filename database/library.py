@@ -119,10 +119,12 @@ def getSingleLethalityCount(fitness: str) -> pd.DataFrame:
 
     lethPoints = {}
     for (lethality, count) in cursor.fetchall():
+        lethality = round(lethality, 3)
         lethPoints[lethality] = count
     
     # Filling the remaining spots in case they were not present
     for lethality in constants.lethalities:
+        lethality = round(lethality, 3)
         if lethality not in lethPoints:
             lethPoints[lethality] = 0
 
@@ -151,10 +153,12 @@ def getSingleCoherenceCount(fitness: str) -> pd.DataFrame:
 
     cohPoints = {}
     for (coherence, count) in cursor.fetchall():
+        coherence = round(coherence, 3)
         cohPoints[coherence] = count
     
     # Filling the remaining spots in case they were not present
     for coherence in constants.coherences:
+        coherence = round(coherence, 3)
         if coherence not in cohPoints:
             cohPoints[coherence] = 0
 
@@ -214,6 +218,8 @@ def getLethalityData(fitness: str) -> pd.DataFrame:
     lethPoints = {}
     # Getting data from the database and putting the data in a temporary nested dictionary
     for (frequency, lethality, coherence) in cursor.fetchall():
+        lethality = round(lethality, 3)
+        coherence = round(coherence, 3)
         if lethality not in lethPoints:
             lethPoints[lethality] = {}
         
@@ -221,6 +227,7 @@ def getLethalityData(fitness: str) -> pd.DataFrame:
 
     # Filling all non-present lethality values with empty dictionaries
     for lethality in constants.lethalities:
+        lethality = round(lethality, 3)
         if lethality not in lethPoints:
             lethPoints[lethality] = {}
     
@@ -228,6 +235,7 @@ def getLethalityData(fitness: str) -> pd.DataFrame:
     # count for the coherence in constants.coherences
     for lethality in lethPoints:
         for coherence in constants.coherences:
+            coherence = round(coherence, 3)
             if coherence not in lethPoints[lethality]:
                 lethPoints[lethality][coherence] = 0
 
