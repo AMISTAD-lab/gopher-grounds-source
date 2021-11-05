@@ -5,6 +5,7 @@ from progress.bar import IncrementalBar
 from database.client import client
 from database.constants import *
 import geneticAlgorithm.constants as constants
+import geneticAlgorithm.utils as utils
 
 def exists(tableName: str, type: str):
     ''' Returns true if a table with the given tableName exists '''
@@ -118,6 +119,7 @@ def loadExperiments(inputFiles: str):
                 # Each file starts at 1 so we calculate the offset
                 row[0] = exp_num
                 row[1] = trial_num
+                row[2] = str(utils.convertStringToEncoding(row[2]))
                 row[4] = float(row[4])
                 row[5] = int(row[5])
                 row[6] = float(row[6])
