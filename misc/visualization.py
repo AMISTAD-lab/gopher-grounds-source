@@ -270,3 +270,33 @@ def simulateTrapInBrowser(trapEncoding, encoder: Encoding, hunger=0, intention=F
 
     # opens the animation in the web browser
     webbrowser.open_new_tab("file://" + os.path.realpath("./animation/animation.html"))
+
+def create_gif_from_trap(trapEncoding, encoder: Encoding):
+    ''' Takes in a list encoding and creates the images for a gif of the trap '''
+    decoded_list = encoder.decode(trapEncoding)
+    sim_info = sim.simulateTrap(utils.createTrap(decoded_list), False, forceEnter=True)[:3]
+
+    trap_info, active_info, gopher_info = sim_info
+
+    gopher_states = ['dead', 'alive', 'hit']
+    get_gopher_rot = lambda x : 0 if x == 'x' else 45 * int(x)
+
+    for i in range(len(active_info)):
+        images = getImages(trap_info, [x for row in active_info[i] for x in row])
+        width, height = images[0].width, images[0].height
+        trap_img = createImage(images, False)
+
+        ## add the gopher
+        gopher_x, gopher_y, gopher_rot, gopher_state = gopher_info[i]
+        gopher_file = f'./animation/gopher/gopher{gopher_states[gopher_state]}.png'
+        gopher_img = Image.open(gopher_file).rotate(get_gopher_rot(gopher_rot))
+
+        if gopher_state != 1:
+            gopher_img = gopher_img.resize((1024, 1024))
+
+        trap_img.paste(gopher_img, (gopher_x * width, gopher_y * height), gopher_img)
+
+        if not os.path.exists('./images/traps/gif/'):
+            os.mkdir('./images/traps/gif/')
+        
+        trap_img.save(f'./images/traps/gif/gif_{i}.png')

@@ -75,6 +75,7 @@ showTrap = geneticSubparsers.add_parser('show-trap', help='shows (and, optionall
 showTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 showTrap.add_argument('--save', '-s', help='whether or not to save the trap created', action='store_true')
 showTrap.add_argument('--output', '-o', help='the name of the file (no extensions) to be saved', default='generatedTrap')
+showTrap.add_argument('--ext', '-e', help='the extension type', default='pdf')
 showTrap.add_argument('--no-pdf', '-np', help='do not show PDF', action='store_false')
 showTrap.add_argument('--no-gopher', '-ng', help='do not show the gopher', action='store_false')
 showTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default='1')
@@ -84,87 +85,88 @@ fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns th
 fitnessParser.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 fitnessParser.add_argument('--permutation', '-p', help='the permutation for the encoding (1 is preset)', default=None)
 
-args = parser.parse_args()
+# args = parser.parse_args()
 
-# Defining variables repeated
-if 'permutation' in args and args.permutation == '1':
-    args.permutation = '[9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]'
+# # Defining variables repeated
+# if 'permutation' in args and args.permutation == '1':
+#     args.permutation = '[9, 6, 3, 0, 1, 2, 5, 8, 11, 10, 7, 4]'
 
-encoder = Encoding(util.convertStringToEncoding(args.permutation)) if args.permutation else Encoding()
-trap = util.convertStringToEncoding(args.trap) if 'trap' in args else None
+# encoder = Encoding(util.convertStringToEncoding(args.permutation)) if args.permutation else Encoding()
+# trap = util.convertStringToEncoding(args.trap) if 'trap' in args else None
 
-if args.command == 'legacy' and args.legacy == 'runExperiment':
-    experiment.runExperiment(args.output, args.inputToVary, args.numSimulations)
+# if args.command == 'legacy' and args.legacy == 'runExperiment':
+#     experiment.runExperiment(args.output, args.inputToVary, args.numSimulations)
 
-elif args.command == 'legacy' and args.legacy == 'simulate':
-    trapInfo = experiment.simulate({
-        "intention" : args.intention, #if gopher has intention
-        "cautious" : args.cautious, # only used if intention, fakes a FSC test to confirm intention > cautiousness
-        "defaultProbEnter" : args.defaultProbEnter, #probability of gopher entering trap (not for intention)
-        "probReal" : args.probReal, #percentage of traps that are designed as opposed to random
-        "nTrapsWithoutFood" : args.nTrapsWithoutFood, #the amount of traps a gopher can survive without entering (due to starvation)
-        "maxProjectileStrength" : args.maxProjectileStrength, #thickWire strength
-    })
+# elif args.command == 'legacy' and args.legacy == 'simulate':
+#     trapInfo = experiment.simulate({
+#         "intention" : args.intention, #if gopher has intention
+#         "cautious" : args.cautious, # only used if intention, fakes a FSC test to confirm intention > cautiousness
+#         "defaultProbEnter" : args.defaultProbEnter, #probability of gopher entering trap (not for intention)
+#         "probReal" : args.probReal, #percentage of traps that are designed as opposed to random
+#         "nTrapsWithoutFood" : args.nTrapsWithoutFood, #the amount of traps a gopher can survive without entering (due to starvation)
+#         "maxProjectileStrength" : args.maxProjectileStrength, #thickWire strength
+#     })
 
-    print(trapInfo[1])
+#     print(trapInfo[1])
 
-elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
-    gopherState = util.convertStringToEncoding(args.gopher_state)
-    vis.simulateTrapInBrowser(trap, encoder, args.hunger, args.intention, args.no_animation, gopherState, args.frame)
+# elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
+#     gopherState = util.convertStringToEncoding(args.gopher_state)
+#     vis.simulateTrapInBrowser(trap, encoder, args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
-elif args.command == 'genetic-algorithm' and args.genetic == 'show-trap':
-    vis.convertTrapToImage(args.trap, args.output, encoder, save=args.save, showGopher=args.no_gopher, show=args.no_pdf)
+# elif args.command == 'genetic-algorithm' and args.genetic == 'show-trap':
+#     vis.convertTrapToImage(args.trap, args.output, encoder, save=args.save, showGopher=args.no_gopher, show=args.no_pdf, ext=args.ext)
 
-elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
-    print('Coherence fitness:\t', round(functions.getCoherence(trap, encoder), 3))
-    print('Functional fitness:\t', round(functions.getLethality(trap, encoder), 3))
-    print('Combined fitness:\t', round(functions.getCombined(trap, encoder), 3))
+# elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
+#     print('Coherence fitness:\t', round(functions.getCoherence(trap, encoder), 3))
+#     print('Functional fitness:\t', round(functions.getLethality(trap, encoder), 3))
+#     print('Combined fitness:\t', round(functions.getCombined(trap, encoder), 3))
 
-elif args.command == 'genetic-algorithm':
-    if args.genetic == 'generate':
-        # Running the simulation
-        bestTrap = []
-        bestFitness = 0
-        finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
-            args.function,
-            encoder,
-            args.max_generations,
-            args.no_logs,
-        )
+# elif args.command == 'genetic-algorithm':
+#     if args.genetic == 'generate':
+#         # Running the simulation
+#         bestTrap = []
+#         bestFitness = 0
+#         finalPopulation, bestTrap, bestFitness = geneticAlgorithm(
+#             args.function,
+#             encoder,
+#             args.max_generations,
+#             args.no_logs,
+#         )
 
-        print('Trap (encoded):\t\t', bestTrap)
-        print('Coherence fitness:\t', round(functions.getCoherence(bestTrap, encoder), 3))
-        print('Functional fitness:\t', round(functions.getLethality(bestTrap, encoder), 3))
-        print('Combined fitness:\t', round(functions.getCombined(bestTrap, encoder), 3))
+#         print('Trap (encoded):\t\t', bestTrap)
+#         print('Coherence fitness:\t', round(functions.getCoherence(bestTrap, encoder), 3))
+#         print('Functional fitness:\t', round(functions.getLethality(bestTrap, encoder), 3))
+#         print('Combined fitness:\t', round(functions.getCombined(bestTrap, encoder), 3))
 
-        if args.show:
-            vis.simulateTrapInBrowser(bestTrap, encoder)
+#         if args.show:
+#             vis.simulateTrapInBrowser(bestTrap, encoder)
     
-    elif args.genetic == 'runExperiment':
-        trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
-            args.function,
-            encoder,
-            maxGenerations=args.max_generations,
-            showLogs=args.no_logs,
-            numSimulations=args.num_simulations,
-            printStatistics=False,
-        )
+#     elif args.genetic == 'runExperiment':
+#         trap, fitness, prop, stderr, ci, intention = geneticExperiment.runExperiment(
+#             args.function,
+#             encoder,
+#             maxGenerations=args.max_generations,
+#             showLogs=args.no_logs,
+#             numSimulations=args.num_simulations,
+#             printStatistics=False,
+#         )
 
-        print('Trap (Encoded):\t ', trap)
-        print('Fitness\t:\t ', fitness)
-        print('Proportion Dead:', prop)
-        print('Standard Error:\t', stderr)
-        print('Conf. Interval:\t', ci)
-        print('Intention?:\t', 'Yes' if intention else 'No')
+#         print('Trap (Encoded):\t ', trap)
+#         print('Fitness\t:\t ', fitness)
+#         print('Proportion Dead:', prop)
+#         print('Standard Error:\t', stderr)
+#         print('Conf. Interval:\t', ci)
+#         print('Intention?:\t', 'Yes' if intention else 'No')
 
-    elif args.genetic == 'runBatchExperiments':
-        geneticExperiment.runBatchExperiments(
-            numExperiments=args.num_experiments,
-            functionName=args.function,
-            encoder=encoder,
-            numSimulations=args.num_simulations,
-            maxGenerations=args.max_generations,
-            overwrite=args.no_overwrite,
-            suffix=args.output_suffix,
-        )
+#     elif args.genetic == 'runBatchExperiments':
+#         geneticExperiment.runBatchExperiments(
+#             numExperiments=args.num_experiments,
+#             functionName=args.function,
+#             encoder=encoder,
+#             numSimulations=args.num_simulations,
+#             maxGenerations=args.max_generations,
+#             overwrite=args.no_overwrite,
+#             suffix=args.output_suffix,
+#         )
 
+vis.create_gif_from_trap(util.convertStringToEncoding('[19  4  4 10 61  2 47  5 17  0  2  1]'), Encoding(code=1))
