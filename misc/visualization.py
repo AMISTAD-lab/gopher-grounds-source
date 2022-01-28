@@ -273,7 +273,7 @@ def simulateTrapInBrowser(trapEncoding, encoder: Encoding, hunger=0, intention=F
 
 def create_gif_from_trap(trapEncoding, encoder: Encoding):
     ''' Takes in a list encoding and creates the images for a gif of the trap '''
-    decoded_list = encoder.decode(trapEncoding)
+    decoded_list = encoder.decode(utils.convertStringToEncoding(trapEncoding))
     sim_info = sim.simulateTrap(utils.createTrap(decoded_list), False, forceEnter=True)[:3]
 
     trap_info, active_info, gopher_info = sim_info

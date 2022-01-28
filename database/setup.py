@@ -242,5 +242,5 @@ def loadDatabases(fitnesses=('uniform-random', 'random', 'coherence', 'functiona
 
 def setup(num_rows=1000000):
     ''' Sets up all tables and loads the tables with the respective data. '''
-    setupTables(overwrite=True)
+    setupTables()
     loadDatabases()
