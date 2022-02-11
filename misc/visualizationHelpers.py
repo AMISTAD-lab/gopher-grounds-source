@@ -35,9 +35,7 @@ def getImages(cells: List[str], activeList: List[int]) -> List[Image.Image]:
         rotation = 45 * int(rotationCh) if rotationCh != 'x' else 0
 
         # Create image path and load it
-        imageName = './animation/{cell}{thick}/{cell}{angle}{thick}{active}.png'.format(
-                cell=cell, angle=angle, thick=thick, active=active
-            )
+        imageName = f'./animation/{cell}{thick}/{cell}{angle}{thick}{active}.png'
         image = Image.open(imageName).rotate(-rotation)
 
         # Rotate the image

@@ -75,9 +75,14 @@ showTrap = geneticSubparsers.add_parser('show-trap', help='shows (and, optionall
 showTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
 showTrap.add_argument('--save', '-s', help='whether or not to save the trap created', action='store_true')
 showTrap.add_argument('--output', '-o', help='the name of the file (no extensions) to be saved', default='generatedTrap')
+showTrap.add_argument('--ext', '-e', help='the extension type', default='pdf')
 showTrap.add_argument('--no-pdf', '-np', help='do not show PDF', action='store_false')
 showTrap.add_argument('--no-gopher', '-ng', help='do not show the gopher', action='store_false')
 showTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default='1')
+
+createGif = geneticSubparsers.add_parser('create-gif', help='simulates a trap and saves each frame in the images/traps/gif folder')
+createGif.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
+createGif.add_argument('--permutation', '-p', help='the permutation for the encoding', default='1')
 
 # get fitness trap flags
 fitnessParser = geneticSubparsers.add_parser('check-fitnesses', help='returns the fitness of the trap')
@@ -113,7 +118,10 @@ elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     vis.simulateTrapInBrowser(trap, encoder, args.hunger, args.intention, args.no_animation, gopherState, args.frame)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'show-trap':
-    vis.convertTrapToImage(args.trap, args.output, encoder, save=args.save, showGopher=args.no_gopher, show=args.no_pdf)
+    vis.convertTrapToImage(args.trap, args.output, encoder, save=args.save, showGopher=args.no_gopher, show=args.no_pdf, ext=args.ext)
+
+elif args.command == 'genetic-algorithm' and args.genetic == 'create-gif':
+    vis.create_gif_from_trap(args.trap, encoder)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'check-fitnesses':
     print('Coherence fitness:\t', round(functions.getCoherence(trap, encoder), 3))
@@ -167,4 +175,3 @@ elif args.command == 'genetic-algorithm':
             overwrite=args.no_overwrite,
             suffix=args.output_suffix,
         )
-
