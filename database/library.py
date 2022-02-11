@@ -195,9 +195,6 @@ def getTotalCounts(measure: str) -> pd.DataFrame:
         inplace=True
     )
 
-    print(f'get total counts: {measure}')
-    print(df)
-
     return df
 
 def getLethalityData(fitness: str) -> pd.DataFrame:
@@ -248,9 +245,6 @@ def getLethalityData(fitness: str) -> pd.DataFrame:
     ## Get proportions
     if df.to_numpy().sum():
         df /= df.to_numpy().sum()
-
-    print(f'get lethality data vector maps: {fitness}')
-    print(df)
 
     cursor.close()
 

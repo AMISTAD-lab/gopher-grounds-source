@@ -102,6 +102,7 @@ def getCoherence(encodedInput, encoder: Encoding):
         if strEncoding in coherentFitnesses:
             return coherentFitnesses[strEncoding]
 
+        print(type(configuration))
         fitness = alg.getCoherenceValue(utils.createTrap(configuration))
         coherentFitnesses[strEncoding] = fitness
 

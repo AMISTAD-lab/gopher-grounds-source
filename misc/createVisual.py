@@ -57,7 +57,7 @@ def createCombined():
 
 encoder = Encoding(code=1)
 for func in ('functional', 'coherence', 'multiobjective'):
-    getVisualizationData(func, 100)
+    # getVisualizationData(func, 100)
     createImages(func, encoder)
 
 createCombined()
