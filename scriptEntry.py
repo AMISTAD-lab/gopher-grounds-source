@@ -1,14 +1,9 @@
-# import misc.visualization as vis
-from classes.Encoding import Encoding
+import database.setup as dbSetup
 
-# vis.create_gif_from_trap('[19  4  4 10 61  2 47  5 17  0  2  1]', Encoding(code=1))
+dbSetup.setupTables(overwrite=True)
+dbSetup.loadFrequencies(['./data/functional.csv', './data/coherence.csv'])
 
+import database.library as dbLib
 
-import geneticAlgorithm.utils as utils
-trap = '[12  6 15 18  1 46  7  2 92 19  0 46]'
-
-print(utils.convertStringToEncoding(trap))
-print(Encoding().decode(utils.convertStringToEncoding(trap)))
-print(len(Encoding().decode(utils.convertStringToEncoding(trap))))
-print(utils.createTrap(Encoding().decode(utils.convertStringToEncoding(trap))))
-
+dbLib.populate_fof('functional', output='./data/functional_fof.csv')
+dbLib.populate_fof('coherence', output='./data/coherence_fof.csv')

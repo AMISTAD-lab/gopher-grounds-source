@@ -31,7 +31,7 @@ def setupTables(overwrite = False):
     '''
     cursor = client.cursor()
 
-    tables = [(EXP_TABLE, EXP_SCHEMA), (FREQ_TABLE, FREQ_SCHEMA)]
+    tables = [(EXP_TABLE, EXP_SCHEMA), (FREQ_TABLE, FREQ_SCHEMA), (FOF_TABLE, FOF_SCHEMA)]
     indexes = [
         (FUNC_INDEX, FUNC_INDEX_SCHEMA),
         (LETH_COHER_INDEX, LETH_COHER_INDEX_SCHEMA),
@@ -139,7 +139,7 @@ def loadExperiments(inputFiles: str):
     client.commit()
     cursor.close()
 
-def loadFrequencies(inputFiles: str, func: str = 'UNKNOWN', num_rows=1000000):
+def loadFrequencies(inputFiles: list[str], func: str = 'UNKNOWN', num_rows=1000000):
     ''' Takes in a frequency csv file as input and loads the data into the database '''
     if not inputFiles:
         return

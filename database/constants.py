@@ -5,6 +5,7 @@ This file contains the schema for the database, or a constants file for database
 # Table names
 EXP_TABLE = 'experiments'
 FREQ_TABLE = 'frequencies'
+FOF_TABLE = 'fof'
 
 # Indexes
 FUNC_INDEX = 'idx_frequencies_func'
@@ -17,7 +18,7 @@ LETH_INDEX = 'idx_frequencies_leth'
 COHER_INDEX = 'idx_frequencies_coher'
 COMBINED_INDEX = 'idx_frequencies_combined'
 
-EXP_SCHEMA = 'CREATE TABLE {} (\
+EXP_SCHEMA = f'CREATE TABLE {EXP_TABLE} (\
     experiment INTEGER, \
     trial INTEGER, \
     trap TEXT, \
@@ -30,9 +31,9 @@ EXP_SCHEMA = 'CREATE TABLE {} (\
     propDead REAL, \
     stdErr REAL, \
     PRIMARY KEY(function, trap, experiment) \
-);'.format(EXP_TABLE)
+);'
 
-FREQ_SCHEMA = 'CREATE TABLE {} (\
+FREQ_SCHEMA = f'CREATE TABLE {FREQ_TABLE} (\
     trial INTEGER, \
     generation INTEGER, \
     trap TEXT, \
@@ -44,7 +45,14 @@ FREQ_SCHEMA = 'CREATE TABLE {} (\
     generationRange INTEGER, \
     frequency INTEGER DEFAULT 1, \
     PRIMARY KEY(function, trial, generation, trap) \
-);'.format(FREQ_TABLE)
+);'
+
+FOF_SCHEMA = f'CREATE TABLE {FOF_TABLE} (\
+    function TEXT, \
+    frequency INTEGER, \
+    fof INTEGER, \
+    PRIMARY KEY(function, frequency) \
+);'
 
 FUNC_INDEX_SCHEMA = \
     f'CREATE INDEX {FUNC_INDEX} ON {FREQ_TABLE} ([function], [trap], [trial], [generation]);'
