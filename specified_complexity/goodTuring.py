@@ -13,23 +13,7 @@ def loadFoF(fitnessFunc):
     """
     Returns a dictionary of all frequency of frequencies of a given fitness function
     """
-    path = constants.fofPath.format(fitnessFunc,'')
-
-    compiledDict = {}
-    with open(path, 'r', newline='') as out:
-        reader = csv.reader(out)
-
-        for row in reader:
-            # Skip empty row
-            if len(row) == 0:
-                continue
-
-            if row[0] == 'Frequency':
-                continue
-
-            compiledDict[int(row[0])] = int(row[1])
-
-    return compiledDict
+    return dbLibrary.getFoF(fitnessFunc)
 
 def getProbDict(fofDict, confidenceLevel=1.65):
     """
@@ -139,10 +123,10 @@ def getSmoothedProb(configuration, fitnessFunc):
     """
     probDict = getProbDict(loadFoF(fitnessFunc))
 
-    # Standardize the trap string
-    trapStr = np.array2string(np.array(configuration))
+    # # Standardize the trap string
+    # trapStr = np.array2string(np.array(configuration))
 
-    r = 0 if dbLibrary.getTrapFreq(trapStr, fitnessFunc) == None else dbLibrary.getTrapFreq(trapStr, fitnessFunc)
+    r = 0 if dbLibrary.getTrapFreq(configuration, fitnessFunc) == None else dbLibrary.getTrapFreq(configuration, fitnessFunc)
     return probDict[r]
 
 def testSGT(configuration, function = 'coherence'):
@@ -161,4 +145,4 @@ def testSGT(configuration, function = 'coherence'):
     print("This is the probability of a certain trap:")
     print(getSmoothedProb(configuration, function))
 
-# testSGT('[ 11, 8, 26, 89, 1, 81, 5, 2, 3, 29, 0, 15 ]', 'coherence')
+testSGT('[ 11, 8, 26, 89, 1, 81, 5, 2, 3, 29, 0, 15 ]', 'coherence')
