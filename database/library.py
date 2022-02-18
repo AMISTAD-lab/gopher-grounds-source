@@ -105,6 +105,23 @@ def getTrapFreq(trap: Union[str, List[int], np.ndarray], func: str = None) -> in
 
     return frequency[0]
 
+def getFoF(fitnessFunc):
+    ''' returns a dictionary of all frequency of frequencies of a given fitness function '''
+    cursor = client.cursor()
+
+    cursor.execute(f' \
+        SELECT frequency, fof FROM {FOF_TABLE} \
+        WHERE [function]=:function GROUP BY frequency;',
+        { 'function': fitnessFunc }
+    )
+
+    fof_map = {}
+    for (freq, fof) in cursor.fetchall():
+        fof_map[freq] = fof
+
+    return fof_map
+
+
 def getSingleLethalityCount(fitness: str) -> pd.DataFrame:
     '''
     Returns a list of pairs (count, lethality), which represents the number of traps with a given lethality.
@@ -442,6 +459,8 @@ def create_fof(func: str):
     for (freq, fof) in cursor.fetchall():
         if freq not in fof_map: fof_map[freq] = fof
         else: fof_map[freq] += fof
+
+    cursor.close()
 
     return fof_map
 
