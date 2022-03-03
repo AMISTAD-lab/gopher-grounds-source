@@ -1,9 +1,6 @@
-import database.setup as dbSetup
+# import specified_complexity.goodTuring as gt
+import experiment_1.experiment1Algos as alg
 
-dbSetup.setupTables(overwrite=True)
-dbSetup.loadFrequencies(['./data/functional.csv', './data/coherence.csv'])
+# gt.getSmoothedProb('[ 9 60 36 10  5 46 17 55 53  0  2  1]', 'functional')
 
-import database.library as dbLib
-
-dbLib.populate_fof('functional', output='./data/functional_fof.csv')
-dbLib.populate_fof('coherence', output='./data/coherence_fof.csv')
+alg.scExperiment("functional", 1)

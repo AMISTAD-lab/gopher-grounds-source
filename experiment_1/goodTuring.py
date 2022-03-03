@@ -13,23 +13,7 @@ def loadFoF(fitnessFunc):
     """
     Returns a dictionary of all frequency of frequencies of a given fitness function
     """
-    path = constants.fofPath.format(fitnessFunc,'')
-
-    compiledDict = {}
-    with open(path, 'r', newline='') as out:
-        reader = csv.reader(out)
-
-        for row in reader:
-            # Skip empty row
-            if len(row) == 0:
-                continue
-
-            if row[0] == 'Frequency':
-                continue
-
-            compiledDict[int(row[0])] = int(row[1])
-
-    return compiledDict
+    return dbLibrary.getFoF(fitnessFunc)
 
 def getProbDict(fofDict, confidenceLevel=1.65):
     """
@@ -74,7 +58,7 @@ def getProbDict(fofDict, confidenceLevel=1.65):
             r_turing = (r + 1) * Nrr / Nr # estimates of r using Tuirng estimates
 
             if abs(r_linear - r_turing) <= t:
-                print("crossed the 'smoothing threshold.'")
+                # print("crossed the 'smoothing threshold.'")
                 useLinear = True
                 r_smoothed[r] = r_linear
                 continue
@@ -139,10 +123,10 @@ def getSmoothedProb(configuration, fitnessFunc):
     """
     probDict = getProbDict(loadFoF(fitnessFunc))
 
-    # Standardize the trap string
-    trapStr = np.array2string(np.array(configuration))
+    # # Standardize the trap string
+    # trapStr = np.array2string(np.array(configuration))
 
-    r = 0 if dbLibrary.getTrapFreq(trapStr, fitnessFunc) == None else dbLibrary.getTrapFreq(trapStr, fitnessFunc)
+    r = 0 if dbLibrary.getTrapFreq(configuration, fitnessFunc) == None else dbLibrary.getTrapFreq(configuration, fitnessFunc)
     return probDict[r]
 
 def testSGT(configuration, function = 'coherence'):
