@@ -9,19 +9,19 @@ import csv
 TOTAL = 427929800129788411
 p = 1 / TOTAL
 
-def isTrap_uniform_low(encodedTrap, trap, fitnessFunc, sigVal=13.29):
+def isTrap_uniform_high(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the unifrom distribution and low significant value"""
     global p
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
-def isTrap_uniform_high(encodedTrap, trap, fitnessFunc, sigVal=18): # Need to fix this value according to alpha value!
+def isTrap_uniform_low(encodedTrap, trap, fitnessFunc, sigVal=6.645): # Need to fix this value according to alpha value!
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the unifrom distribution and low significant value"""
     global p
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
-def isTrap_real_low(encodedTrap, trap, fitnessFunc, sigVal=13.29):
+def isTrap_real_high(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the real distribution"""
     global p
     if fitnessFunc != "designed":
@@ -29,7 +29,7 @@ def isTrap_real_low(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
-def isTrap_real_high(encodedTrap, trap, fitnessFunc, sigVal=18): # Need to fix this value according to alpha value!
+def isTrap_real_low(encodedTrap, trap, fitnessFunc, sigVal=6.645): # Need to fix this value according to alpha value!
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the real distribution"""
     global p
     if fitnessFunc != "designed":
@@ -61,7 +61,7 @@ def scExperiment(fitnessFunc, num_files, encoder: Encoding = None):
 
                 for row in csv.reader(incsv):
                     if row[0] == "Experiment":
-                        writer.writerow(row + ["isTrap_uniform_low", "isTrap_uniform_high", "isTrap_real_low", "isTrap_real_high" ])
+                        writer.writerow(row + ["isTrap_uniform_high", "isTrap_uniform_low", "isTrap_real_high", "isTrap_real_low"])
                     else:
                         countTotal += 1
                         if countTotal % 2 == 0:
@@ -69,11 +69,11 @@ def scExperiment(fitnessFunc, num_files, encoder: Encoding = None):
                         encodedTrap = utils.convertStringToEncoding(row[2])
                         decodedTrap = encoder.decode(encodedTrap)
                         trap = utils.createTrap(decodedTrap)
-                        isTrap_uniform_low_results = isTrap_uniform_low(encodedTrap, trap, fitnessFunc)
                         isTrap_uniform_high_results = isTrap_uniform_high(encodedTrap, trap, fitnessFunc)
-                        isTrap_real_low_results = isTrap_real_low(encodedTrap, trap, fitnessFunc)
+                        isTrap_uniform_low_results = isTrap_uniform_low(encodedTrap, trap, fitnessFunc)
                         isTrap_real_high_results = isTrap_real_high(encodedTrap, trap, fitnessFunc)
-                        writer.writerow(row+[ isTrap_uniform_low_results, isTrap_uniform_high_results, isTrap_real_low_results, isTrap_real_high_results ])
+                        isTrap_real_low_results = isTrap_real_low(encodedTrap, trap, fitnessFunc)
+                        writer.writerow(row+[ isTrap_uniform_high_results, isTrap_uniform_low_results, isTrap_real_high_results, isTrap_real_low_results])
                 outcsv.close()
     
     print("test total count:", countTotal)
