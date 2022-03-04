@@ -95,8 +95,10 @@ class Gopher:
             self.leaving = True
             self.entering = False
 
-    def trapTriggered(self):
-        """tells gopher to leave once a projectile is fired"""
+    def trapTriggered(self, is_brave=False):
+        """tells gopher to leave once a projectile is fired, unless gopher is brave"""
+        # if the gopher is brave, do not run when projectile is fired
+        if is_brave: return
         self.leaving = True
         self.entering = False
 

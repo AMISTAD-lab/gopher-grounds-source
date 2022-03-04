@@ -10,7 +10,7 @@ class Door(Cell):
         endpoints = [(rotationType.value + 2) % 8, (rotationType.value + 6) % 8]
         super().__init__(x, y, CellType.door, ownerBoard, angleType, rotationType, endpoints=endpoints, thickType=ThickType.na, active=active)
 
-    def updateCell(self, timeStep):
+    def updateCell(self, timeStep, is_brave= None):
         if s.gopher.x == self.x and s.gopher.y == self.y:
             self.launchSignal(timeStep)
 

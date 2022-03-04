@@ -6,18 +6,18 @@ import legacy.magicVariables as mv
 
 class Projectile:
 
-    def __init__(self, start_x, start_y, direction, thickType, ownerBoard, timeStep):
+    def __init__(self, start_x, start_y, direction, thickType, ownerBoard, timeStep, is_brave=False):
         self.direction = direction
         self.strength = self.assignStrength(thickType) 
         self.x = start_x
         self.y = start_y  
         self.ownerBoard = ownerBoard
-        self.landProjectile(timeStep)
+        self.landProjectile(timeStep, is_brave)
 
   
-    def landProjectile(self, timeStep):
+    def landProjectile(self, timeStep, is_brave):
         """this method figures out where the projectile lands when moving in the given direction"""
-        s.gopher.trapTriggered() #tells gopher that trap has been triggered
+        s.gopher.trapTriggered(is_brave) #tells gopher that trap has been triggered
         while self.x >= 0 and self.x < self.ownerBoard.rowLength and self.y >= 0 and self.y < self.ownerBoard.colLength:
             #while in bounds of trap
             if self.checkHitGopher(timeStep):

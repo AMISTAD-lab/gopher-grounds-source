@@ -37,7 +37,7 @@ class Cell(metaclass = ABCMeta):
         cellStr += str(self.rotationType.value)
         return cellStr
 
-    def updateCell(self, timeStep):
+    def updateCell(self, timeStep, is_brave=False):
         """To be overridden in subclasses"""
         pass
     
