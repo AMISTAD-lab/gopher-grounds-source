@@ -13,7 +13,6 @@ def isTrap_uniform_low(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the unifrom distribution and low significant value"""
     global p
     connectionTuple = algo.connectionsPerPiece(trap)
-    print("uniform:",p)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
 def isTrap_uniform_high(encodedTrap, trap, fitnessFunc, sigVal=18): # Need to fix this value according to alpha value!
@@ -24,14 +23,17 @@ def isTrap_uniform_high(encodedTrap, trap, fitnessFunc, sigVal=18): # Need to fi
 
 def isTrap_real_low(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the real distribution"""
-    p = gt.getSmoothedProb(encodedTrap, fitnessFunc)
+    global p
+    if fitnessFunc != "designed":
+        p = gt.getSmoothedProb(encodedTrap, fitnessFunc)
     connectionTuple = algo.connectionsPerPiece(trap)
-    print("real:", p)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
 def isTrap_real_high(encodedTrap, trap, fitnessFunc, sigVal=18): # Need to fix this value according to alpha value!
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the real distribution"""
-    p = gt.getSmoothedProb(encodedTrap, fitnessFunc)
+    global p
+    if fitnessFunc != "designed":
+        p = gt.getSmoothedProb(encodedTrap, fitnessFunc)
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
@@ -46,12 +48,12 @@ def scExperiment(fitnessFunc, num_files, encoder: Encoding = None):
     for i in range(num_files):
         if fitnessFunc == "designed":
             inputPath = constants.getExperimentPath(func=fitnessFunc, suff='')
-            outputPath = constants.getExperimentPath(func=fitnessFunc, suff="_scResults")
+            outputPath = constants.getExperimentResultPath(number=1, func=fitnessFunc, suff='_scResults')
         else:
             input_suff = "_new_enc_{}".format(i + 1)
-            output_suff = "_new_enc_{}_scResults".format(i + 1)
+            output_suff = "scResults_{}".format(i + 1)
             inputPath = constants.getExperimentPath(func=fitnessFunc, suff=input_suff)
-            outputPath = constants.getExperimentPath(func=fitnessFunc, suff=output_suff)
+            outputPath = constants.getExperimentResultPath(number=1, func=fitnessFunc, suff=output_suff)
 
         with open(inputPath, 'r' ,newline='') as incsv:
             with open(outputPath, 'w' ,newline='') as outcsv:

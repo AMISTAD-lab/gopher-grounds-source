@@ -20,9 +20,9 @@ pref = {
     "maxProjectileStrength" : 0.45, #thickWire strength
 }
 
-def runExperiment(filename, inputToVary, numSimulations, fitnessFunc):
+def runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc):
     """runs the experiment on the indicated parameter input and saves the data to a csv"""
-    trapList = loadTrapList(fitnessFunc)
+    trapList = loadTrapList(fitnessFunc, numFiles)
     inputfile = createExpInputFile(inputToVary)
     seedList = createSeedListFromFile(inputfile)
     allData = simulateManySetups(numSimulations, seedList, fitnessFunc, trapList)
@@ -38,7 +38,7 @@ def createExpInputFile(inputToVary):
     """
     filename = "experimentInput.txt"
     file = open(filename, "w")
-    for intention in [0, 1, 2]:
+    for intention in [0, 1]:
         toWrite = "intention " + str(intention) + "\n" 
         if inputToVary == "probReal":
             for percent in range(0, 100+1, 5):
@@ -210,12 +210,12 @@ def printProgressBar (iteration, total, prefix = 'Progress:', suffix = 'Complete
         print()
 
 
-def loadTrapList(fitnessFunc, encoder: Encoding = None):
+def loadTrapList(fitnessFunc, numFiles, encoder: Encoding = None):
     if not encoder:
-        encoder = Encoding()
-    
+        encoder = Encoding(code = 1)
+    countTotal = 0
     trapList = []
-    for i in range(num_files):
+    for i in range(numFiles):
         input_suff = "_new_enc_{}".format(i + 1)
         inputPath = constants.getExperimentPath(func=fitnessFunc, suff=input_suff)
         with open(inputPath, 'r' ,newline='') as incsv:

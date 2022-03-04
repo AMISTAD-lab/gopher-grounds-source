@@ -30,7 +30,15 @@ getFrequencyPath = \
     )
 
 fofPath = './frequencies/{}{}FoF.csv'
-realExperimentPath = './realExperiments/{}/{}{}.{}'
+
+# Experiment results path
+getExperimentResultPath = \
+    lambda number, func, suff='', fileType='csv': './experiment_{number}_results/{func}/{func}{suff}{fileType}'.format(
+        number=number,
+        func=func,
+        suff=suff,
+        fileType=f'.{fileType}' if fileType else '',
+    )
 
 # Enumeration of possible lethality/coherence values and generation ranges
 lethalities = sorted([
