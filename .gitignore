@@ -150,5 +150,8 @@ dmypy.json
 # SQLite
 *.db*
 
+# Script Entry file
+scriptEntry.py
+
 # nvim
 # .nvim*
