@@ -70,6 +70,7 @@ simulateTrap.add_argument('--no-animation', '-na', help='turns off animation', a
 simulateTrap.add_argument('--gopher-state', '-g', help='sets the gopher\'s state as \'[x, y, rotation, state]\'', default='[-1, -1, 0, 1]')
 simulateTrap.add_argument('--frame', '-f', help='the frame of the grid to print', type=int, default=0)
 simulateTrap.add_argument('--permutation', '-p', help='the permutation for the encoding', default=None)
+simulateTrap.add_argument('--brave', '-b', help='make the simulated gopher brave', action='store_true')
 
 showTrap = geneticSubparsers.add_parser('show-trap', help='shows (and, optionally, saves) a trap given an input string')
 showTrap.add_argument('trap', help='the encoded trap as a string (surrounded by \'\'s)')
@@ -115,7 +116,7 @@ elif args.command == 'legacy' and args.legacy == 'simulate':
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'simulate':
     gopherState = util.convertStringToEncoding(args.gopher_state)
-    vis.simulateTrapInBrowser(trap, encoder, args.hunger, args.intention, args.no_animation, gopherState, args.frame)
+    vis.simulateTrapInBrowser(trap, encoder, args.hunger, args.intention, args.no_animation, gopherState, args.frame, args.brave)
 
 elif args.command == 'genetic-algorithm' and args.genetic == 'show-trap':
     vis.convertTrapToImage(args.trap, args.output, encoder, save=args.save, showGopher=args.no_gopher, show=args.no_pdf, ext=args.ext)

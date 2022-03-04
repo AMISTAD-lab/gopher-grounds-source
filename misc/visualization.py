@@ -262,10 +262,10 @@ def createArrowTrap(encoder: Encoding, point_list=None, show=True, save=False, o
     
     return annotated_image
 
-def simulateTrapInBrowser(trapEncoding, encoder: Encoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0):
+def simulateTrapInBrowser(trapEncoding, encoder: Encoding, hunger=0, intention=False, noAnimation=False, gopherState=[1, 4, 0, 1], frame = 0, is_brave=False):
     """Takes in a list encoding and simulates the trap in the browser"""
     decodedList = encoder.decode(trapEncoding)
-    simulationInfo = sim.simulateTrap(utils.createTrap(decodedList), intention, hunger=hunger, forceEnter=True)[:3]
+    simulationInfo = sim.simulateTrap(utils.createTrap(decodedList), intention, hunger=hunger, forceEnter=True, is_brave=is_brave)[:3]
     vis.writeTojs([simulationInfo], noAnimation, gopherState, frame)
 
     # opens the animation in the web browser
