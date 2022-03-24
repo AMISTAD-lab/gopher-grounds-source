@@ -8,20 +8,23 @@ import csv
 #Defining pieces necessary for fsc
 TOTAL = 427929800129788411
 p = 1 / TOTAL
+alpha5 = 4.33
+alpha01 = 13.29
+alpha1 = 6.65
 
-def isTrap_uniform_high(encodedTrap, trap, fitnessFunc, sigVal=13.29):
+def isTrap_uniform_high(encodedTrap, trap, fitnessFunc, sigVal=alpha01):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the unifrom distribution and low significant value"""
     global p
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
-def isTrap_uniform_low(encodedTrap, trap, fitnessFunc, sigVal=6.645): # Need to fix this value according to alpha value!
+def isTrap_uniform_low(encodedTrap, trap, fitnessFunc, sigVal=alpha5): # corresponds to alpha level of 0.05
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the unifrom distribution and low significant value"""
     global p
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
-def isTrap_real_high(encodedTrap, trap, fitnessFunc, sigVal=13.29):
+def isTrap_real_high(encodedTrap, trap, fitnessFunc, sigVal=alpha01):
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the real distribution"""
     global p
     if fitnessFunc != "designed":
@@ -29,7 +32,7 @@ def isTrap_real_high(encodedTrap, trap, fitnessFunc, sigVal=13.29):
     connectionTuple = algo.connectionsPerPiece(trap)
     return algo.functional_specified_complexity(connectionTuple, p) >= sigVal
 
-def isTrap_real_low(encodedTrap, trap, fitnessFunc, sigVal=6.645): # Need to fix this value according to alpha value!
+def isTrap_real_low(encodedTrap, trap, fitnessFunc, sigVal=alpha5): # Need to fix this value according to alpha value!
     """given a trap and a significant value, determines whether the trap is coherent enough to be considered designed based on the real distribution"""
     global p
     if fitnessFunc != "designed":
