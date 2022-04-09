@@ -33,4 +33,3 @@ def convertStringToDecoding(strEncoding, encoder: Encoding = None):
     if not encoder:
         encoder = Encoding()
     return encoder.singleDecoding(convertStringToEncoding(strEncoding))
-
