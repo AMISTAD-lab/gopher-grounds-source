@@ -77,7 +77,7 @@ def createSeedListFromFile(filename):
     standardSeed = {
         "intention" : 1,
         "defaultProbEnter" : 0.8,
-        "probReal" : 0.2,
+        "probReal" : 0.0,
         "nTrapsWithoutFood" : 4,
         "maxProjectileStrength" : 0.45,
     }
@@ -133,11 +133,11 @@ def simulate(pref, fitnessFunc, trapList):
     while stillAlive and numTraps < 50:
         rowLength = 3
         colLength = 4
-        functional = np.random.binomial(1, probReal)
-        if functional:
-            trap = t.Trap(rowLength, colLength, functional)
-        else:
-            trap = np.random.choice(trapList)
+        # functional = np.random.binomial(1, probReal)
+        # if functional:
+        #     trap = t.Trap(rowLength, colLength, functional)
+        # else:
+        trap = np.random.choice(trapList)
         hunger = (trapsWithoutFood + 1)/nTrapsWithoutFood
         ib, ac, gc, alive, eaten, thoughtReal = s.simulateTrap(trap, intention, hunger, is_brave=True)
         numThoughtReal += thoughtReal

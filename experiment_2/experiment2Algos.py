@@ -15,7 +15,7 @@ import geneticAlgorithm.library as lib
 pref = {
     "intention" : 1, #if gopher has intention
     "defaultProbEnter" : 0.8, #probability of gopher entering trap (not for intention)
-    "probReal" : 0.2, #percentage of traps that are designed as opposed to random, set default to 0
+    "probReal" : 0.0, #percentage of traps that are designed as opposed to random, set default to 0
     "nTrapsWithoutFood" : 4, #the amount of traps a gopher can survive without entering (due to starvation)
     "maxProjectileStrength" : 0.45, #thickWire strength
 }
@@ -77,7 +77,7 @@ def createSeedListFromFile(filename):
     standardSeed = {
         "intention" : 1,
         "defaultProbEnter" : 0.8,
-        "probReal" : 0.2,
+        "probReal" : 0.0,
         "nTrapsWithoutFood" : 4,
         "maxProjectileStrength" : 0.45,
     }
@@ -134,10 +134,10 @@ def simulate(pref, fitnessFunc, trapList):
         rowLength = 3
         colLength = 4
         functional = np.random.binomial(1, probReal)
-        if functional:
-            trap = t.Trap(rowLength, colLength, functional)
-        else:
-            trap = np.random.choice(trapList)
+        # if functional:
+        #     trap = t.Trap(rowLength, colLength, functional)
+        # else:
+        trap = np.random.choice(trapList)
         hunger = (trapsWithoutFood + 1)/nTrapsWithoutFood
         ib, ac, gc, alive, eaten, thoughtReal = s.simulateTrap(trap, intention, hunger)
         numThoughtReal += thoughtReal

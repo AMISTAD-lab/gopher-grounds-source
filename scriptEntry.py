@@ -14,8 +14,8 @@ numSimulations = 1000
 numFiles = 25
 
 ############################################# Experiment 1 ############################################
-for fitnessFunc in fitnessFuncs:
-     alg1.scExperiment(fitnessFunc, numFiles)
+# for fitnessFunc in fitnessFuncs:
+#     alg1.scExperiment(fitnessFunc, numFiles)
 
 ############################################# Experiment 2 ############################################
 for fitnessFunc in fitnessFuncs:
@@ -25,7 +25,7 @@ for fitnessFunc in fitnessFuncs:
 
 
 ############################################# Experiment 3 ############################################
-for fitnessFunc in fitnessFuncs:
-     filename = constants.getExperimentResultPath(number=3, func=fitnessFunc, suff='_expData')
-     alg3.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
-     image3.statusOverTime(filename, fitnessFunc)
+# for fitnessFunc in fitnessFuncs:
+#      filename = constants.getExperimentResultPath(number=3, func=fitnessFunc, suff='_expData')
+#      alg3.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
+#      image3.statusOverTime(filename, fitnessFunc)
