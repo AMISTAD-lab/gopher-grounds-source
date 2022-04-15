@@ -18,10 +18,10 @@ numFiles = 25
 #     alg1.scExperiment(fitnessFunc, numFiles)
 
 ############################################# Experiment 2 ############################################
-for fitnessFunc in fitnessFuncs:
-     filename = constants.getExperimentResultPath(number=2, func=fitnessFunc, suff='_expData')
-     alg2.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
-     image2.statusOverTime(filename, fitnessFunc)
+# for fitnessFunc in fitnessFuncs:
+#      filename = constants.getExperimentResultPath(number=2, func=fitnessFunc, suff='_expData')
+#      alg2.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
+#      image2.statusOverTime(filename, fitnessFunc)
 
 
 ############################################# Experiment 3 ############################################
@@ -29,3 +29,5 @@ for fitnessFunc in fitnessFuncs:
 #      filename = constants.getExperimentResultPath(number=3, func=fitnessFunc, suff='_expData')
 #      alg3.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
 #      image3.statusOverTime(filename, fitnessFunc)
+
+alg2.analyticalStatusofGopher("random")

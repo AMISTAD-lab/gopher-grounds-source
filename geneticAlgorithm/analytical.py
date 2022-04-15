@@ -206,3 +206,16 @@ def getArrowLength(configuration):
     leftLength = 0 if leftData[0] <= 0 else leftData[0] - 1
     rightLength = 0 if rightData[0] <= 0 else rightData[0] - 1
     return leftLength, rightLength, leftLength + rightLength
+
+
+# def doesGopherEat(configuration, eat_time):
+#     """
+#     Returns true iff the gopher is able to eat in the given amount of eat_time.
+#     Note: eat_time is the amount of time it takes (from the start) to finish eating the food
+#     """
+#     return 3 + eat_time <= min(getArrowLength(configuration))
+
+def doesGopherEat(configuration, eat_time):
+    leftData, rightData = getArrowData(configuration)
+    leaveTime = getLeaveTime(leftData[0], rightData[0], eat_time)
+    return eat_time + 3 <= leaveTime

@@ -2,6 +2,7 @@ import libs.simulation as s
 import copy
 import csv
 import geneticAlgorithm.utils as utils
+import geneticAlgorithm.fitnessFunctions as ff
 from classes.Encoding import Encoding
 import classes.Trap as t
 import numpy as np
@@ -233,3 +234,71 @@ def loadTrapList(fitnessFunc, numFiles, encoder: Encoding = None):
     return trapList
 
 
+
+def analyticalStatusofGopher(fitnessFunc):
+    """
+    Takes in a fitness funcion, return a list of 50 tuples (P_alive, P_starved, P_zapped) 
+    representing the status of gophers at the ith trap
+    """
+    numFiles = 25
+    MFI = 4
+    trapList = loadTrapList(fitnessFunc, numFiles)
+    encoder = Encoding(code = 1)
+    ## Calcualted average probability of killing a gopher/firing/
+    killSum = 0
+    fireSum = 0
+    eatSum = 0
+    for trap in trapList:
+        # whether it kills
+        encodedTrap = encoder.encode(trap.board)
+        lethality = ff.getLethality(encodedTrap, encoder)
+        probKill = lethality * constants.MAX_PROB_DEATH
+        killSum += probKill
+        # whether it fires
+        fireSum += analy.shootProjectile(trap.board)
+        # whether gopher eats
+        eatTimeDist = analy.getProbabilityDistribution(constants.DEFAULT_PROB_ENTER)
+        expectedEatTime = sum([eatTimeDist[i] * (i+1) for i in range(len(eatTimeDist))])
+        eatSum += analy.doesGopherEat(trap.board, expectedEatTime)
+
+    expectedProbKilling = killSum / len(trapList)
+    expectedProbFire = fireSum / len(trapList)
+    expectedProbEat = eatSum / len(trapList)
+
+    print(expectedProbKilling)
+    print(expectedProbFire)
+    print(expectedProbEat)
+    # 
+    hungerStatus = [1, 0, 0, 0]
+    for i in range(50):
+        normalizedHungerStatus = hungerStatus / sum(hungerStatus)
+        expectedHungerLevel = sum([normalizedHungerStatus[i] * i for i in range(4)])
+        hungerWeight = (expectedHungerLevel + 1 / MFI)**10
+        probEnter = 1 if hungerWeight == 1 else enterGivenTrap * (1 - hungerWeight) + hungerWeight
+        #################
+        probGopherEat = probEnter * ( expectedProbFire * expectedProbEat + (1 - expectedProb))
+        probZapped += probEnter * expectedProbKill
+        probStarved += hunger_status[3] * (1 - probGopherEat)
+        probAlive = 1 - probZapped - probStarved
+        hunger_status[3] = hunger_status[2] * (1 - probGopherEat)
+        hunger_status[2] = hunger_status[1] * (1 - probGopherEat)
+        hunger_status[1] = hunger_status[0] * (1 - probGopherEat)
+        hunger_status[0] = probGopherEat
+
+"""
+Idea:
+    1. the gopher enter the trap (P_e / hunger dependent)
+        a. the trap fire 
+            - the gopher didn't eat the food
+                the gopher is zapped
+                the gopher is not zapped
+            - the gopher eat the food ****
+        b. the trap doesn't fire -> the gopher eat the food ****
+    2. the gopher didn't enter the trap (1-P_e) -> the gopher didn't eat the food
+
+trap_with_out_food
+expect_lethality -- constant
+
+
+
+"""
