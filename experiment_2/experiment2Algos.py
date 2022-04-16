@@ -241,6 +241,17 @@ def analyticalStatusofGopher(fitnessFunc):
     Takes in a fitness funcion, return a list of 50 tuples (P_alive, P_starved, P_zapped) 
     representing the status of gophers at the ith trap
     """
+    """
+    Idea:
+        1. the gopher enter the trap
+            a. the gopher eat the food
+                -the gopher is zapped -> Z
+                -the gopher is not zapped -> H0
+            b. the gopher doesn't eat the food
+                -the gopher is zapped -> Z
+                -the gopher is not zapped -> H_n+1 or S(when n=3)
+        2. the gopher didn't enter the trap -> H_n+1 or S(when n=3)
+    """
     numFiles = 25
     MFI = 4
     trapList = loadTrapList(fitnessFunc, numFiles)
@@ -336,21 +347,3 @@ def analyticalStatusofGopher(fitnessFunc):
     Without Intention')
     plt.show()
     plt.savefig('test.png')
-
-"""
-Idea:
-    1. the gopher enter the trap (P_e / hunger dependent)
-        a. the trap fire 
-            - the gopher didn't eat the food
-                the gopher is zapped
-                the gopher is not zapped
-            - the gopher eat the food ****
-        b. the trap doesn't fire -> the gopher eat the food ****
-    2. the gopher didn't enter the trap (1-P_e) -> the gopher didn't eat the food
-
-trap_with_out_food
-expect_lethality -- constant
-
-
-
-"""
