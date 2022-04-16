@@ -30,4 +30,4 @@ numFiles = 25
 #      alg3.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
 #      image3.statusOverTime(filename, fitnessFunc)
 
-alg2.analyticalStatusofGopher("random")
+alg2.analyticalStatusofGopher("multiobjective")

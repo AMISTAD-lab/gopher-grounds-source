@@ -173,6 +173,20 @@ def gopherSurviveProb(arrowData, leaveTime):
     hit = int(pos(time) == cell or (pos(time) > 0 and cell == 4))
     return 1 - (hit * thickKillProb[thickness.value])
 
+
+def probGopherEatAndDie(configuration, eatTime):
+    """ 
+    Return probability that the gopher eats the foods but still dies
+    """
+    return trapLethality(configuration) / constants.DEFAULT_PROB_ENTER * doesGopherEat(configuration, eatTime)
+
+def probNotEatAndDie(configuration, eatTime):
+    """ 
+    Return probability that the gopher doesn't eat the foods and dies
+    """
+    return trapLethality(configuration) / constants.DEFAULT_PROB_ENTER * (1-doesGopherEat(configuration, eatTime))
+
+
 def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
     """
     Takes in a board configuration and hunger level, and returns the probability the trap will kill the gopher
@@ -215,7 +229,7 @@ def getArrowLength(configuration):
 #     """
 #     return 3 + eat_time <= min(getArrowLength(configuration))
 
-def doesGopherEat(configuration, eat_time):
+def doesGopherEat(configuration, eatTime):
     leftData, rightData = getArrowData(configuration)
-    leaveTime = getLeaveTime(leftData[0], rightData[0], eat_time)
-    return eat_time + 3 <= leaveTime
+    leaveTime = getLeaveTime(leftData[0], rightData[0], eatTime)
+    return eatTime + 3 <= leaveTime
