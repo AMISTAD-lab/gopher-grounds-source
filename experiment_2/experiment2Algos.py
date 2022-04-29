@@ -12,6 +12,7 @@ import legacy.data as d
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.analytical as analy
 import geneticAlgorithm.library as lib
+import libs.algorithms as alg
 
 
 pref = {
@@ -236,7 +237,7 @@ def loadTrapList(fitnessFunc, numFiles, encoder: Encoding = None):
 
 
 
-def analyticalStatusofGopher(fitnessFunc):
+def analyticalStatusofGopher(fitnessFunc, intention=False):
     """
     Takes in a fitness funcion, return a list of 50 tuples (P_alive, P_starved, P_zapped) 
     representing the status of gophers at the ith trap
@@ -262,6 +263,7 @@ def analyticalStatusofGopher(fitnessFunc):
     eatSum = 0
     eatAndDeathSum = 0
     notEatAndDeathSum = 0
+    thinkReal = 0
     for trap in trapList:
         # whether it kills
         encodedTrap = encoder.encode(trap.board)
@@ -288,12 +290,15 @@ def analyticalStatusofGopher(fitnessFunc):
             eatAndDeathProb = analy.probNotEatAndDie(trap.board, i+1)
             sumProb2 += (eatAndDeathProb * dist)
         notEatAndDeathSum += sumProb2
+        # whether the gopher with intention thinks trap is real
+        thinkReal += alg.isTrap(trap)
 
     expectedProbKill = killSum / len(trapList)
     expectedProbFire = fireSum / len(trapList)
     expectedProbEat = eatSum / len(trapList)
     expectedProbEatAndDeath = eatAndDeathSum / len(trapList)
     expectedProbNotEatAndDeath = notEatAndDeathSum / len(trapList)
+    expectedThinkReal = thinkReal / len(trapList)
 
     print("expectedProbKill", expectedProbKill)
     print("expectedProbFire", expectedProbFire)
@@ -315,7 +320,13 @@ def analyticalStatusofGopher(fitnessFunc):
             normalizedHungerStatus = np.array(hungerStatus) / sum(hungerStatus)
             expectedHungerLevel = sum([normalizedHungerStatus[i] * i for i in range(4)])
             hungerWeight = ((expectedHungerLevel + 1) / MFI)**10
-            probEnter = 1 if hungerWeight == 1 else constants.DEFAULT_PROB_ENTER * (1 - hungerWeight) + hungerWeight
+            # probEnter = 1 if hungerWeight == 1 else constants.DEFAULT_PROB_ENTER * (1 - hungerWeight) + hungerWeight
+            if hungerWeight == 1:
+                probEnter = 1
+            elif intention:
+                probEnter = 1 - expectedThinkReal
+            else:
+                probEnter = constants.DEFAULT_PROB_ENTER * (1 - hungerWeight) + hungerWeight
             # probEnter = 1
             #################
             # probGopherEat = probEnter * ( expectedProbFire * expectedProbEat + (1 - expectedProbFire) * 1 - expectedProbKill) 
