@@ -28,14 +28,16 @@ def getProbabilityDistribution(probEnter = 0.8):
 
     return initialProbs
 
-def getLeaveTime(timeLeft, timeRight, timeEat):
+def getLeaveTime(timeLeft, timeRight, timeEat, brave=False):
     """Get the time it takes for the gopher to leave a trap"""
     if timeLeft < 0:
         timeLeft = 3 + timeEat
     if timeRight < 0:
         timeRight = 3 + timeEat
+
+    brave_const = 100 * brave
     
-    return min(timeLeft, timeRight, 3 + timeEat)
+    return min(timeLeft + brave_const, timeRight + brave_const, 3 + timeEat)
 
 def getArrowData(configuration):
     """
@@ -174,20 +176,20 @@ def gopherSurviveProb(arrowData, leaveTime):
     return 1 - (hit * thickKillProb[thickness.value])
 
 
-def probGopherEatAndDie(configuration, eatTime):
+def probGopherEatAndDie(configuration, eatTime, brave=False):
     """ 
     Return probability that the gopher eats the foods but still dies
     """
-    return trapLethality(configuration) / constants.DEFAULT_PROB_ENTER * doesGopherEat(configuration, eatTime)
+    return trapLethality(configuration) / constants.DEFAULT_PROB_ENTER * doesGopherEat(configuration, eatTime, brave=brave)
 
-def probNotEatAndDie(configuration, eatTime):
+def probNotEatAndDie(configuration, eatTime, brave=False):
     """ 
     Return probability that the gopher doesn't eat the foods and dies
     """
-    return trapLethality(configuration) / constants.DEFAULT_PROB_ENTER * (1-doesGopherEat(configuration, eatTime))
+    return trapLethality(configuration) / constants.DEFAULT_PROB_ENTER * (1-doesGopherEat(configuration, eatTime, brave=brave))
 
 
-def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER, brave=False):
     """
     Takes in a board configuration and hunger level, and returns the probability the trap will kill the gopher
     """
@@ -198,9 +200,9 @@ def trapLethality(configuration, defaultProbEnter = constants.DEFAULT_PROB_ENTER
     # we fix default prob enter as 0.8 for baseline gophers
     timeDist = getProbabilityDistribution(defaultProbEnter)
     for i, dist in enumerate(timeDist):
-        leaveTime = getLeaveTime(leftData[0], rightData[0], i + 1)
+        leaveTime = getLeaveTime(leftData[0], rightData[0], i + 1, brave=brave)
         deathProb = 1 - gopherSurviveProb(leftData, leaveTime) * gopherSurviveProb(rightData, leaveTime)
-        sumProb += (deathProb * dist)
+        sumProb += deathProb * dist
 
     return sumProb * defaultProbEnter
 
@@ -229,7 +231,7 @@ def getArrowLength(configuration):
 #     """
 #     return 3 + eat_time <= min(getArrowLength(configuration))
 
-def doesGopherEat(configuration, eatTime):
+def doesGopherEat(configuration, eatTime, brave=False):
     leftData, rightData = getArrowData(configuration)
-    leaveTime = getLeaveTime(leftData[0], rightData[0], eatTime)
+    leaveTime = getLeaveTime(leftData[0], rightData[0], eatTime, brave=brave)
     return eatTime + 3 <= leaveTime

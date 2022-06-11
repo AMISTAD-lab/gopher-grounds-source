@@ -3,9 +3,9 @@ from classes.Gopher import *
 import libs.algorithms as alg
 import math as m
 
-gopher = None    
+gopher = None
     
-def simulateTrap(trap, intention, hunger=0, maxSteps=20, forceEnter = False, is_brave=False):
+def simulateTrap(trap, intention, hunger=0, maxSteps=20, forceEnter = False, is_brave=False, temp=[]):
     """runs a simulation of a single trap and returns the relevant data"""
     center_x = m.ceil(trap.rowLength / 2) - 1
     global gopher
@@ -24,6 +24,7 @@ def simulateTrap(trap, intention, hunger=0, maxSteps=20, forceEnter = False, is_
         activeCells.append(state)
         gopherStuff.append(gopherInfo)
         step += 1
+    
     return [initialboard, activeCells, gopherStuff, gopher.alive, gopher.hasEaten, thoughtReal]
 
 def updateSimulation(trap, step, forceEnter = False, is_brave=False):

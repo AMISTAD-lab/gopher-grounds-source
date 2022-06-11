@@ -57,7 +57,7 @@ def randomFitness(encodedInput: Union[List[int], np.ndarray, List[List[int]]], _
 
     return np.array([calcFitness(trap) for trap in encodedInput])
 
-def getLethality(encodedInput, encoder: Encoding, defaultProbEnter = constants.DEFAULT_PROB_ENTER):
+def getLethality(encodedInput, encoder: Encoding, defaultProbEnter = constants.DEFAULT_PROB_ENTER, brave=False):
     """
     Assigns a fitness based on the function of the given configuration.
     To do so, we run simulations to get a confidence interval on whether the gopher dies or not 
@@ -78,7 +78,7 @@ def getLethality(encodedInput, encoder: Encoding, defaultProbEnter = constants.D
         theoreticalMax = (1 - 0.55 ** 2) * defaultProbEnter
 
         # NOTE: Default probability of entering is 0.8 (found in magicVariables.py)
-        fitness = analytical.trapLethality(configuration, defaultProbEnter) / theoreticalMax
+        fitness = analytical.trapLethality(configuration, defaultProbEnter, brave=brave) / theoreticalMax
 
         functionalFitnesses[strEncoding] = fitness
         

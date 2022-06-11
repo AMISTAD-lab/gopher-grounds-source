@@ -6,9 +6,8 @@ import experiment_3.createImage as image3
 import geneticAlgorithm.constants as constants
 
 
-
-
-fitnessFuncs = ['random', 'functional', 'coherence', 'multiobjective']
+# fitnessFuncs = ['random', 'functional', 'coherence', 'multiobjective']
+fitnessFuncs = ['coherence']
 inputToVary = "default"
 numSimulations = 1000
 numFiles = 25
@@ -25,9 +24,10 @@ numFiles = 25
 
 
 ############################################# Experiment 3 ############################################
-# for fitnessFunc in fitnessFuncs:
-#      filename = constants.getExperimentResultPath(number=3, func=fitnessFunc, suff='_expData')
-#      alg3.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
-#      image3.statusOverTime(filename, fitnessFunc)
+for fitnessFunc in fitnessFuncs:
+     filename = constants.getExperimentResultPath(number=3, func=fitnessFunc, suff='_expData')
+     alg3.runExperiment(filename, inputToVary, numSimulations, numFiles, fitnessFunc)
+     image3.statusOverTime(filename, fitnessFunc)
 
-alg2.analyticalStatusofGopher("multiobjective")
+# alg3.analyticalStatusofGopherBrave("coherence", intention=False)
+alg3.analyticalStatusofGopherBrave("coherence", intention=True)

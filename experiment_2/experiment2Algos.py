@@ -312,7 +312,7 @@ def analyticalStatusofGopher(fitnessFunc, intention=False):
     probAlived = [1] * 51
 
     for i in range(1, 51):
-        if probAlived[i-1] == 0:
+        if probAlived[i-1] <= 0:
             probAlived[i] = probAlived[i-1]
             probStarved[i] = probStarved[i-1]
             probZapped[i] = probZapped[i-1]
@@ -354,7 +354,11 @@ def analyticalStatusofGopher(fitnessFunc, intention=False):
     plt.xlabel('Time (# of Traps Seen)')
     plt.ylabel('Gopher Status (%)')
     plt.legend()
-    plt.title('Status Over Time \
-    Without Intention')
+    if intention:      
+        plt.title(str(fitnessFunc) + ' Status Over Time (With Intention)')
+    else:
+        plt.title(str(fitnessFunc) + ' Status Over Time (Without Intention)')
     plt.show()
     plt.savefig('test.png')
+
+

@@ -2,20 +2,22 @@ import libs.simulation as s
 import copy
 import csv
 import geneticAlgorithm.utils as utils
+import geneticAlgorithm.fitnessFunctions as ff
 from classes.Encoding import Encoding
 import classes.Trap as t
 import numpy as np
+import matplotlib.pyplot as plt
 import legacy.magicFunctions as mf
 import legacy.data as d
 import geneticAlgorithm.constants as constants
 import geneticAlgorithm.analytical as analy
 import geneticAlgorithm.library as lib
-
+import libs.algorithms as alg
 
 pref = {
     "intention" : 1, #if gopher has intention
     "defaultProbEnter" : 0.8, #probability of gopher entering trap (not for intention)
-    "probReal" : 0.2, #percentage of traps that are designed as opposed to random, set default to 0
+    "probReal" : 0.0, #percentage of traps that are designed as opposed to random, set default to 0
     "nTrapsWithoutFood" : 4, #the amount of traps a gopher can survive without entering (due to starvation)
     "maxProjectileStrength" : 0.45, #thickWire strength
 }
@@ -232,4 +234,139 @@ def loadTrapList(fitnessFunc, numFiles, encoder: Encoding = None):
                     trapList.append(trap)
     return trapList
 
+def analyticalStatusofGopherBrave(fitnessFunc, intention=False):
+    """
+    Takes in a fitness funcion, return a list of 50 tuples (P_alive, P_starved, P_zapped) 
+    representing the status of gophers at the ith trap
+    """
+    """
+    Idea:
+        1. the gopher enter the trap
+            a. the gopher eat the food
+                -the gopher is zapped -> Z
+                -the gopher is not zapped -> H0
+            b. the gopher doesn't eat the food
+                -the gopher is zapped -> Z
+                -the gopher is not zapped -> H_n+1 or S(when n=3)
+        2. the gopher didn't enter the trap -> H_n+1 or S(when n=3)
+    """
+    numFiles = 25
+    MFI = 4
+    trapList = loadTrapList(fitnessFunc, numFiles)
+    encoder = Encoding(code = 1)
+    ## Calcualted average probability of killing a gopher/firing/
+    killSum = 0
+    fireSum = 0
+    eatSum = 0
+    eatAndDeathSum = 0
+    notEatAndDeathSum = 0
+    thinkReal = 0
+    for trap in trapList:
+        # whether it kills
+        encodedTrap = encoder.encode(trap.board)
+        lethality = ff.getLethality(encodedTrap, encoder, brave=True)
+        probKill = lethality * constants.MAX_PROB_DEATH
+        killSum += probKill
+        # whether it fires
+        fireSum += analy.shootProjectile(trap.board)
+        # whether gopher eats
+        eatTimeDist = analy.getProbabilityDistribution(constants.DEFAULT_PROB_ENTER)
+        expectedEatTime = sum([eatTimeDist[i] * (i+1) for i in range(len(eatTimeDist))])
+        eatSum += analy.doesGopherEat(trap.board, expectedEatTime, brave=True)
+        # whether gopher eats and dies
+        timeDist = analy.getProbabilityDistribution(constants.DEFAULT_PROB_ENTER)
+        sumProb1 = 0
+        for i, dist in enumerate(timeDist):
+            eatAndDeathProb = analy.probGopherEatAndDie(trap.board, i+1, brave=True)
+            sumProb1 += (eatAndDeathProb * dist)
+        eatAndDeathSum += sumProb1
+        # whether gopher doesn't eat and dies
+        timeDist = analy.getProbabilityDistribution(constants.DEFAULT_PROB_ENTER)
+        sumProb2 = 0
+        for i, dist in enumerate(timeDist):
+            eatAndDeathProb = analy.probNotEatAndDie(trap.board, i+1, brave=True)
+            sumProb2 += (eatAndDeathProb * dist)
+        notEatAndDeathSum += sumProb2
+        # whether the gopher with intention thinks trap is real
+        thinkReal += alg.isTrap(trap)
+
+    expectedProbKill = killSum / len(trapList)
+    expectedProbFire = fireSum / len(trapList)
+    expectedProbEat = eatSum / len(trapList)
+    expectedProbEatAndDeath = eatAndDeathSum / len(trapList)
+    expectedProbNotEatAndDeath = notEatAndDeathSum / len(trapList)
+    expectedThinkReal = thinkReal / len(trapList)
+
+    print("expectedProbKill", expectedProbKill)
+    print("expectedProbFire", expectedProbFire)
+    print("expectedProbEat", expectedProbEat)
+    print("expectedProbEatAndDeath", expectedProbEatAndDeath)
+    print("expectedProbNotEatAndDeath", expectedProbNotEatAndDeath)
+    # 
+    hungerStatus = [1, 0, 0, 0]
+    probZapped = [0] * 51
+    probStarved = [0] * 51
+    probAlived = [1] * 51
+
+    for i in range(1, 51):
+        if probAlived[i-1] == 0:
+            probAlived[i] = probAlived[i-1]
+            probStarved[i] = probStarved[i-1]
+            probZapped[i] = probZapped[i-1]
+        else:
+            normalizedHungerStatus = np.array(hungerStatus) / sum(hungerStatus)
+            expectedHungerLevel = sum([normalizedHungerStatus[i] * i for i in range(4)])
+            hungerWeight = ((expectedHungerLevel + 1) / MFI)**10
+            # probEnter = 1 if hungerWeight == 1 else constants.DEFAULT_PROB_ENTER * (1 - hungerWeight) + hungerWeight
+            if hungerWeight == 1:
+                probEnter = 1
+            elif intention:
+                probEnter = 1 - expectedThinkReal
+            else:
+                probEnter = constants.DEFAULT_PROB_ENTER * (1 - hungerWeight) + hungerWeight
+            # probEnter = 1
+            #################
+            # probGopherEat = probEnter * ( expectedProbFire * expectedProbEat + (1 - expectedProbFire) * 1 - expectedProbKill) 
+            probEatAndAlive = probEnter * (expectedProbEat - expectedProbEatAndDeath)
+            probEatAndDeath = probEnter * (expectedProbEatAndDeath)
+            probNotEatAndAlive = probEnter * ((1-expectedProbEat) - expectedProbNotEatAndDeath) + (1-probEnter)
+            probNotEatAndDeath = probEnter * expectedProbNotEatAndDeath
+            
+            if not intention:
+                probStarved[i] = probStarved[i-1] 
+                probZapped[i] = probZapped[i-1] + probAlived[i-1] * (probEatAndDeath + probNotEatAndDeath)
+                probAlived[i] = 1 - probStarved[i] - probZapped[i]
+                hungerStatus[3] = hungerStatus[2] * probNotEatAndAlive
+                hungerStatus[2] = hungerStatus[1] * probNotEatAndAlive
+                hungerStatus[1] = hungerStatus[0] * probNotEatAndAlive
+                hungerStatus[0] = probAlived[i-1] * probEatAndAlive + hungerStatus[3] * probNotEatAndAlive
+            else:
+                probStarved[i] = probStarved[i-1] + hungerStatus[3] * probNotEatAndAlive
+                probZapped[i] = probZapped[i-1] + probAlived[i-1] * (probEatAndDeath + probNotEatAndDeath)
+                probAlived[i] = 1 - probStarved[i] - probZapped[i]
+                hungerStatus[3] = hungerStatus[2] * probNotEatAndAlive
+                hungerStatus[2] = hungerStatus[1] * probNotEatAndAlive
+                hungerStatus[1] = hungerStatus[0] * probNotEatAndAlive
+                hungerStatus[0] = probAlived[i-1] * probEatAndAlive 
+
+        print('probEat: ', probEatAndAlive, probEatAndDeath, probEatAndDeath + probEatAndAlive)
+        print('probNotEat: ', probNotEatAndAlive, probNotEatAndDeath, probNotEatAndDeath + probNotEatAndAlive)
+
+        print("alived:", probAlived[i])
+        print("sum of status:", sum(hungerStatus))
+        print(hungerStatus)
+        print()
+
+    
+    x = [t for t in range(51)]
+    plt.stackplot(x, probAlived, probStarved, probZapped, colors=['#4FADAC', '#5386A6', '#2F5373'], labels=[r"Alive", r"Starved", r"Zapped"])
+    plt.xlabel('Time (# of Traps Seen)')
+    plt.ylabel('Gopher Status (%)')
+    plt.legend()
+    if intention:
+        plt.title(str(fitnessFunc) + ' Status Over Time With Intention')
+    else:
+        plt.title(str(fitnessFunc) + ' Status Over Time Without Intention')
+    plt.show()
+    plt.savefig(f'test-{"without" if not intention else "with"}-intention.png')
 
